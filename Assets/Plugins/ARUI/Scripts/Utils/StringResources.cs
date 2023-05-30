@@ -1,9 +1,11 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 public static class StringResources
 {
     public static Dictionary<string, int> LayerToLayerInt;
+    public static int LayerToInt(string layer) => LayerToLayerInt[layer];
 
     //Sounds
     public static string ConfirmationSound_path = "Sounds/MRTK_ButtonPress";
@@ -13,6 +15,8 @@ public static class StringResources
     public static string MoveEnd_path = "Sounds/MRTK_Move_End";
     public static string WarningSound_path = "ASounds/warning";
     public static string SelectSound_path = "Sounds/MRTK_Select_Secondary";
+
+    public static string testSound_path = "Sounds/demoIntro";
 
     //Prefabs
     public static string POIHalo_path = "Prefabs/Halo3D";
@@ -42,4 +46,6 @@ public static class StringResources
     public static string eyeGazeManager_name = "EyeGazeManager";
     public static string audioManager_name = "AudioManager";
     public static string confirmationWindow_name = "ConfirmatioWindow";
+
+
 }

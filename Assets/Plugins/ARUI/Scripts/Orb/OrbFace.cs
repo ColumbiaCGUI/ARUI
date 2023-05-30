@@ -39,20 +39,18 @@ public class OrbFace : MonoBehaviour
     }
 
     private float _initialMouthScale;
-    public Vector3 MouthScale { 
-        get => _mouth.transform.localScale;
+    public float MouthScale { 
+        get => _mouth.Radius;
         set
         {
-            if (value.Equals(Vector3.zero))
+            if (value<=0)
             {
+                _mouth.Radius = _initialMouthScale;
                 _mouth.gameObject.SetActive(false);
             } else
             {
-                _mouth.transform.localScale =
-            new Vector3(value.x - _initialMouthScale,
-                        value.y - _initialMouthScale,
-                        value.z - _initialMouthScale);
                 _mouth.gameObject.SetActive(true);
+                _mouth.Radius = Mathf.Clamp(_initialMouthScale - value, 0.5f, _initialMouthScale);
             }
             
         }
@@ -90,7 +88,7 @@ public class OrbFace : MonoBehaviour
         _faceColorOuter = _face.ColorOuter;
         _faceColorInner = _face.ColorInner;
 
-        _initialMouthScale = _mouth.transform.localScale.x;
+        _initialMouthScale = _mouth.Radius;
         _mouth.gameObject.SetActive(false);
     }
 

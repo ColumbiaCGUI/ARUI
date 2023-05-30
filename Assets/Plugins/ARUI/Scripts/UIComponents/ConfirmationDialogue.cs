@@ -43,7 +43,10 @@ public class ConfirmationDialogue : MonoBehaviour
         _movingBehavior.enabled = true;
 
         _selectEvent = new UnityEvent();
+
+        transform.SetLayerAllChildren(StringResources.LayerToInt(StringResources.UI_layer));
     }
+
 
     /// <summary>
     /// Start the timer if the dialogue is initialized and the timer is not running yet.

@@ -6,7 +6,8 @@ Layers
 24 zBuffer
 25 Hand
 26 VM
-
+5 UI
+31 Spatial Awareness
 
 
 1) Create an empty GameObject in the highest hierarchy level at pos 0,0,0, scale 1,1,1

@@ -16,6 +16,7 @@ public enum SoundType
     moveEnd = 5,
     select = 6,
     warning = 7,
+    test = 8,
 }
 
 /// <summary>
@@ -26,7 +27,7 @@ public enum SoundType
 /// </summary>
 public class AudioManager : Singleton<AudioManager>, IMixedRealitySpeechHandler
 {
-    ///** MRTK buiild-in text to speech (ONLY WORKS IN BUILD)
+    ///** MRTK build-in text to speech (ONLY WORKS IN BUILD)
     private TextToSpeech _tTos;                                          /// <TTS from MRTK
     private Dictionary<SoundType, AudioSource> _typeToSound;             /// <maps soundtype to audio file
     private Dictionary<SoundType, string> _soundTypeToPathMapping = new Dictionary<SoundType, string>()
@@ -37,7 +38,8 @@ public class AudioManager : Singleton<AudioManager>, IMixedRealitySpeechHandler
         { SoundType.moveStart,StringResources.MoveStart_path},
         { SoundType.moveEnd,StringResources.MoveEnd_path},
         { SoundType.select,StringResources.SelectSound_path},
-        { SoundType.warning,StringResources.WarningSound_path}
+        { SoundType.warning,StringResources.WarningSound_path},
+        { SoundType.test,StringResources.testSound_path}
     };
 
     private List<AudioSource> _currentlyPlayingSound = null;             /// <Reference to all sounds that are currently playing
@@ -47,7 +49,7 @@ public class AudioManager : Singleton<AudioManager>, IMixedRealitySpeechHandler
     private float _updateTime = 0f;
     private float _updateDelay = 0.04f;
     private float[] _spectrumData = new float[64];
-    private float _multiplier = 300000f;
+    private float _multiplier = 2f;
 
     ///** Mute audio feedback for task guidance
     private bool _isMute = false;                                        /// <if true, task instructions or dialogue system audio feedback is not played. BUT system sound is.
@@ -58,10 +60,10 @@ public class AudioManager : Singleton<AudioManager>, IMixedRealitySpeechHandler
 
     private void Start()
     {
-        GameObject tmp = new GameObject("TextToSpeechSource");
-        tmp.transform.parent = transform;
-        tmp.transform.position = transform.position;
-        _tTos = tmp.gameObject.AddComponent<TextToSpeech>();
+        GameObject _tTosGO = new GameObject("***ARUI-TextToSpeechSource");
+        _tTosGO.transform.parent = transform;
+        _tTosGO.transform.position = transform.position;
+        _tTos = _tTosGO.AddComponent<TextToSpeech>();
 
         _currentlyPlayingSound = new List<AudioSource>();
     }
@@ -145,7 +147,23 @@ public class AudioManager : Singleton<AudioManager>, IMixedRealitySpeechHandler
         _currentlyPlayingSound.Add(tempCopyAudio);
 
         while (tempCopyAudio.isPlaying)
+        {
+            if (type.Equals(SoundType.test))
+            {
+                tempCopyAudio.GetSpectrumData(_spectrumData, 0, FFTWindow.BlackmanHarris);
+                _updateTime = Time.time + _updateDelay;
+
+                var barHeight = Mathf.Clamp(_spectrumData[1]* _multiplier, 0.001f, 1f);
+                Orb.Instance.MouthScale = barHeight;
+            }
+
             yield return new WaitForEndOfFrame();
+        }
+
+        if (type.Equals(SoundType.test))
+        {
+            Orb.Instance.MouthScale = 0;
+        }
 
         _currentlyPlayingSound.Remove(tempCopyAudio);
         Destroy(tempCopyAudio.gameObject);
@@ -164,6 +182,7 @@ public class AudioManager : Singleton<AudioManager>, IMixedRealitySpeechHandler
         if (_currentlyPlayingText!= null)
         {
             _tTos.StopSpeaking();
+
             _currentlyPlayingText.Stop();
         }
             
@@ -173,7 +192,6 @@ public class AudioManager : Singleton<AudioManager>, IMixedRealitySpeechHandler
 
         yield return new WaitForEndOfFrame();
 
-        var msg = string.Format(text, _tTos.Voice.ToString());
         _tTos.StartSpeaking(text);
         _currentlyPlayingText = _tTos.AudioSource;
 
@@ -182,20 +200,18 @@ public class AudioManager : Singleton<AudioManager>, IMixedRealitySpeechHandler
             if (_updateTime > Time.time)
                 yield return new WaitForEndOfFrame();
 
-            _currentlyPlayingText.GetSpectrumData(_spectrumData, 0, FFTWindow.BlackmanHarris);
+            _tTos.AudioSource.GetSpectrumData(_spectrumData, 0, FFTWindow.BlackmanHarris);
             _updateTime = Time.time + _updateDelay;
 
-            var barHeight = Mathf.Clamp(_spectrumData[1] * _multiplier, 0.001f, 1f);
-            Orb.Instance.MouthScale = new Vector3(barHeight, barHeight, barHeight);
-            
+            var barHeight = Mathf.Clamp(_spectrumData[1], 0.001f, 1f);
+            Orb.Instance.MouthScale = barHeight;
+
             yield return new WaitForEndOfFrame();
         } 
         
         yield return new WaitForEndOfFrame();
 
-        Orb.Instance.MouthScale = Vector3.zero; 
-
-        _currentlyPlayingText = null;
+        Orb.Instance.MouthScale = 0; 
     }
 
     /// <summary>

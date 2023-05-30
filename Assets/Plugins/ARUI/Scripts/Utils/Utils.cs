@@ -87,41 +87,37 @@ public static class Utils
         return corners;
     }
 
+#if UNITY_EDITOR
     /// <summary>
     /// Adds the layer.
     /// </summary>
     /// <returns><c>true</c>, if layer was added, <c>false</c> otherwise.</returns>
     /// <param name="layerName">Layer name.</param>
-    public static bool CreateLayer(string layerName, int min, int max)
+    public static bool CreateLayer(string layerName, int layerInt)
     {
         // Open tag manager
         SerializedObject tagManager = new SerializedObject(AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/TagManager.asset")[0]);
         // Layers Property
         SerializedProperty layersProp = tagManager.FindProperty("layers");
-        if (!PropertyExists(layersProp, min, max, layerName))
+        if (!PropertyExists(layersProp, layerInt, layerInt, layerName))
         {
             SerializedProperty sp;
-            // Start at layer 9th index -> 8 (zero based) => first 8 reserved for unity / greyed out
-            for (int i = min, j = max; i < j; i++)
+            sp = layersProp.GetArrayElementAtIndex(layerInt);
+            if (sp.stringValue == "")
             {
-                sp = layersProp.GetArrayElementAtIndex(i);
-                if (sp.stringValue == "")
-                {
-                    // Assign string value to layer
-                    sp.stringValue = layerName;
-                    Debug.Log("Layer: " + layerName + " has been added");
-                    // Save settings
-                    tagManager.ApplyModifiedProperties();
-                    return true;
-                }
-                if (i == j)
-                    Debug.Log("All allowed layers have been filled");
+                // Assign string value to layer
+                sp.stringValue = layerName;
+                Debug.Log("Layer: " + layerName + " has been added. Please add layer '"+layerName+"' at "+ layerInt+" to avoid compilation issues later.");
+                // Save settings
+                tagManager.ApplyModifiedProperties();
+                return true;
             }
         }
         else
         {
             Debug.Log ("Layer: " + layerName + " already exists");
         }
+
         return false;
     }
 
@@ -147,6 +143,8 @@ public static class Utils
         }
         return false;
     }
+
+#endif
 
     #region GUI and Screen transformations
 
@@ -284,6 +282,13 @@ public static class Utils
 
     #region Vector3 and Transform Extensions
 
+    public static void SetLayerAllChildren(this Transform root, int layer)
+    {
+        var children = root.GetComponentsInChildren<Transform>(includeInactive: true);
+        foreach (var child in children)
+            child.gameObject.layer = layer;
+    }
+
     /// <summary>
     /// Returns true if given position is close to zero, given a threshold
     /// </summary>
@@ -339,8 +344,7 @@ public static class Utils
     /// <returns></returns>
     public static float GetCameraToPosDist(this Vector3 target)
     {
-        // Bit shift the index of the layer (8) to get a bit mask
-        int layerMask = 1 << 31;
+        int layerMask = 1 << StringResources.LayerToInt(StringResources.spatialAwareness_layer);
 
         RaycastHit hit;
         // Does the ray intersect any objects excluding the player layer

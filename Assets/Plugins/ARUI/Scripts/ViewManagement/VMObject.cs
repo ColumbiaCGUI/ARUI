@@ -10,6 +10,6 @@ public class VMObject : MonoBehaviour
         vmCopy.transform.parent = transform;
         vmCopy.transform.localPosition = new Vector3(0, 0, 0);
         vmCopy.transform.localScale = Vector3.one;
-        vmCopy.layer = 30;
+        vmCopy.layer = StringResources.LayerToInt(StringResources.VM_layer);
     }
 }

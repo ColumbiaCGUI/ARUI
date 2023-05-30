@@ -126,6 +126,8 @@ public class TestData : MonoBehaviour
         //Show dialogue to user
         AngelARUI.Instance.TryGetUserFeedbackOnUserIntent(user_intent);
 
+        AngelARUI.Instance.RegisterDetectedObject(transform.GetChild(0).gameObject, "test");
+
         yield return new WaitForSeconds(10f);
 
         next = currentTask - 1;
@@ -182,6 +184,11 @@ public class TestData : MonoBehaviour
         if (Input.GetKeyUp(KeyCode.I))
         {
             AngelARUI.Instance.RegisterDetectedObject(transform.GetChild(0).gameObject, "test");
+        }
+
+        if (Input.GetKeyUp(KeyCode.K))
+        {
+            AngelARUI.Instance.DeRegisterDetectedObject("test");
         }
 
         // Example how to step forward/backward in tasklist. 

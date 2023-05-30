@@ -10,7 +10,7 @@ public class Orb : Singleton<Orb>
 {
     ///** Reference to parts of the orb
     private OrbFace _face;                                   /// <the orb shape itself (part of prefab)
-    public Vector3 MouthScale
+    public float MouthScale
     {
         get => _face.MouthScale;
         set => _face.MouthScale = value;

@@ -34,7 +34,7 @@ public class EyeGazeManager : Singleton<EyeGazeManager>
             Ray rayToCenter = new Ray(eyeGazeProvider.GazeOrigin, eyeGazeProvider.GazeDirection);
             RaycastHit hitInfo;
 
-            int layerMask = LayerMask.GetMask("UI", "VM");
+            int layerMask = LayerMask.GetMask(StringResources.UI_layer, StringResources.VM_layer);
             UnityEngine.Physics.Raycast(rayToCenter, out hitInfo, 100f, layerMask);
 
             // Update GameObject to the current eye gaze position at a given distance

@@ -18,7 +18,6 @@ public class CVDetectedObj : VMNonControllable
     {
         base.Awake();
 
-        //gameObject.layer = LayerMask.NameToLayer("VM");
         zBufferCopy = new GameObject(gameObject.name + "_zBuffer");
         zBufferCopy.layer = StringResources.LayerToLayerInt[StringResources.zBuffer_layer];
         zBufferCopy.transform.parent = this.transform;

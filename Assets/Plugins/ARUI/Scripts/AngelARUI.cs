@@ -28,7 +28,7 @@ public class AngelARUI : Singleton<AngelARUI>
     private ConfirmationDialogue _confirmationWindow = null;     /// <Reference to confirmation dialogue
     private GameObject _confirmationWindowPrefab = null;
 
-    public Dictionary<string, CVDetectedObj> DetectedObjects = new Dictionary<string, CVDetectedObj>();
+    private Dictionary<string, CVDetectedObj> DetectedObjects = new Dictionary<string, CVDetectedObj>();
 
     private void Awake() => StartCoroutine(InitProjectSettingsAndScene());
 
@@ -37,23 +37,29 @@ public class AngelARUI : Singleton<AngelARUI>
         List<string> layers = new List<string>()
        {
            StringResources.zBuffer_layer, StringResources.Hand_layer, StringResources.VM_layer,
+           StringResources.UI_layer, StringResources.spatialAwareness_layer
        };
 
-        Utils.CreateLayer(layers[0], 24, 27);
-        Utils.CreateLayer(layers[1], 24, 27);
-        Utils.CreateLayer(layers[2], 24, 27);
         StringResources.LayerToLayerInt = new Dictionary<string, int>
         {
             {  layers[0], 24 },
             {  layers[1], 25 },
             {  layers[2], 26 },
+            {  layers[3], 5 },
+            {  layers[4], 31 }
         };
+
+#if UNITY_EDITOR
+        foreach (string layer in layers)
+            Utils.CreateLayer(layer, StringResources.LayerToLayerInt[layer]);
+#endif
 
         yield return new WaitForEndOfFrame();
 
         //Get persistant reference to ar cam
         _arCamera = Camera.main;
-        _arCamera.cullingMask = ~(StringResources.LayerToLayerInt[StringResources.zBuffer_layer]);
+        int oldMask = _arCamera.cullingMask;
+        _arCamera.cullingMask = oldMask & ~(1 << (StringResources.LayerToLayerInt[StringResources.zBuffer_layer]));
 
         //Instantiate audio manager, for audio feedback
         AudioManager am = new GameObject("AudioManager").AddComponent<AudioManager>();
@@ -180,19 +186,22 @@ public class AngelARUI : Singleton<AngelARUI>
 
     public void RegisterDetectedObject(GameObject bbox, string ID)
     {
-        CVDetectedObj ndetection = bbox.AddComponent<CVDetectedObj>();
+        if (DetectedObjects.ContainsKey(ID)) return;
+
+        GameObject copy = Instantiate(bbox);
+        copy.gameObject.name = "***ARUI-CVDetected-" + ID;
+        CVDetectedObj ndetection = copy.AddComponent<CVDetectedObj>();
         DetectedObjects.Add(ID, ndetection);
+
     }
 
     public void DeRegisterDetectedObject(string ID)
     {
-        CVDetectedObj lookup = DetectedObjects[ID];
-        if (lookup != null)
-        {
-            GameObject temp = DetectedObjects[ID].gameObject;
-            DetectedObjects.Remove(ID);
-            Destroy(temp.GetComponent<CVDetectedObj>());
-        }
+        if (!DetectedObjects.ContainsKey(ID)) return;
+
+        GameObject temp = DetectedObjects[ID].gameObject;
+        DetectedObjects.Remove(ID);
+        Destroy(temp);
     }
 
     #endregion
