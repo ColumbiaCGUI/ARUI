@@ -4,10 +4,10 @@ using System.Collections;
 
 public class TestData : MonoBehaviour
 {
-    public bool build = true;
+    public bool Build = true;
 
     // Testing Task List
-    string[,] tasks0 =
+    string[,] _tasks0 =
     {
         {"0", "Measure 12 ounces of water in the liquid measuring cup"},
         {"1", "Pour the water from the liquid measuring cup into  the electric kettle"},
@@ -27,7 +27,8 @@ public class TestData : MonoBehaviour
          {"0","Pour the water over the coffee grounds"},
          {"0","Clean up the paper filter and coffee grounds"}, //16
     };
-    string[,] tasks1 =
+
+    private string[,] _tasks1 =
     {
         {"0", "Place tortilla on cutting board."},
         {"0", "Use a butter knife to scoop about a tablespoon of nut butter from the jar."},
@@ -45,11 +46,22 @@ public class TestData : MonoBehaviour
         {"0", "Continue slicing with floss to create 5 pinwheels."},//12
     };
 
+    string[,] _tasks2 =
+    {
+        {"0", "Remove the nut and the air cleaner cover"},
+        {"0", "Remove the wing nut and air filter assembly"},
+        {"0", "Separate the inner paper filter from the outer foam filter. Carefully check both filters for holes or tears and replace if damaged."},
+        {"0", "Separate the inner paper filter from the outer foam filter."},
+        {"0", "Remove the wing nut and air filter assembly."},
+        {"0", "Remove the nut and the air cleaner cover." },
+
+    };
+
     private int currentTask = 0;
 
     private void Start()
     {
-        if (!build)
+        if (!Build)
             StartCoroutine(RunTasksAtRuntime());
     }
 
@@ -57,7 +69,7 @@ public class TestData : MonoBehaviour
     {
         yield return new WaitForSeconds(0.5f);
 
-        AngelARUI.Instance.SetTasks(tasks0);
+        AngelARUI.Instance.SetTasks(_tasks0);
 
         yield return new WaitForSeconds(1f);
 
@@ -65,7 +77,7 @@ public class TestData : MonoBehaviour
 
         yield return new WaitForSeconds(3f);
 
-        AngelARUI.Instance.SetTasks(tasks1);
+        AngelARUI.Instance.SetTasks(_tasks2);
 
         currentTask++;
         AngelARUI.Instance.SetCurrentTaskID(currentTask);
@@ -75,10 +87,6 @@ public class TestData : MonoBehaviour
         AngelARUI.Instance.SetViewManagement(false);
 
         yield return new WaitForSeconds(4f);
-        currentTask++;
-        AngelARUI.Instance.SetCurrentTaskID(currentTask);
-        currentTask++;
-        AngelARUI.Instance.SetCurrentTaskID(currentTask);
         currentTask++;
         AngelARUI.Instance.SetCurrentTaskID(currentTask);
 
@@ -118,7 +126,7 @@ public class TestData : MonoBehaviour
 
         int next = currentTask + 1;
         //Set message (e.g. "Did you mean '{user intent}'?"
-        string user_intent = "Did you mean 'Go to the next task'?";
+        string user_intent = "Go to the next task";
 
         //Set event that should be triggered if user confirms
         AngelARUI.Instance.SetUserIntentCallback(() => { AngelARUI.Instance.SetCurrentTaskID(next); });
@@ -132,7 +140,7 @@ public class TestData : MonoBehaviour
 
         next = currentTask - 1;
         //Set message (e.g. "Did you mean '{user intent}'?"
-        user_intent = "Did you mean 'Go to the previous task'?";
+        user_intent = "Go to the previous task";
 
         //Set event that should be triggered if user confirms
         AngelARUI.Instance.SetUserIntentCallback(() => { AngelARUI.Instance.SetCurrentTaskID(next); });
@@ -158,11 +166,11 @@ public class TestData : MonoBehaviour
             int coin = Random.Range(0, 10);
             if (coin % 2 == 0)
             {
-                AngelARUI.Instance.SetTasks(tasks0);
+                AngelARUI.Instance.SetTasks(_tasks0);
             }
             else
             {
-                AngelARUI.Instance.SetTasks(tasks1);
+                AngelARUI.Instance.SetTasks(_tasks1);
             }
         }
 
@@ -171,7 +179,7 @@ public class TestData : MonoBehaviour
         {
             int next = currentTask++;
             //1) Set message (e.g. "Did you mean '{user intent}'?"
-            string user_intent = "Did you mean 'Go to the next task'?";
+            string user_intent = "Go to the next main task in the task graph";
 
             //2) Set event that should be triggered if user confirms
             AngelARUI.Instance.SetUserIntentCallback(() => { AngelARUI.Instance.SetCurrentTaskID(next); });

@@ -41,7 +41,8 @@ public class ViewManagement : Singleton<ViewManagement>
                 if (ProcessObjectVisibility.Instance!=null)
                 {
                     allProcessedNC = ProcessObjectVisibility.Instance.GetAllRects();
-                    if (allProcessedNC.Count > 0)
+                    AngelARUI.Instance.LogDebugMessage("All SM Count: "+ allProcessedNC.Count, true);
+                    if (allProcessedNC.Count > 0) { }
                         counter = 1;
                 }
                 
@@ -245,6 +246,7 @@ public class ViewManagement : Singleton<ViewManagement>
     {
         if (_smIsAlive == false && _allCoarseNC != null && !_allCoarseNC.Contains(vmc) && !(vmc is CVDetectedObj))
             _allCoarseNC.Add(vmc);
+
     }
 
     /// <summary>

@@ -4,6 +4,7 @@ using UnityEngine.UI;
 public class FlexibleTextContainer : MonoBehaviour
 {
     private TMPro.TextMeshProUGUI _textComponent;
+    private VMNonControllable _vmnc;
 
     public TMPro.TextMeshProUGUI[] AllTextMeshComponents => _HGroupTaskMessage.gameObject.GetComponentsInChildren<TMPro.TextMeshProUGUI>();
 
@@ -59,6 +60,8 @@ public class FlexibleTextContainer : MonoBehaviour
         bkgr.material = _taskBackgroundMat;
 
         _taskMessageCollider = transform.GetComponent<BoxCollider>();
+
+        _vmnc = gameObject.AddComponent<VMNonControllable>();
     }
 
     /// <summary>

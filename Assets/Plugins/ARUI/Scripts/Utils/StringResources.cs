@@ -13,10 +13,8 @@ public static class StringResources
     public static string NextTaskSound_path = "Sounds/MRTK_Voice_Confirmation";
     public static string MoveStart_path = "Sounds/MRTK_Move_Start";
     public static string MoveEnd_path = "Sounds/MRTK_Move_End";
-    public static string WarningSound_path = "ASounds/warning";
+    public static string WarningSound_path = "Sounds/warning";
     public static string SelectSound_path = "Sounds/MRTK_Select_Secondary";
-
-    public static string testSound_path = "Sounds/demoIntro";
 
     //Prefabs
     public static string POIHalo_path = "Prefabs/Halo3D";
@@ -25,9 +23,6 @@ public static class StringResources
     public static string Taskprefab_path = "Prefabs/Task";
     public static string EyeTarget_path = "Prefabs/EyeTarget";
     public static string ConfNotification_path = "Prefabs/ConfirmationNotification";
-    public static string Annotation_path = "Prefabs/Annotation";
-    public static string Eyegazecone_path = "Prefabs/EyeGazeCone";
-    public static string DwellButton_path = "Prefabs/SearchDwell";
 
     //Textures
     public static string zBufferTexture_path = "Textures/zBuffer";

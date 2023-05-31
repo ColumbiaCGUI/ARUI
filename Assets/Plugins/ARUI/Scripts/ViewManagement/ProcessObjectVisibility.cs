@@ -51,7 +51,7 @@ public class ProcessObjectVisibility : Singleton<ProcessObjectVisibility>
         {
             yield return new WaitForEndOfFrame();
 
-            while (visibleNonControllables.Count <= 0)
+            while (visibleNonControllables.Count <= 0 || !AngelARUI.Instance.IsVMActiv)
             {
                 yield return new WaitForEndOfFrame();
             }
@@ -90,13 +90,24 @@ public class ProcessObjectVisibility : Singleton<ProcessObjectVisibility>
             colorIDs = new Dictionary<Color, int>();
 
             int index = 0;
+
+            List<int> toRemove = new List<int>();
             foreach (var item in visibleNonControllables)
             {
-                colorToNonControllable.Add(item.GetColor(), item);
-                indexToNonControllable.Add(index, item);
-                colorIDs.Add(item.GetColor(), index);
+                if (item == null) 
+                    toRemove.Add(index);
+                else
+                {
+                    colorToNonControllable.Add(item.GetColor(), item);
+                    indexToNonControllable.Add(index, item);
+                    colorIDs.Add(item.GetColor(), index);
+                }
+
                 index++;
             }
+
+            foreach (int rmv in toRemove)
+                visibleNonControllables.RemoveAt(rmv);
 
             //print for testing
             //Utils.SaveCapture(imageTex,"test");
@@ -114,8 +125,6 @@ public class ProcessObjectVisibility : Singleton<ProcessObjectVisibility>
             sweepTimer = Time.realtimeSinceStartup-sweepTimer;
             sum[0] += copytimer;
             sum[1] += sweepTimer;
-
-            GC.Collect();
 
         }
     }
@@ -325,7 +334,10 @@ public class ProcessObjectVisibility : Singleton<ProcessObjectVisibility>
         if (AABBsPerNonControllable == null) return rects;
 
         foreach (var item in AABBsPerNonControllable.Keys)
-            rects.Add((VMNonControllable)item, AABBsPerNonControllable[item]);
+        {
+            if (!item.IsDestroyed)
+                rects.Add((VMNonControllable)item, AABBsPerNonControllable[item]);
+        }
 
         return rects;
     }

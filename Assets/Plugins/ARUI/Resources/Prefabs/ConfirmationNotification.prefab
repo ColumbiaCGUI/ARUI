@@ -73,7 +73,7 @@ MonoBehaviour:
   smoothing: 1
   lifetime: 0
   orientationType: 5
-  localOffset: {x: 0, y: -0.01, z: 0.5}
+  localOffset: {x: -0.07, y: -0.01, z: 0.5}
   worldOffset: {x: 0, y: 0, z: 0}
   useAngleStepping: 0
   tetherAngleSteps: 6
@@ -101,7 +101,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5895410026230888627}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0.0737, y: 0.0091, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 2469229611641882511}
@@ -211,9 +211,17 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6182467768079138312, guid: d63fb2e66fd999249803f60337151cc1, type: 3}
+      propertyPath: m_Size.x
+      value: 0.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6182467768079138312, guid: d63fb2e66fd999249803f60337151cc1, type: 3}
+      propertyPath: m_Center.x
+      value: 0.1
+      objectReference: {fileID: 0}
     - target: {fileID: 9011669221865112760, guid: d63fb2e66fd999249803f60337151cc1, type: 3}
       propertyPath: m_Name
-      value: FlexibleTextContainer
+      value: FlexibleTextContainer_window
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d63fb2e66fd999249803f60337151cc1, type: 3}
@@ -326,6 +334,14 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 5190425043318944374}
     m_Modifications:
+    - target: {fileID: 1552677505707417000, guid: bf217a8d231f3c444b336258f3a95eb8, type: 3}
+      propertyPath: radius
+      value: 0.015
+      objectReference: {fileID: 0}
+    - target: {fileID: 1552677505707417000, guid: bf217a8d231f3c444b336258f3a95eb8, type: 3}
+      propertyPath: thickness
+      value: 0.001
+      objectReference: {fileID: 0}
     - target: {fileID: 3230609844362058642, guid: bf217a8d231f3c444b336258f3a95eb8, type: 3}
       propertyPath: m_Name
       value: OKButton
@@ -336,27 +352,27 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4529602128157585898, guid: bf217a8d231f3c444b336258f3a95eb8, type: 3}
       propertyPath: m_LocalScale.x
-      value: 1.9860399
+      value: 1.2
       objectReference: {fileID: 0}
     - target: {fileID: 4529602128157585898, guid: bf217a8d231f3c444b336258f3a95eb8, type: 3}
       propertyPath: m_LocalScale.y
-      value: 1.9860399
+      value: 1.2
       objectReference: {fileID: 0}
     - target: {fileID: 4529602128157585898, guid: bf217a8d231f3c444b336258f3a95eb8, type: 3}
       propertyPath: m_LocalScale.z
-      value: 1.4186
+      value: 1.2
       objectReference: {fileID: 0}
     - target: {fileID: 4529602128157585898, guid: bf217a8d231f3c444b336258f3a95eb8, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0.1622
+      value: 0.2064
       objectReference: {fileID: 0}
     - target: {fileID: 4529602128157585898, guid: bf217a8d231f3c444b336258f3a95eb8, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.0087
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4529602128157585898, guid: bf217a8d231f3c444b336258f3a95eb8, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -0.003
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4529602128157585898, guid: bf217a8d231f3c444b336258f3a95eb8, type: 3}
       propertyPath: m_LocalRotation.w
@@ -413,6 +429,18 @@ PrefabInstance:
     - target: {fileID: 4566332776114169878, guid: bf217a8d231f3c444b336258f3a95eb8, type: 3}
       propertyPath: m_LocalScale.z
       value: 0.15
+      objectReference: {fileID: 0}
+    - target: {fileID: 7798911618452216107, guid: bf217a8d231f3c444b336258f3a95eb8, type: 3}
+      propertyPath: m_Size.x
+      value: 0.04
+      objectReference: {fileID: 0}
+    - target: {fileID: 7798911618452216107, guid: bf217a8d231f3c444b336258f3a95eb8, type: 3}
+      propertyPath: m_Size.y
+      value: 0.04
+      objectReference: {fileID: 0}
+    - target: {fileID: 7798911618452216107, guid: bf217a8d231f3c444b336258f3a95eb8, type: 3}
+      propertyPath: m_Size.z
+      value: 0.04
       objectReference: {fileID: 0}
     - target: {fileID: 7798911618452216107, guid: bf217a8d231f3c444b336258f3a95eb8, type: 3}
       propertyPath: m_IsTrigger

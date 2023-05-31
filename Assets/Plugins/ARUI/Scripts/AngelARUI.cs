@@ -199,9 +199,17 @@ public class AngelARUI : Singleton<AngelARUI>
     {
         if (!DetectedObjects.ContainsKey(ID)) return;
 
-        GameObject temp = DetectedObjects[ID].gameObject;
+        StartCoroutine(LateDestroy(DetectedObjects[ID]));
         DetectedObjects.Remove(ID);
-        Destroy(temp);
+    }
+
+    private IEnumerator LateDestroy(CVDetectedObj temp)
+    {
+        temp.IsDestroyed = true;
+
+        yield return new WaitForSeconds(0.2f);
+
+        Destroy(temp.gameObject);
     }
 
     #endregion
@@ -265,21 +273,8 @@ public class AngelARUI : Singleton<AngelARUI>
         Camera zBufferCam = new GameObject("zBuffer").AddComponent<Camera>();
         zBufferCam.transform.parent = _arCamera.transform;
         zBufferCam.transform.position = Vector3.zero;
-        zBufferCam.fieldOfView = _arCamera.fieldOfView;
+        zBufferCam.gameObject.AddComponent<ZBufferCamera>();
 
-        zBufferCam.clearFlags = CameraClearFlags.Color;
-        zBufferCam.backgroundColor = Color.black;
-        zBufferCam.cullingMask = 1 << Utils.GetLayerInt(StringResources.zBuffer_layer);
-
-        zBufferCam.nearClipPlane = 0.1f;
-        zBufferCam.targetDisplay = 1;
-        zBufferCam.targetTexture = new RenderTexture(Resources.Load(StringResources.zBufferTexture_path) as RenderTexture);
-        zBufferCam.allowHDR = false;
-        zBufferCam.allowMSAA = false;
-
-        zBufferCam.nearClipPlane = _arCamera.nearClipPlane;
-
-        zBufferCam.gameObject.AddComponent<ProcessObjectVisibility>();
     }
 
 

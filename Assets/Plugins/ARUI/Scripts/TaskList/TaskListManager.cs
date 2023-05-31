@@ -210,13 +210,11 @@ public class TaskListManager : Singleton<TaskListManager>
         if (_isLookingAtTaskList && EyeGazeManager.Instance.CurrentHit != EyeTarget.tasklist)
         {
             _isLookingAtTaskList = false;
-            Orb.Instance.SetSticky(false);
         }
         else if (!_isLookingAtTaskList && EyeGazeManager.Instance.CurrentHit == EyeTarget.tasklist)
         {
             _isLookingAtTaskList = true;
-            Orb.Instance._messageContainer.SetIsActive(false, false);
-            Orb.Instance.SetSticky(true);
+            Orb.Instance.Message.SetIsActive(false, false);
         }
 
         if (_isLookingAtTaskList && !_isVisible && !_isFading)
@@ -386,7 +384,7 @@ public class TaskListManager : Singleton<TaskListManager>
         }
 
         Orb.Instance.SetTaskMessage(orbMessage);
-        AudioManager.Instance.PlaySound(Orb.Instance.transform.position, SoundType.taskDone);
+        AudioManager.Instance.PlaySound(Orb.Instance.AllOrbColliders[0].transform.position, SoundType.taskDone);
     }
     #endregion
 

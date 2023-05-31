@@ -33,10 +33,10 @@ public class OrbMessage : MonoBehaviour
         set { SetNotificationTextActive(value); }
     }
 
-    private bool _userHasNotSeenNewTask = false;
-    public bool UserHasNotSeenNewTask
+    private bool _userHasSeenNewTask = false;
+    public bool UserHasSeenNewTask
     {
-        get { return _userHasNotSeenNewTask; }
+        get { return _userHasSeenNewTask; }
     }
 
     private bool _isLookingAtMessage = false;
@@ -177,7 +177,7 @@ public class OrbMessage : MonoBehaviour
     {
         SetFadeOutMessage(false);
 
-        _userHasNotSeenNewTask = true;
+        _userHasSeenNewTask = false;
 
         _textContainer.GlowColor = new Color(_glowColor.r, _glowColor.g, _glowColor.b, _maxglowAlpha);
 
@@ -196,7 +196,8 @@ public class OrbMessage : MonoBehaviour
         }
 
         _textContainer.GlowColor = new Color(_glowColor.r, _glowColor.g, _glowColor.b, 0f);
-        _userHasNotSeenNewTask = false;
+
+        _userHasSeenNewTask = true;
     }
 
     #endregion
@@ -344,6 +345,8 @@ public class OrbMessage : MonoBehaviour
     {
         _textContainer.Text = message;
         _progressText.text = TaskListManager.Instance.GetCurrentTaskID() + "/" + TaskListManager.Instance.GetTaskCount();
+
+        UpdateAnchorInstant();
 
         if (message.Contains("Done"))
         {

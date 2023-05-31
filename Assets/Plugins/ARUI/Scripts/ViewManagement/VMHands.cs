@@ -19,13 +19,7 @@ public class VMHands : VMNonControllable
         collider.isTrigger = true;
     }
 
-    void OnTriggerEnter(Collider other)
-    {
-        Debug.Log("Enter");
-    }
+    void OnTriggerEnter(Collider other) { }
 
-    void OnTriggerExit(Collider other)
-    {
-        Debug.Log("Exit");
-    }
+    void OnTriggerExit(Collider other) { }
 }

@@ -41,7 +41,14 @@ public class VMNonControllable : VMObject
 
     private void OnDestroy()
     {
-        ViewManagement.Instance.DeRegisterNonControllable(this);
+        if (ViewManagement.Instance != null)
+            ViewManagement.Instance.DeRegisterNonControllable(this);
+    }
+
+    private void OnDisable()
+    {
+        if (ViewManagement.Instance!=null)
+            ViewManagement.Instance.DeRegisterNonControllable(this);
     }
 
     private void OnGUI()

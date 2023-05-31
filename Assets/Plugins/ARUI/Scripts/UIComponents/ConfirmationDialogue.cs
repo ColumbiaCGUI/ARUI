@@ -28,7 +28,6 @@ public class ConfirmationDialogue : MonoBehaviour
     private void Awake()
     {
         _textContainer = transform.GetChild(1).GetChild(0).gameObject.AddComponent<FlexibleTextContainer>();
-        _textContainer.gameObject.AddComponent<VMNonControllable>();
 
         GameObject btn = transform.GetChild(0).gameObject;
         _okBtn = btn.AddComponent<DwellButton>();
@@ -67,7 +66,7 @@ public class ConfirmationDialogue : MonoBehaviour
     {
         _delayedMoving = true;
 
-        yield return new WaitForSeconds(1f);
+        yield return new WaitForSeconds(0.5f);
 
         if (!_okBtn.IsInteractingWithBtn)
             _movingBehavior.enabled = true;
@@ -115,7 +114,7 @@ public class ConfirmationDialogue : MonoBehaviour
         _okBtn.gameObject.SetActive(true);
         _time.enabled = true;
 
-        _okBtn.transform.position = _textContainer.transform.position + new Vector3(_textContainer.TextRect.width - _okBtn.Width/2, 0, 0);
+        _okBtn.transform.localPosition = _textContainer.transform.localPosition + new Vector3(_textContainer.TextRect.width + _okBtn.Width/2, 0, 0);
 
         _time.Start = new Vector3(0, _textContainer.TextRect.height/2, 0);
         _time.End = new Vector3(_textContainer.TextRect.width, _textContainer.TextRect.height / 2, 0);

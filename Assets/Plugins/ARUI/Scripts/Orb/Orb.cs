@@ -17,7 +17,9 @@ public class Orb : Singleton<Orb>
     }
 
     private OrbGrabbable _grabbable;                         /// <reference to grabbing behavior
-    public OrbMessage _messageContainer;                     /// <reference to orb message container (part of prefab)
+    private OrbMessage _messageContainer;                     /// <reference to orb message container (part of prefab)
+    public OrbMessage Message => _messageContainer;
+
     private DwellButton _taskListbutton;                     /// <reference to dwell btn above orb ('tasklist button')
 
     private List<BoxCollider> _allOrbColliders;              /// <reference to all collider - will be merged for view management.
@@ -52,7 +54,7 @@ public class Orb : Singleton<Orb>
         _taskListbutton = taskListbtn.AddComponent<DwellButton>();
         _taskListbutton.gameObject.name += "FacetasklistButton";
         _taskListbutton.InitializeButton(EyeTarget.orbtasklistButton, () => TaskListManager.Instance.ToggleTasklist(), 
-            () => TaskListManager.Instance.Reposition(), false, DwellButtonType.Toggle);
+            null, false, DwellButtonType.Toggle);
         taskListbtn.SetActive(false);
 
         BoxCollider taskListBtnCol = transform.GetChild(0).GetComponent<BoxCollider>();
@@ -72,7 +74,7 @@ public class Orb : Singleton<Orb>
         else if (!_isLookingAtOrb && EyeGazeManager.Instance.CurrentHit == EyeTarget.orbFace)
             SetIsLookingAtFace(true);
 
-        if (_messageContainer.UserHasNotSeenNewTask && _messageContainer.IsLookingAtMessage)
+        if (_messageContainer.UserHasSeenNewTask || _isLookingAtOrb || _messageContainer.IsLookingAtMessage)
             _face.NotificationEnabled = false;
 
         UpdateOrbVisibility();
@@ -102,7 +104,7 @@ public class Orb : Singleton<Orb>
                 _messageContainer.SetFadeOutMessage(false);
             }
             else if (!IsLookingAtOrb(false) && _messageContainer.IsMessageVisible && !_messageContainer.IsMessageFading
-                && !_messageContainer.IsLookingAtMessage && !_messageContainer.UserHasNotSeenNewTask && !_messageContainer.IsNotificationActive)
+                && !_messageContainer.IsLookingAtMessage && !_messageContainer.IsNotificationActive)
             { //Start Fading
                 _messageContainer.SetFadeOutMessage(true);
             }
@@ -141,7 +143,6 @@ public class Orb : Singleton<Orb>
             _lazyLookAtRunning = false;
             _face.UserIsLooking = true;
 
-            AudioManager.Instance.PlaySound(_face.transform.position, SoundType.select);
         }
     }
 
@@ -226,19 +227,19 @@ public class Orb : Singleton<Orb>
     /// <param name="message"></param>
     public void SetTaskMessage(string message)
     {
-        if (message.Length <= 1)
-            _messageContainer.SetIsActive(false, false);
-        else
-        {
-            _messageContainer.SetIsActive(true, true);
-            _face.NotificationEnabled= true;
+        SetNotificationMessage("");
 
+        if (message.Length <= 1) {
+
+            _face.NotificationEnabled = false;
+            
+        } else
+        {
+            _face.NotificationEnabled = true;
             AudioManager.Instance.PlayText(message);
         }
 
         _messageContainer.SetTaskMessage(message);
-
-        SetNotificationMessage("");
 
         if (!_allOrbColliders.Contains(_messageContainer.Collider))
             _allOrbColliders.Add(_messageContainer.Collider);
@@ -278,7 +279,7 @@ public class Orb : Singleton<Orb>
     /// Update the position behavior of the orb
     /// </summary>
     /// <param name="isSticky"></param>
-    public void SetSticky(bool isSticky)
+    private void SetSticky(bool isSticky)
     {
         _followSolver.SetSticky(isSticky);
 

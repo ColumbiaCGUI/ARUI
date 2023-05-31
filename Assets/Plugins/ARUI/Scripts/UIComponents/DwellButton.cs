@@ -91,7 +91,7 @@ public class DwellButton : MonoBehaviour, IMixedRealityTouchHandler
     private void Update()
     {
         UpdateCurrentlyLooking();
-        IsInteractingWithBtn = _isTouchingBtn || _isLookingAtBtn;
+        IsInteractingWithBtn = _isTouchingBtn || _isLookingAtBtn || EyeGazeManager.Instance.CurrentHit.Equals(EyeTarget.textConfirmationWindow);
     }
 
     private void UpdateCurrentlyLooking()

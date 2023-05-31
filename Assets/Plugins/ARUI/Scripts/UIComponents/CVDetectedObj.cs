@@ -13,6 +13,16 @@ public class CVDetectedObj : VMNonControllable
 
     public bool IsLookingAt = false;
 
+    private bool _isDestroyed = false;
+    public bool IsDestroyed  
+    {
+        get => _isDestroyed; 
+        set {
+            ViewManagement.Instance.DeRegisterNonControllable(this); 
+            _isDestroyed = value; 
+        }
+    }
+
     // Start is called before the first frame update
     void Awake()
     {
@@ -30,31 +40,11 @@ public class CVDetectedObj : VMNonControllable
 
         StartCoroutine(UpdateAABB());
 
-        Rigidbody rb = gameObject.AddComponent<Rigidbody>();
-        rb.isKinematic = true;
-        rb.useGravity = false;
+        //Rigidbody rb = gameObject.AddComponent<Rigidbody>();
+        //rb.isKinematic = true;
+        //rb.useGravity = false;
 
-        collider.isTrigger = false;
-    }
-
-    private void OnTriggerEnter(Collider other)
-    {
-        if (other.gameObject.name.ToLower().Contains("eyegazecone"))
-            IsLookingAt = true;
-    }
-
-    private void OnTriggerExit(Collider other)
-    {
-        if (other.gameObject.name.ToLower().Contains("eyegazecone"))
-            IsLookingAt = false;
-    }
-
-    private void OnDestroy()
-    {
-        Destroy(zBufferCopy);
-        Destroy(gameObject.GetComponent<Rigidbody>());
-        Destroy(gameObject.GetComponent<BoxCollider>());
-        ViewManagement.Instance.DeRegisterNonControllable(this);
+        //collider.isTrigger = false;
     }
 
     private IEnumerator UpdateAABB()
@@ -85,6 +75,13 @@ public class CVDetectedObj : VMNonControllable
 
             yield return new WaitForSeconds(0.2f);
         }
+    }
+
+    private void OnDestroy()
+    {
+        Destroy(zBufferCopy);
+        Destroy(gameObject.GetComponent<Rigidbody>());
+        Destroy(gameObject.GetComponent<BoxCollider>());
     }
 
 }

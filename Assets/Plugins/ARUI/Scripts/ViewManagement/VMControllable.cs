@@ -14,6 +14,8 @@ public class VMControllable : VMObject
     {
         _baseCollider = gameObject.transform.GetComponentInChildren<BoxCollider>();
 
+        if (AngelARUI.Instance.ARCamera == null) return;
+
         //make sure that the AABB is only returned if object is in front of the camera.
         if (transform.InFrontOfCamera(AngelARUI.Instance.ARCamera))
             AABB = transform.RectFromObjs(AngelARUI.Instance.ARCamera, new List<BoxCollider> { _baseCollider });

@@ -15,8 +15,7 @@ public enum SoundType
     moveStart = 4,
     moveEnd = 5,
     select = 6,
-    warning = 7,
-    test = 8,
+    warning = 7
 }
 
 /// <summary>
@@ -38,8 +37,7 @@ public class AudioManager : Singleton<AudioManager>, IMixedRealitySpeechHandler
         { SoundType.moveStart,StringResources.MoveStart_path},
         { SoundType.moveEnd,StringResources.MoveEnd_path},
         { SoundType.select,StringResources.SelectSound_path},
-        { SoundType.warning,StringResources.WarningSound_path},
-        { SoundType.test,StringResources.testSound_path}
+        { SoundType.warning,StringResources.WarningSound_path}
     };
 
     private List<AudioSource> _currentlyPlayingSound = null;             /// <Reference to all sounds that are currently playing
@@ -53,8 +51,8 @@ public class AudioManager : Singleton<AudioManager>, IMixedRealitySpeechHandler
 
     ///** Mute audio feedback for task guidance
     private bool _isMute = false;                                        /// <if true, task instructions or dialogue system audio feedback is not played. BUT system sound is.
-    public bool IsMute { get { return _isMute; }
-    }
+    public bool IsMute => _isMute;
+    
 
     public void Awake() => CoreServices.InputSystem?.RegisterHandler<IMixedRealitySpeechHandler>(this);
 
@@ -95,9 +93,9 @@ public class AudioManager : Singleton<AudioManager>, IMixedRealitySpeechHandler
     {
         if (mute && _currentlyPlayingText != null)
         {
+            _tTos.AudioSource.Stop();
             _tTos.StopSpeaking();
             _currentlyPlayingText.Stop();
-            _currentlyPlayingText = null;
         }
 
         _isMute = mute;
@@ -148,21 +146,7 @@ public class AudioManager : Singleton<AudioManager>, IMixedRealitySpeechHandler
 
         while (tempCopyAudio.isPlaying)
         {
-            if (type.Equals(SoundType.test))
-            {
-                tempCopyAudio.GetSpectrumData(_spectrumData, 0, FFTWindow.BlackmanHarris);
-                _updateTime = Time.time + _updateDelay;
-
-                var barHeight = Mathf.Clamp(_spectrumData[1]* _multiplier, 0.001f, 1f);
-                Orb.Instance.MouthScale = barHeight;
-            }
-
             yield return new WaitForEndOfFrame();
-        }
-
-        if (type.Equals(SoundType.test))
-        {
-            Orb.Instance.MouthScale = 0;
         }
 
         _currentlyPlayingSound.Remove(tempCopyAudio);
@@ -181,8 +165,8 @@ public class AudioManager : Singleton<AudioManager>, IMixedRealitySpeechHandler
     {
         if (_currentlyPlayingText!= null)
         {
+            _tTos.AudioSource.Stop();
             _tTos.StopSpeaking();
-
             _currentlyPlayingText.Stop();
         }
             
@@ -195,7 +179,12 @@ public class AudioManager : Singleton<AudioManager>, IMixedRealitySpeechHandler
         _tTos.StartSpeaking(text);
         _currentlyPlayingText = _tTos.AudioSource;
 
-        while (_tTos.IsSpeaking())
+        yield return new WaitForEndOfFrame();
+
+        while (!_tTos.AudioSource.isPlaying)
+            yield return new WaitForEndOfFrame();
+
+        while (_tTos.AudioSource.isPlaying)
         {
             if (_updateTime > Time.time)
                 yield return new WaitForEndOfFrame();
@@ -229,9 +218,7 @@ public class AudioManager : Singleton<AudioManager>, IMixedRealitySpeechHandler
             if (_tTos)
                 _tTos.StopSpeaking();
 
-            _currentlyPlayingText = null;
-
-            Debug.Log("Orb stopped speaking.");
+            AngelARUI.Instance.LogDebugMessage("User triggered: Orb stopped speaking", true);
         }
     }
 }

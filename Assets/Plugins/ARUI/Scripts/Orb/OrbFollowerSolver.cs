@@ -237,9 +237,6 @@ public class OrbFollowerSolver : Solver
         }
         else
         {
-            if (_isSticky)
-                SetSticky(true);
-
             _currentMaxViewDegrees = ARUISettings.OrbMaxViewDegRegular;
             MoveLerpTime = ARUISettings.OrbMoveLerpRegular;
             WorkingPosition = transform.position;

@@ -9,7 +9,8 @@ public enum EyeTarget
     tasklist = 3,
     orbtasklistButton = 4,
     okButton = 7,
-    cancelButton = 8
+    ringindicator = 8,
+    textConfirmationWindow = 9
 }
 
 public class EyeGazeManager : Singleton<EyeGazeManager>
@@ -60,8 +61,11 @@ public class EyeGazeManager : Singleton<EyeGazeManager>
                 else if (goName.Contains("okbutton"))
                     CurrentHit = EyeTarget.okButton;
 
-                else if (goName.Contains("cancelbutton"))
-                    CurrentHit = EyeTarget.cancelButton;
+                else if (goName.Contains("flexibletextcontainer_window"))
+                    CurrentHit = EyeTarget.textConfirmationWindow;
+
+                else if (goName.Contains("ringindicator"))
+                    CurrentHit = EyeTarget.ringindicator;
 
                 else
                     CurrentHit = EyeTarget.nothing;

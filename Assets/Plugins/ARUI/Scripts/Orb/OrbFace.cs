@@ -20,7 +20,7 @@ public class OrbFace : MonoBehaviour
 
     ///** Colors of orb states
     private Color _faceColorInner = new Color(1, 1, 1, 1f);
-    private Color _faceColorOuter = new Color(1, 1, 1, 1f);
+    private Color _faceColorOuter = new Color(1, 1, 1, 0f);
 
     private GameObject _notificationIcon;
     private bool _notificationIconActive = false;
@@ -29,11 +29,6 @@ public class OrbFace : MonoBehaviour
         get { return _notificationIconActive; } 
         set { 
             _notificationIconActive = value;
-            if (_notificationIconActive) 
-                _face.ColorOuter = Color.black;
-            else
-                _face.ColorOuter = _faceColorOuter;
-
             _notificationIcon.SetActive(value);
         }
     }

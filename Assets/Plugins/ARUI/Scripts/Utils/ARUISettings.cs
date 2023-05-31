@@ -9,9 +9,9 @@ public static class ARUISettings
     //**** Orb
     public static readonly float OrbMinDistToUser = 0.6f;    /// <in meters
     public static readonly float OrbMaxDistToUser = 1.1f;    /// <in meters
-    public static readonly float OrbMinViewDegrees = 0f;     ///<The element will stay at least this far away from the center of view
 
     // Orb radial behavior - higher values means the element will stay further away from the center of view
+    public static readonly float OrbMinViewDegrees = 0f;        ///<The element will stay at least this far away from the center of view
     public static readonly float OrbMaxViewDegSticky = 21f;
     public static readonly float OrbMaxViewDegRegular = 15f;
     public static readonly float OrbMaxViewDegCenter = 5f;
@@ -22,7 +22,6 @@ public static class ARUISettings
     public static readonly Color OrbMessageBGColor = new Color(0.06f, 0.06f, 0.06f, 0.5f);
     public static readonly int OrbMessageMaxCharCountPerLine = 70;
 
-
     //**** Task List
     public static readonly Color TaskFutureColor = Color.gray;
     public static readonly Color TaskCurrentColor = Color.white;
@@ -32,7 +31,6 @@ public static class ARUISettings
 
     public static readonly float TasksMinDistToUser = 0.6f;   /// <in meters
     public static readonly float TasksMaxDistToUser = 1f;     /// <in meters
-
 
     //**** Confirmation Dialogue
     public static readonly float DialogueTimeInSeconds = 8f;  /// <How much time the user has to decide (excluding the time the use is loking at the ok button
