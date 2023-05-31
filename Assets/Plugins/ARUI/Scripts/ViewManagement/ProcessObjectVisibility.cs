@@ -91,23 +91,13 @@ public class ProcessObjectVisibility : Singleton<ProcessObjectVisibility>
 
             int index = 0;
 
-            List<int> toRemove = new List<int>();
             foreach (var item in visibleNonControllables)
             {
-                if (item == null) 
-                    toRemove.Add(index);
-                else
-                {
-                    colorToNonControllable.Add(item.GetColor(), item);
-                    indexToNonControllable.Add(index, item);
-                    colorIDs.Add(item.GetColor(), index);
-                }
-
+                colorToNonControllable.Add(item.GetColor(), item);
+                indexToNonControllable.Add(index, item);
+                colorIDs.Add(item.GetColor(), index);
                 index++;
             }
-
-            foreach (int rmv in toRemove)
-                visibleNonControllables.RemoveAt(rmv);
 
             //print for testing
             //Utils.SaveCapture(imageTex,"test");
@@ -187,6 +177,7 @@ public class ProcessObjectVisibility : Singleton<ProcessObjectVisibility>
                 objectVPRep[j].Add(rect);
 
             AABBsPerNonControllable.Add(currentNonVM, new List<Rect>());
+            
             foreach (var item in objectVPRep[j])
             {
                 ViewSpaceRectangle scaled = new ViewSpaceRectangle(item.StartX * scale, item.StartY * scale, item.EndX * scale, item.EndY * scale);
@@ -263,6 +254,7 @@ public class ProcessObjectVisibility : Singleton<ProcessObjectVisibility>
 
         assignedColors.Add(currentC);
 
+        AngelARUI.Instance.LogDebugMessage("Registered: " + vmc.gameObject.name, true);
         visibleNonControllables.Add(vmc);
         return currentC;
     }
@@ -271,6 +263,7 @@ public class ProcessObjectVisibility : Singleton<ProcessObjectVisibility>
     {
         if (!visibleNonControllables.Contains(vmc)) return;
 
+        AngelARUI.Instance.LogDebugMessage("Deregistered: " + vmc.gameObject.name, true);
         visibleNonControllables.Remove(vmc);
         assignedColors.Remove(vmc.GetColor());
     }
@@ -340,17 +333,6 @@ public class ProcessObjectVisibility : Singleton<ProcessObjectVisibility>
         }
 
         return rects;
-    }
-
-    public List<Rect> GetAllRects(CVDetectedObj vmc, ref int count)
-    {
-        if (AABBsPerNonControllable!=null && AABBsPerNonControllable.ContainsKey(vmc))
-        {
-            count = AABBsPerNonControllable[vmc].Count;
-            return AABBsPerNonControllable[vmc];
-        }
-        else
-            return null;
     }
 
     /// <summary>

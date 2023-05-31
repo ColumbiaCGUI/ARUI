@@ -18,7 +18,8 @@ public class CVDetectedObj : VMNonControllable
     {
         get => _isDestroyed; 
         set {
-            ViewManagement.Instance.DeRegisterNonControllable(this); 
+            ViewManagement.Instance.DeRegisterNonControllable(this);
+            ProcessObjectVisibility.Instance.DeregisterNonControllable(this);
             _isDestroyed = value; 
         }
     }
@@ -38,13 +39,18 @@ public class CVDetectedObj : VMNonControllable
         meshFilter.mesh = gameObject.GetComponent<MeshFilter>().mesh;
         meshRenderer = zBufferCopy.AddComponent<MeshRenderer>();
 
-        StartCoroutine(UpdateAABB());
-
         //Rigidbody rb = gameObject.AddComponent<Rigidbody>();
         //rb.isKinematic = true;
         //rb.useGravity = false;
 
         //collider.isTrigger = false;
+    }
+
+    public void Start()
+    {
+        base.Start();
+
+        StartCoroutine(UpdateAABB());
     }
 
     private IEnumerator UpdateAABB()
@@ -53,7 +59,7 @@ public class CVDetectedObj : VMNonControllable
             yield return new WaitForEndOfFrame();
 
         List<Material> mr = new List<Material>();
-        Material mat = new Material(Shader.Find("Unlit/Color"));
+        Material mat = new Material(Resources.Load(StringResources.zBufferMat_path) as Material);
 
         color = ProcessObjectVisibility.Instance.RegisterNonControllable(this);
         mat.color = color;
@@ -79,6 +85,9 @@ public class CVDetectedObj : VMNonControllable
 
     private void OnDestroy()
     {
+        ProcessObjectVisibility.Instance.DeregisterNonControllable(this);
+        ViewManagement.Instance.DeRegisterNonControllable(this);
+
         Destroy(zBufferCopy);
         Destroy(gameObject.GetComponent<Rigidbody>());
         Destroy(gameObject.GetComponent<BoxCollider>());

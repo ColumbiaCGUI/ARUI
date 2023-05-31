@@ -41,7 +41,6 @@ public class ViewManagement : Singleton<ViewManagement>
                 if (ProcessObjectVisibility.Instance!=null)
                 {
                     allProcessedNC = ProcessObjectVisibility.Instance.GetAllRects();
-                    AngelARUI.Instance.LogDebugMessage("All SM Count: "+ allProcessedNC.Count, true);
                     if (allProcessedNC.Count > 0) { }
                         counter = 1;
                 }

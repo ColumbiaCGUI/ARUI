@@ -2,7 +2,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.Collections;
 
-public class TestData : MonoBehaviour
+public class ExampleScript : MonoBehaviour
 {
     public bool Build = true;
 

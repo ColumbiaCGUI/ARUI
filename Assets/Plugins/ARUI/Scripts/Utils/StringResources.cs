@@ -26,7 +26,7 @@ public static class StringResources
 
     //Textures
     public static string zBufferTexture_path = "Textures/zBuffer";
-    public static string WireFrameMat_path = "Materials/WireframeMat";
+    public static string zBufferMat_path = "Materials/zBuffer";
 
     //Used Layers
     public static string UI_layer = "UI";

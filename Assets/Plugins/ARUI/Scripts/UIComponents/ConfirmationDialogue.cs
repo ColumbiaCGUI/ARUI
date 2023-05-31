@@ -28,6 +28,7 @@ public class ConfirmationDialogue : MonoBehaviour
     private void Awake()
     {
         _textContainer = transform.GetChild(1).GetChild(0).gameObject.AddComponent<FlexibleTextContainer>();
+        _textContainer.AddVMNC();
 
         GameObject btn = transform.GetChild(0).gameObject;
         _okBtn = btn.AddComponent<DwellButton>();

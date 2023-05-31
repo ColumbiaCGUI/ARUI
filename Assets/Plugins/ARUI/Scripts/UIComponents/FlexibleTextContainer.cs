@@ -4,7 +4,6 @@ using UnityEngine.UI;
 public class FlexibleTextContainer : MonoBehaviour
 {
     private TMPro.TextMeshProUGUI _textComponent;
-    private VMNonControllable _vmnc;
 
     public TMPro.TextMeshProUGUI[] AllTextMeshComponents => _HGroupTaskMessage.gameObject.GetComponentsInChildren<TMPro.TextMeshProUGUI>();
 
@@ -61,8 +60,9 @@ public class FlexibleTextContainer : MonoBehaviour
 
         _taskMessageCollider = transform.GetComponent<BoxCollider>();
 
-        _vmnc = gameObject.AddComponent<VMNonControllable>();
     }
+
+    public void AddVMNC() => gameObject.AddComponent<VMNonControllable>();
 
     /// <summary>
     /// Update collider of messagebox based on the how much space the text takes
