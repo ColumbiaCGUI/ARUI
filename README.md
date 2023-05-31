@@ -39,6 +39,7 @@ All features with the exception of TTS (audio instructions) should work with hol
 The main part of the UI is the orb; the orb tells the user what task the user is currently on. In addition to the orb, there is also a task list in the scene. (Can be toggled using eye-gaze dwelling at the button above the orb)
 
 For now, the ARUI supports a two-level task graph. To set the task graph, call 'AngelARUI.Instance.SetTasks(tasks);' where 'tasks' could look like this:
+```
     string[,] tasks =
     {
         {"0", "Text example MainTask 1"},
@@ -51,6 +52,7 @@ For now, the ARUI supports a two-level task graph. To set the task graph, call '
         {"1", "Text example Subtask 1 of MainTask 3"},
         {"1", "Text example Subtask 2 of MainTask 3"},
     };
+ ```
 
 The first column indicates if the row is a main task (0) or subtask (1) of the last main task. The second column provides the text of the task.
 To set the current task, the user has to do, call: 'AngelARUI.Instance.SetCurrentTaskID(index);' The integer value 'index' presents the row index in the 'tasks' array. (eg. Index 4 would be {"1", "Text example Subtask 2 of MainTask 1"}). If the index does not match the given task graph, the function call is ignored. Please note that a main task can not be set as a current task. If the function is called with an index of a main task, the next subtask will be set (e.g. index 0 would be {"1", "Text example Subtask 1 of MainTask 1"}). Also, for now, we assume that the tasks must be executed sequentially. If index 4 is set, then all tasks before 4 are assumed as done, and all tasks after 4 are assumed as not done.
