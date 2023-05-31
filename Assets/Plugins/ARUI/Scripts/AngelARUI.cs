@@ -2,22 +2,28 @@ using UnityEngine;
 using UnityEngine.Events;
 using System.Collections;
 using System.Collections.Generic;
-using System;
 
 /// <summary>
-/// ARUI Control
+/// Interface to the ARUI Components - a floating assistant in the shape as an orb and a task overview panel.
 /// </summary>
 public class AngelARUI : Singleton<AngelARUI>
 {
     private Camera _arCamera;
+
+    [HideInInspector]
     public Camera ARCamera => _arCamera;              /// <Reference to camera rendering the AR scene
 
     ///****** Debug Settings
     private bool _showARUIDebugMessages = true;       /// <If true, ARUI debug messages are shown in the unity console and scene Logger (if available)
     private bool _showEyeGazeTarget = false;          /// <If true, the eye gaze target is shown if the eye ray hits UI elements (white small cube), can be toggled on/off at runtime
 
+    [HideInInspector] 
+    public bool PrintVMDebug = false;
+
     ///****** Guidance Settings
     private bool _useViewManagement = true;           /// <If true, the ARUI view mangement will run
+
+    [HideInInspector]
     public bool IsVMActiv => ViewManagement.Instance != null && _useViewManagement;
 
     [Tooltip("Set a custom Skip Notification Message. Can not be empty.")]
@@ -90,7 +96,11 @@ public class AngelARUI : Singleton<AngelARUI>
         _confirmationWindowPrefab = Resources.Load(StringResources.ConfNotification_path) as GameObject;
         _confirmationWindowPrefab.gameObject.name = "***ARUI-" + StringResources.confirmationWindow_name;
 
-        InitVisibilityManagement();
+        //Initialize components for the visibility computation of physical objects
+        Camera zBufferCam = new GameObject("zBuffer").AddComponent<Camera>();
+        zBufferCam.transform.parent = _arCamera.transform;
+        zBufferCam.transform.position = Vector3.zero;
+        zBufferCam.gameObject.AddComponent<ZBufferCamera>();
     }
 
 
@@ -184,17 +194,30 @@ public class AngelARUI : Singleton<AngelARUI>
 
     #region Detected Physical Object Registration
 
+    /// <summary>
+    /// Add a 3D mesh to view management. BBox should contain a mesh filter
+    /// </summary>
+    /// <param name="bbox">The position, rotation, scale and mesh of this object should be considered in view management</param>
+    /// <param name="ID">ID to identify the gameobject that should be added</param>
     public void RegisterDetectedObject(GameObject bbox, string ID)
     {
         if (DetectedObjects.ContainsKey(ID)) return;
 
         GameObject copy = Instantiate(bbox);
         copy.gameObject.name = "***ARUI-CVDetected-" + ID;
+
+        // destroy mesh renderer, if attached
+        if (copy.GetComponent<MeshRenderer>()!=null)
+            Destroy(copy.GetComponent<MeshRenderer>());
+
         CVDetectedObj ndetection = copy.AddComponent<CVDetectedObj>();
         DetectedObjects.Add(ID, ndetection);
-
     }
 
+    /// <summary>
+    /// Remove a 3D mesh from view management
+    /// </summary>
+    /// <param name="ID">ID to identify the gameobject that should be removed</param>
     public void DeRegisterDetectedObject(string ID)
     {
         if (!DetectedObjects.ContainsKey(ID)) return;
@@ -265,27 +288,7 @@ public class AngelARUI : Singleton<AngelARUI>
     }
     #endregion
 
-    /// <summary>
-    /// Initialize components for the visibility computation of physical objects
-    /// </summary>
-    private void InitVisibilityManagement()
-    {
-        Camera zBufferCam = new GameObject("zBuffer").AddComponent<Camera>();
-        zBufferCam.transform.parent = _arCamera.transform;
-        zBufferCam.transform.position = Vector3.zero;
-        zBufferCam.gameObject.AddComponent<ZBufferCamera>();
-
-    }
-
-
     #region Logging
-
-    public bool PrintVMDebug = false;
-    public void Update()
-    {
-        if (Input.GetKeyUp(KeyCode.M))
-            PrintVMDebug = !PrintVMDebug;
-    }
 
     /// <summary>
     /// Set if debug information is shown in the logger window
@@ -294,9 +297,9 @@ public class AngelARUI : Singleton<AngelARUI>
     public void ShowDebugMessagesInLogger(bool show) => _showARUIDebugMessages = show;
 
     /// <summary>
-    /// Set if debug information is shown about the users eye gaze
+    /// Set if debug information is shown about the users eye gaze, the user will see a small transparent sphere that represents the eye target
     /// </summary>
-    /// <param name="show">if true and the user is looking at a virtual UI element, a debug cube that represents the eye target is shown</param>
+    /// <param name="show">if true and the user is looking at a virtual UI element, a small transparent sphere is shown </param>
     public void ShowDebugEyeGazeTarget(bool show)
     {
         _showEyeGazeTarget = show;
