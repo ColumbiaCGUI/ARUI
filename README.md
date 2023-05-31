@@ -1,36 +1,29 @@
 # ARUI - 3D UI for angel system
 
-## How to use ARUI in your scene:
+Env: 2020.3.25f and MRTK 2.7.3
 
-Layers
-24 zBuffer
-25 Hand
-26 VM
-5 UI
-31 Spatial Awareness
+## How to use ARUI:
 
-https://grabcad.com/library/honda-gx-160
-
-1) Create an empty GameObject in the highest hierarchy level at pos 0,0,0, scale 1,1,1
-2) Add the AngelARUI script to it. (This script generates all necessary UI elements at runtime from the ARUI files in the 'Resources' folder)
+1) Create an empty GameObject in the highest hierarchy level at pos (0,0,0) and scale (1,1,1)
+2) Add the AngelARUI script to it. This script generates all necessary UI elements at runtime
+3) Call the AngelARUI methods from another script
 
 ## Example Scene
 
-The Unity scene 'Angel3DUI_example' in folder 'Scenes' shows how one can use the AngelARUI script. Other than the MRTK toolkit, there are two important components in the scene: An object with the 'AngelARUI' script attached and a script 'TestData' that calls the functions of AngelARUI (at 
-'DummyDataGenerator').
+The Unity scene 'SampleScene' in folder 'Plugins/ARUI/Scenes' shows how one can use the AngelARUI script. Other than the MRTK toolkit, there are two important components in this scene: An object with the 'AngelARUI' script attached and a script 'ExampleScript' that calls the functions of AngelARUI (at 'DummyTestDataGenerator').
 
 ## Scene Setup
 If you build your own scene using the AngelARUI script, there are a few things to note:
 1) The ARUI uses layers to detect various collisions (e.g. between eye gaze and UI elements). It is important that the layer "UI" exists in the
 Unity project and the layer index should be 5. Please reserve the layer for the ARUI and do not set your own objects with that layer
-2) Make sure that the MRTK toolkit behavior in your scene is correctly set:
+2) Make sure that the MRTK toolkit behavior in your scene is correctly set: (or use the AngelARUI settings file - AngelMRTKSettingsProfile)
     1) Tab 'Input' -> Pointers -> Eye-tracking has to be enabled
     2) Tab 'Input' -> Pointers -> Pointing Raycast Layer Masks -> There should be a layer called "UI"
     3) Tab 'Input' -> Pointers -> Assign a pointer to the 'ShellHandRayPointer_ARUI' prefab in Resource/ARUI/Prefabs/ ( {'articulated hand', 'generic openVR'} and 'any')
     4) Tab 'Input' -> Speech -> add keyword 'stop' (the parameters at the keyword can be left None or null)
     5) Tab 'Input' -> Articulated Hand Tracking -> Assign the prefab 'Resources/ARUI/Prefabs/HandJoint/' to 'handjoint' model (important for view management)
     
-3) In the hierarchy, at the main camera, search for the "GazeProvider" script and select Raycast Layer Masks -> "UI"
+3) In the hierarchy, at the main camera, search for the "GazeProvider" script and select Raycast Layer Masks -> "UI" (if not already selected)
 
 ## Functions, Testing and Debugging
 The ARUI can be customized as follows:
@@ -38,6 +31,7 @@ The ARUI can be customized as follows:
 * 'AngelARUI.Instance.ShowDebugMessagesInLogger(..)' enable/disable debugging messages in the logger window (see example scene), Default is true
 * 'AngelARUI.Instance.SetViewManagement(..)' enable/disable view management. Default is true
 * 'AngelARUI.Instance.MuteAudio(..)' mute or unmute audio instructions
+* File 'ARUISettings.cs' contains some design variables (use with caution)
 
 All features with the exception of TTS (audio instructions) should work with holograhic remoting.
 
@@ -69,12 +63,12 @@ Overall, if you call 'AngelARUI.Instance.SetCurrentTaskID(index);' the orb messa
 At the moment, the ARUI supports skip notifications and a confirmation dialogue. For the skip notification, The notification message can be changed, before building and running the project, in the AngelARUI behavior script in the Editor. As soon as a skip notification is called, it is removed if a new task was set (through SetCurrentTaskID(..) or by calling 'AngelARUI.Instance.ShowSkipNotification(false);'
 
 #### Confirmation Dialogue 
-Here is an example of how to call the confirmation dialogue (found in TestData.cs). For now, the purpose of the confirmation dialogue is to ask the user for permission to execute an action if the NLP node of the system detected a certain user intent (e.g., the user wanted to go to the next task)
+Here is an example of how to call the confirmation dialogue (found in ExampleScript.cs). For now, the purpose of the confirmation dialogue is to ask the user for permission to execute an action if the NLP node of the system detected a certain user intent (e.g., the user wanted to go to the next task)
 ```
 int next = 2;
 //1) Set message (e.g., "Did you mean '{user intent}'?"
 InterpretedAudioUserIntentMsg intentMsg = new InterpretedAudioUserIntentMsg();
-intentMsg.user_intent = "Did you mean 'Go to the next task'?";
+intentMsg.user_intent = "Go to the next task";
 
 //2) Set event that should be triggered if user confirms
 AngelARUI.Instance.SetUserIntentCallback((intent) => { AngelARUI.Instance.SetCurrentTaskID(next); });
@@ -85,7 +79,9 @@ AngelARUI.Instance.TryGetUserFeedbackOnUserIntent(intentMsg);
 
 ## Build, Deploy and Run
 ### Build and Deploy
-The building process is the same as a regular HL2 application, except that before you build the app package in visual studio, the VMMain.dll (Plugins\WSAPlayer\ARM64) has to be added to the projects. (Right click on the UWP Project in the explorer in VS, 'Add' -> 'External File' -> VMMain.dll. Set content to "True". 
+Before you build the project, make sure that the following layers are defined: 'zBuffer' (24), 'Hand' (25), 'VM' (26) and 'UI' (5). The layer 'Spatial Awareness' (31) is used by the ARUI as well, but usually created if MRTK is imported. 
+
+The building process is the same as a regular HL2 application, except that before you build the app package in VS, the VMMain.dll (Plugins\WSAPlayer\ARM64) has to be added to the projects. (Right click on the UWP Project in the explorer in VS, 'Add' -> 'External File' -> VMMain.dll. Set content to "True". 
 
 After deployment, when you run the app for the first time, make sure to give permission to the eye-tracking and it is crucial that the calibration is done properly.
 
@@ -101,7 +97,20 @@ After deployment, when you run the app for the first time, make sure to give per
 - TextToSpeech only works in build
 - If eye calibration is not ideal, one has to manually go to the hololens2 settings and rerun the eye calibration
 
+## 3rd Party Libraries and Assets
+3D Model for testing - https://grabcad.com/library/honda-gx-160
+MRTK 2.7.3 - https://github.com/microsoft/MixedRealityToolkit-Unity/releases/tag/v2.7.3
+Shapes - https://assetstore.unity.com/packages/tools/particles-effects/shapes-173167
+Flat Icons - https://assetstore.unity.com/packages/2d/gui/icons/ux-flat-icons-free-202525
+
 ## Changelog
+
+5/31/23: 
+* Adding Space Managment, a more accurate representation of full space for the view management algorithm
+* Adding 'RegisterDetectedObject(..)' and 'DeRegisterDetectedObject(..)' so a 3D mesh can be added to the view management.
+* Small improvements confirmation dialogue
+* Notification indicator for task messages
+* Redesign orb face ('eyes', 'mouth')
 
 3/11/23: 
 * Improvement confirmation dialogue (top of FOV, instead of the bottom, added audio feedback and touch input)
