@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -54,7 +55,7 @@ public class Orb : Singleton<Orb>
         _taskListbutton = taskListbtn.AddComponent<DwellButton>();
         _taskListbutton.gameObject.name += "FacetasklistButton";
         _taskListbutton.InitializeButton(EyeTarget.orbtasklistButton, () => TaskListManager.Instance.ToggleTasklist(), 
-            null, false, DwellButtonType.Toggle);
+            null, true, DwellButtonType.Toggle);
         taskListbtn.SetActive(false);
 
         BoxCollider taskListBtnCol = transform.GetChild(0).GetComponent<BoxCollider>();
@@ -299,6 +300,7 @@ public class Orb : Singleton<Orb>
         else
             return _isLookingAtOrb || _messageContainer.IsLookingAtMessage;
     }
+
 
     #endregion
 

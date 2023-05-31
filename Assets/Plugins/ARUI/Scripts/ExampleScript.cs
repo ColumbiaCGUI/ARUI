@@ -4,7 +4,7 @@ using System.Collections;
 
 public class ExampleScript : MonoBehaviour
 {
-    public bool Build = true;
+    public bool Automate = true;
 
     // Testing Task List
     string[,] _tasks0 =
@@ -61,19 +61,20 @@ public class ExampleScript : MonoBehaviour
 
     private void Start()
     {
-        if (!Build)
+        if (Automate)
             StartCoroutine(RunTasksAtRuntime());
     }
 
     private IEnumerator RunTasksAtRuntime()
     {
+
         yield return new WaitForSeconds(0.5f);
 
         AngelARUI.Instance.SetTasks(_tasks0);
 
         yield return new WaitForSeconds(1f);
 
-        AngelARUI.Instance.RegisterDetectedObject(transform.GetChild(0).gameObject, "test");
+        AngelARUI.Instance.SetTasklistEyeEventsActive(false);
 
         yield return new WaitForSeconds(3f);
 
@@ -84,8 +85,6 @@ public class ExampleScript : MonoBehaviour
 
         yield return new WaitForSeconds(1f);
 
-        AngelARUI.Instance.SetViewManagement(false);
-
         yield return new WaitForSeconds(4f);
         currentTask++;
         AngelARUI.Instance.SetCurrentTaskID(currentTask);
@@ -95,8 +94,6 @@ public class ExampleScript : MonoBehaviour
         yield return new WaitForSeconds(2f);
         currentTask--;
         AngelARUI.Instance.SetCurrentTaskID(currentTask);
-
-        AngelARUI.Instance.SetViewManagement(true);
 
         yield return new WaitForSeconds(3f);
         currentTask++;
@@ -161,17 +158,8 @@ public class ExampleScript : MonoBehaviour
         if (Input.GetKeyUp(KeyCode.O))
         {
             currentTask = 0;
+            AngelARUI.Instance.SetTasks(_tasks2);
             AngelARUI.Instance.SetCurrentTaskID(currentTask);
-
-            int coin = Random.Range(0, 10);
-            if (coin % 2 == 0)
-            {
-                AngelARUI.Instance.SetTasks(_tasks0);
-            }
-            else
-            {
-                AngelARUI.Instance.SetTasks(_tasks1);
-            }
         }
 
         // Example how to use the NLI confirmation dialogue
@@ -179,7 +167,7 @@ public class ExampleScript : MonoBehaviour
         {
             int next = currentTask++;
             //1) Set message (e.g. "Did you mean '{user intent}'?"
-            string user_intent = "Go to the next main task in the task graph";
+            string user_intent = "Go to the next task";
 
             //2) Set event that should be triggered if user confirms
             AngelARUI.Instance.SetUserIntentCallback(() => { AngelARUI.Instance.SetCurrentTaskID(next); });
@@ -192,11 +180,25 @@ public class ExampleScript : MonoBehaviour
         if (Input.GetKeyUp(KeyCode.I))
         {
             AngelARUI.Instance.RegisterDetectedObject(transform.GetChild(0).gameObject, "test");
+            AngelARUI.Instance.RegisterDetectedObject(transform.GetChild(1).gameObject, "test1");
+            AngelARUI.Instance.RegisterDetectedObject(transform.GetChild(2).gameObject, "test2");
         }
 
         if (Input.GetKeyUp(KeyCode.K))
         {
             AngelARUI.Instance.DeRegisterDetectedObject("test");
+            AngelARUI.Instance.DeRegisterDetectedObject("test1");
+            AngelARUI.Instance.DeRegisterDetectedObject("test2");
+        }
+
+        if (Input.GetKeyUp(KeyCode.Y))
+        {
+            AngelARUI.Instance.SetTasklistEyeEventsActive(false);
+        }
+
+        if (Input.GetKeyUp(KeyCode.U))
+        {
+            AngelARUI.Instance.SetTasklistEyeEventsActive(true);
         }
 
         // Example how to step forward/backward in tasklist. 
@@ -212,13 +214,13 @@ public class ExampleScript : MonoBehaviour
         }
 
         // Example how to trigger a skip notification. 
-        if (Input.GetKeyUp(KeyCode.M))
+        if (Input.GetKeyUp(KeyCode.UpArrow))
         {
             AngelARUI.Instance.ShowSkipNotification(true);
         }
 
         // Example how to disable skip notification (is disable if system sets new task, or if system disables task manually
-        if (Input.GetKeyUp(KeyCode.B))
+        if (Input.GetKeyUp(KeyCode.DownArrow))
         {
             AngelARUI.Instance.ShowSkipNotification(false);
         }
@@ -228,13 +230,21 @@ public class ExampleScript : MonoBehaviour
             AngelARUI.Instance.SetViewManagement(!AngelARUI.Instance.IsVMActiv);
         }
 
-        if (Input.GetKeyUp(KeyCode.D))
+        if (Input.GetKeyUp(KeyCode.A))
         {
             AngelARUI.Instance.ShowDebugEyeGazeTarget(false);
         }
         if (Input.GetKeyUp(KeyCode.S))
         {
             AngelARUI.Instance.ShowDebugEyeGazeTarget(true);
+        }
+        if (Input.GetKeyUp(KeyCode.D))
+        {
+            AngelARUI.Instance.PrintVMDebug = true;
+        }
+        if (Input.GetKeyUp(KeyCode.F))
+        {
+            AngelARUI.Instance.PrintVMDebug = false;
         }
     }
 

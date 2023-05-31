@@ -64,7 +64,9 @@ public class TaskListManager : Singleton<TaskListManager>
     private bool _isDone = false;
     public bool IsDone => _isDone;
 
-    public bool IsActive => _list.activeInHierarchy;
+    private bool IsActive => _list.activeInHierarchy;
+
+    private bool _handleEyeEvents = true;
 
     /// <summary>
     /// Initialize all components of the task list and get all references from the task list prefab
@@ -202,49 +204,50 @@ public class TaskListManager : Singleton<TaskListManager>
 
     private void Update()
     {
-        if (!_taskListGenerated || !IsActive) return;
+        if ( (!_taskListGenerated || !IsActive)) return;
 
-        //**Tasklist is active
-
-        // Update eye tracking flag
-        if (_isLookingAtTaskList && EyeGazeManager.Instance.CurrentHit != EyeTarget.tasklist)
+        if (_handleEyeEvents)
         {
-            _isLookingAtTaskList = false;
-        }
-        else if (!_isLookingAtTaskList && EyeGazeManager.Instance.CurrentHit == EyeTarget.tasklist)
-        {
-            _isLookingAtTaskList = true;
-            Orb.Instance.Message.SetIsActive(false, false);
-        }
+            // Update eye tracking flag
+            if (_isLookingAtTaskList && EyeGazeManager.Instance.CurrentHit != EyeTarget.tasklist)
+            {
+                _isLookingAtTaskList = false;
+            }
+            else if (!_isLookingAtTaskList && EyeGazeManager.Instance.CurrentHit == EyeTarget.tasklist)
+            {
+                _isLookingAtTaskList = true;
+                Orb.Instance.Message.SetIsActive(false, false);
+            }
 
-        if (_isLookingAtTaskList && !_isVisible && !_isFading)
-        {
-            _isVisible = true;
-            _taskListCollider.center = _openColliderCenter;
-            _taskListCollider.size = _openCollidersize;
+            if (_isLookingAtTaskList && !_isVisible && !_isFading)
+            {
+                _isVisible = true;
+                _taskListCollider.center = _openColliderCenter;
+                _taskListCollider.size = _openCollidersize;
 
-            _bgMat.color = _activeColor;
-            for (int i = 0; i < _currentTasksListElements.Count; i++)
-                _currentTasksListElements[i].SetAlpha(1f);
+                _bgMat.color = _activeColor;
+                for (int i = 0; i < _currentTasksListElements.Count; i++)
+                    _currentTasksListElements[i].SetAlpha(1f);
 
-            _taskContainer.gameObject.SetActive(true);
-            _vmnc.enabled = true;
-        }
-        else if (_isLookingAtTaskList && _isVisible && _isFading)
-        {
-            StopCoroutine(FadeOut());
+                _taskContainer.gameObject.SetActive(true);
+                _vmnc.enabled = true;
+            }
+            else if (_isLookingAtTaskList && _isVisible && _isFading)
+            {
+                StopCoroutine(FadeOut());
 
-            _isFading = false;
-            _taskListCollider.center = _openColliderCenter;
-            _taskListCollider.size = _openCollidersize;
+                _isFading = false;
+                _taskListCollider.center = _openColliderCenter;
+                _taskListCollider.size = _openCollidersize;
 
-            _bgMat.color = _activeColor;
-            for (int i = 0; i < _currentTasksListElements.Count; i++)
-                _currentTasksListElements[i].SetAlpha(1f);
-        }
-        else if (!_isLookingAtTaskList && _isVisible && !_isFading)
-        {
-            StartCoroutine(FadeOut());
+                _bgMat.color = _activeColor;
+                for (int i = 0; i < _currentTasksListElements.Count; i++)
+                    _currentTasksListElements[i].SetAlpha(1f);
+            }
+            else if (!_isLookingAtTaskList && _isVisible && !_isFading)
+            {
+                StartCoroutine(FadeOut());
+            }
         }
 
         //if (!isLookingAtTaskList && !isProcessingOpening && !isDragging && !isProcessingOpening && !isProcessingRepositioning)
@@ -419,7 +422,7 @@ public class TaskListManager : Singleton<TaskListManager>
             yield return new WaitForEndOfFrame();
         }
 
-        if (_isFading)
+        if (_isFading && _handleEyeEvents)
         {
             _isFading = false;
             _isVisible = false;
@@ -448,6 +451,11 @@ public class TaskListManager : Singleton<TaskListManager>
 
         _list.SetActive(true);
         _taskListCollider.enabled = true;
+
+        if (!_handleEyeEvents)
+        {
+            StartCoroutine(MakeTaskListVisible());
+        }
         
         AudioManager.Instance.PlaySound(transform.position, SoundType.notification);
 
@@ -578,6 +586,39 @@ public class TaskListManager : Singleton<TaskListManager>
     }
 
     public void SetAllTasksDone() => SetCurrentTask(GetTaskCount() + 2);
+
+    public void SetEyeEventsActive(bool enable)
+    {
+        _handleEyeEvents = enable;
+
+        if (!_handleEyeEvents &&  IsActive)
+        {
+            StopCoroutine(FadeOut());
+
+            StartCoroutine(MakeTaskListVisible());
+        }
+    }
+
+    private IEnumerator MakeTaskListVisible()
+    {
+        yield return new WaitForSeconds(0.2f);
+
+        foreach (var elem in _currentTasksListElements)
+            elem.SetAlpha(1);
+
+        _isVisible = true;
+
+        _taskListCollider.enabled = true;
+        _taskListCollider.center = _openColliderCenter;
+        _taskListCollider.size = _openCollidersize;
+
+        _bgMat.color = _activeColor;
+        for (int i = 0; i < _currentTasksListElements.Count; i++)
+            _currentTasksListElements[i].SetAlpha(1f);
+
+        _taskContainer.gameObject.SetActive(true);
+        _vmnc.enabled = true;
+    }
 
     #endregion
 }

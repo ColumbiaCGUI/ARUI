@@ -21,10 +21,10 @@ public class ZBufferCamera :MonoBehaviour
 
         _camera.nearClipPlane = AngelARUI.Instance.ARCamera.nearClipPlane;
 
-        _camera.gameObject.AddComponent<ProcessObjectVisibility>();
-
-        RawImage image =GameObject.Find("DBTEST").GetComponent<RawImage>();
-        image.texture = _camera.targetTexture;
+        _camera.gameObject.AddComponent<ProcessObjectVisibility>();        
+        
+        //RawImage image =GameObject.Find("DBTEST").GetComponent<RawImage>();
+        //image.texture = _camera.targetTexture;
     }
 
     public void Update()

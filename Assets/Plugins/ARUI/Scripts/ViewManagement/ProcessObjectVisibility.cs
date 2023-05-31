@@ -64,8 +64,14 @@ public class ProcessObjectVisibility : Singleton<ProcessObjectVisibility>
             }
 
             if (zerocounter == visibleNonControllables.Count)
+            {
+                AABBsPerNonControllable = new Dictionary<CVDetectedObj, List<Rect>>();
+                indexToNonControllable = new Dictionary<int, CVDetectedObj> { };
+                colorToNonControllable = new Dictionary<Color, CVDetectedObj>();
+                colorIDs = new Dictionary<Color, int>();
                 continue;
-
+            }
+                
             if (counter == samplecount)
             {
                 //AngelARUI.Instance.LogDebugMessage("Visibility Timer: copy " + (sum[0] / samplecount) + "sec, sweep " + (sum[1] / samplecount) + "sec", true);
@@ -93,9 +99,11 @@ public class ProcessObjectVisibility : Singleton<ProcessObjectVisibility>
 
             foreach (var item in visibleNonControllables)
             {
-                colorToNonControllable.Add(item.GetColor(), item);
+                if (item.AABB.Equals(Vector3.zero)) continue;
+
+                colorToNonControllable.Add(item.Color, item);
                 indexToNonControllable.Add(index, item);
-                colorIDs.Add(item.GetColor(), index);
+                colorIDs.Add(item.Color, index);
                 index++;
             }
 
@@ -248,14 +256,25 @@ public class ProcessObjectVisibility : Singleton<ProcessObjectVisibility>
 
     public Color RegisterNonControllable(CVDetectedObj vmc)
     {
-        Color currentC = new Color(Random.Range(0f, 1f), Random.Range(0f, 1f), Random.Range(0f, 1f), 1.0f);
-        while (assignedColors.Contains(currentC))
+        Color currentC = Color.white;
+        if (vmc.Color.Equals(Color.clear))
+        {
             currentC = new Color(Random.Range(0f, 1f), Random.Range(0f, 1f), Random.Range(0f, 1f), 1.0f);
+            while (assignedColors.Contains(currentC))
+                currentC = new Color(Random.Range(0f, 1f), Random.Range(0f, 1f), Random.Range(0f, 1f), 1.0f);
+        } else
+        {
+            currentC = vmc.Color;
+        }
 
         assignedColors.Add(currentC);
 
-        AngelARUI.Instance.LogDebugMessage("Registered: " + vmc.gameObject.name, true);
-        visibleNonControllables.Add(vmc);
+        if (!visibleNonControllables.Contains(vmc))
+        {
+            AngelARUI.Instance.LogDebugMessage("Registered: " + vmc.gameObject.name, true);
+            visibleNonControllables.Add(vmc);
+        }
+         
         return currentC;
     }
 
@@ -264,8 +283,9 @@ public class ProcessObjectVisibility : Singleton<ProcessObjectVisibility>
         if (!visibleNonControllables.Contains(vmc)) return;
 
         AngelARUI.Instance.LogDebugMessage("Deregistered: " + vmc.gameObject.name, true);
+
         visibleNonControllables.Remove(vmc);
-        assignedColors.Remove(vmc.GetColor());
+        assignedColors.Remove(vmc.Color);
     }
 
     private void PositionInView()
@@ -310,7 +330,7 @@ public class ProcessObjectVisibility : Singleton<ProcessObjectVisibility>
                     int screenH = (int)(rect.height);
 
                     //GUI.backgroundColor = new Color(Random.Range(0f, 1f), Random.Range(0f, 1f), Random.Range(0f, 1f), 0.2f);
-                    GUI.backgroundColor = new Color(nonvm.GetColor().r, nonvm.GetColor().g, nonvm.GetColor().b,0.3f);
+                    GUI.backgroundColor = new Color(nonvm.Color.r, nonvm.Color.g, nonvm.Color.b,0.3f);
                     GUI.Box(new Rect(screenX, screenY, screenW, screenH)
                         , "Rect : (" + rect.x
                                                     + "," + rect.y

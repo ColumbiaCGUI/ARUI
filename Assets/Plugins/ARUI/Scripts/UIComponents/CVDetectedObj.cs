@@ -8,8 +8,8 @@ public class CVDetectedObj : VMNonControllable
     private GameObject zBufferCopy;
     private MeshRenderer meshRenderer;
 
-    private Color color;
-    public Color GetColor() { return color; }
+    private Color color = Color.clear;
+    public Color Color => color;
 
     public bool IsLookingAt = false;
 
@@ -72,10 +72,12 @@ public class CVDetectedObj : VMNonControllable
         {
             if (transform.InFrontOfCamera(AngelARUI.Instance.ARCamera))
             {
+                ProcessObjectVisibility.Instance.RegisterNonControllable(this);
                 AABB = transform.RectFromObjs(AngelARUI.Instance.ARCamera, new List<BoxCollider> { collider });
             }
             else
             {
+                ProcessObjectVisibility.Instance.DeregisterNonControllable(this);
                 AABB = Rect.zero;
             }
 

@@ -103,7 +103,6 @@ public class AngelARUI : Singleton<AngelARUI>
         zBufferCam.gameObject.AddComponent<ZBufferCamera>();
     }
 
-
     #region Task Guidance
 
     /// <summary>
@@ -139,6 +138,11 @@ public class AngelARUI : Singleton<AngelARUI>
     /// Toggles the task list. If on, the task list is positioned in front of the user's current gaze.
     /// </summary>
     public void ToggleTasklist() => TaskListManager.Instance.ToggleTasklist();
+
+    /// <summary>
+    /// S
+    /// </summary>
+    public void SetTasklistEyeEventsActive(bool active) => TaskListManager.Instance.SetEyeEventsActive(active);
 
     /// <summary>
     /// Mute voice feedback for task guidance. ONLY influences task guidance.
