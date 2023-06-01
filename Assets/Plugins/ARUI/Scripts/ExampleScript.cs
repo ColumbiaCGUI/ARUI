@@ -67,14 +67,15 @@ public class ExampleScript : MonoBehaviour
 
     private IEnumerator RunTasksAtRuntime()
     {
+        yield return new WaitForSeconds(0.5f); //Wait a few frames, so everything is initialized
 
-        yield return new WaitForSeconds(0.5f);
+        AngelARUI.Instance.SetTasklistEyeEventsActive(false);
 
         AngelARUI.Instance.SetTasks(_tasks0);
 
         yield return new WaitForSeconds(1f);
 
-        AngelARUI.Instance.SetTasklistEyeEventsActive(false);
+        AngelARUI.Instance.RegisterDetectedObject(transform.GetChild(0).gameObject, "test");
 
         yield return new WaitForSeconds(3f);
 
@@ -102,8 +103,6 @@ public class ExampleScript : MonoBehaviour
         yield return new WaitForSeconds(1f);
         currentTask++;
         AngelARUI.Instance.SetCurrentTaskID(currentTask);
-
-        AngelARUI.Instance.DeRegisterDetectedObject("test");
 
         AngelARUI.Instance.MuteAudio(false);
 
@@ -180,15 +179,11 @@ public class ExampleScript : MonoBehaviour
         if (Input.GetKeyUp(KeyCode.I))
         {
             AngelARUI.Instance.RegisterDetectedObject(transform.GetChild(0).gameObject, "test");
-            AngelARUI.Instance.RegisterDetectedObject(transform.GetChild(1).gameObject, "test1");
-            AngelARUI.Instance.RegisterDetectedObject(transform.GetChild(2).gameObject, "test2");
         }
 
         if (Input.GetKeyUp(KeyCode.K))
         {
             AngelARUI.Instance.DeRegisterDetectedObject("test");
-            AngelARUI.Instance.DeRegisterDetectedObject("test1");
-            AngelARUI.Instance.DeRegisterDetectedObject("test2");
         }
 
         if (Input.GetKeyUp(KeyCode.Y))

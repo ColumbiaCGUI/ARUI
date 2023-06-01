@@ -107,6 +107,9 @@ Flat Icons - https://assetstore.unity.com/packages/2d/gui/icons/ux-flat-icons-fr
 
 ## Changelog
 
+6/1/23: 
+* Adding fall back options if eye gaze does not work: Enable/Disable attention-based task overview and allows users to 'touch' the task list button, in addition to dwelling
+
 5/31/23: 
 * Adding Space Managment, a more accurate representation of full space for the view management algorithm
 * Adding 'RegisterDetectedObject(..)' and 'DeRegisterDetectedObject(..)' so a 3D mesh can be added to the view management.

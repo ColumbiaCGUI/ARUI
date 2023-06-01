@@ -13,7 +13,7 @@ public static class ARUISettings
     // Orb radial behavior - higher values means the element will stay further away from the center of view
     public static readonly float OrbMinViewDegrees = 0f;        ///<The element will stay at least this far away from the center of view
     public static readonly float OrbMaxViewDegSticky = 21f;
-    public static readonly float OrbMaxViewDegRegular = 15f;
+    public static readonly float OrbMaxViewDegRegular = 13f;
     public static readonly float OrbMaxViewDegCenter = 5f;
 
     public static readonly float OrbMoveLerpRegular = 0.7f;
