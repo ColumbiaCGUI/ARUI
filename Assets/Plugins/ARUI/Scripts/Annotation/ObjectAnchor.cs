@@ -10,9 +10,15 @@ public class ObjectAnchor : MonoBehaviour
     private GameObject canvas;
     private GameObject anchor;
 
-    private Line pointer;
-
     private bool isLookingAtDot;
+    private bool isFadingOut;
+    private bool isVisible;
+
+    private Line pointer;
+    private CanvasGroup canvasGroup;
+    private Color pointerColor;
+
+    private Coroutine fadeOutCoroutine;
 
     [SerializeField]
     private float enableDelay = 1.0f;
@@ -28,18 +34,19 @@ public class ObjectAnchor : MonoBehaviour
         pointer = transform.Find("Pointer").GetComponent<Line>();
         canvas = transform.Find("DetectedObjectCanvas").gameObject;
 
+        canvasGroup = canvas.GetComponent<CanvasGroup>();
+        pointerColor = pointer.Color;
+
         pointer.Thickness = 0.0125f;
 
         isLookingAtDot = false;
+        isFadingOut = false;
+        isVisible = false;
     }
 
     // Update is called once per frame
     void Update()
     {
-        // The anchor should always look at the user
-        anchor.transform.LookAt(mainCamera.transform);
-        canvas.transform.LookAt(canvas.transform.position + mainCamera.transform.rotation * Vector3.forward, mainCamera.transform.rotation * Vector3.up);
-
         // TODO: Remove this as other scripts didn't need this
         if (!EyeGazeManager.Instance) 
         {
@@ -54,10 +61,31 @@ public class ObjectAnchor : MonoBehaviour
         else if (!isLookingAtDot && EyeGazeManager.Instance.CurrentHit == EyeTarget.detectedObject)
         {
             isLookingAtDot = true;
-            StartCoroutine(EnableAnnotation());
+            if (!isVisible)
+            {
+                StartCoroutine(EnableAnnotation());
+            }
+        }
+
+        if (isFadingOut && isLookingAtDot) 
+        {
+            StopCoroutine(fadeOutCoroutine);
+
+            isFadingOut = false;
+
+            canvasGroup.alpha = 1.0f;
+            pointer.Color = pointerColor;
         }
 
         UpdateCanvasCollider();
+    }
+
+    private void LateUpdate()
+    {
+        // The anchor dot should always face the user
+        anchor.transform.LookAt(mainCamera.transform);
+        // The canvas should always face the user
+        canvas.transform.LookAt(canvas.transform.position + mainCamera.transform.rotation * Vector3.forward, Vector3.up);
     }
 
     private IEnumerator EnableAnnotation()
@@ -91,6 +119,7 @@ public class ObjectAnchor : MonoBehaviour
         if (success)
         {
             canvas.SetActive(true);
+            isVisible = true;
         }
         else
         {
@@ -105,7 +134,7 @@ public class ObjectAnchor : MonoBehaviour
 
         yield return new WaitForSeconds(disableDelay);
 
-        StartCoroutine(FadeOut());
+        fadeOutCoroutine = StartCoroutine(FadeOut());
     }
 
     private void UpdateCanvasCollider()
@@ -119,7 +148,7 @@ public class ObjectAnchor : MonoBehaviour
 
     private IEnumerator FadeOut()
     {
-        CanvasGroup canvasGroup = canvas.GetComponent<CanvasGroup>();
+        isFadingOut = true;
 
         float counter = 0f;
         float duration = 1f;
@@ -127,14 +156,12 @@ public class ObjectAnchor : MonoBehaviour
         float startAlpha = canvasGroup.alpha;
         float targetAlpha = 0f;
 
-        Color currentColor = pointer.Color;
-
         while (counter < duration) 
         {
             counter += Time.deltaTime;
 
             canvasGroup.alpha = Mathf.Lerp(startAlpha, targetAlpha, counter/duration);
-            Color newColor = new Color(currentColor.r, currentColor.g, currentColor.b, canvasGroup.alpha);
+            Color newColor = new Color(pointerColor.r, pointerColor.g, pointerColor.b, canvasGroup.alpha);
             pointer.Color = newColor;
 
             yield return null;
@@ -143,8 +170,11 @@ public class ObjectAnchor : MonoBehaviour
         canvasGroup.alpha = 1.0f;
         canvas.SetActive(false);
 
-        pointer.Color = currentColor;
+        pointer.Color = pointerColor;
         pointer.Start = anchor.transform.localPosition;
         pointer.End = anchor.transform.localPosition;
+
+        isFadingOut = false;
+        isVisible = false;
     }
 }
