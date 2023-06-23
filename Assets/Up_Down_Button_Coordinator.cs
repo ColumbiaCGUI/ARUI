@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 public class Up_Down_Button_Coordinator : MonoBehaviour
 {
@@ -11,20 +12,19 @@ public class Up_Down_Button_Coordinator : MonoBehaviour
     [SerializeField]
     int currIndex = 0;
     // Start is called before the first frame update
-    void Start()
+    void Awake()
     {
-        
+        DwellButton upDwell = upButton.AddComponent<DwellButton>();
+        upDwell.InitializeButton(EyeTarget.upButton, () => this.ActivatePrevMenu(), null, true, DwellButtonType.Toggle);
+        DwellButton downDwell = downButton.AddComponent<DwellButton>();
+        downDwell.InitializeButton(EyeTarget.downButton, () => this.ActivateNextMenu(),
+        null, true, DwellButtonType.Toggle);
     }
 
     // Update is called once per frame
     void Update()
     {
-        DwellButton upDwell = upButton.AddComponent<DwellButton>();
-        upDwell.InitializeButton(EyeTarget.upButton, () => this.ActivateNextMenu(),
-        null, true, DwellButtonType.Toggle);
-        DwellButton downDwell = downButton.AddComponent<DwellButton>();
-        downDwell.InitializeButton(EyeTarget.downButton, () => this.ActivatePrevMenu(),
-        null, true, DwellButtonType.Toggle);
+
     }
 
     public void ActivateNextMenu()
@@ -38,6 +38,10 @@ public class Up_Down_Button_Coordinator : MonoBehaviour
         } else
         {
             downButton.SetActive(true);
+        }
+        if (currIndex == 1)
+        {
+            upButton.SetActive(true);
         }
     }
 
@@ -53,6 +57,10 @@ public class Up_Down_Button_Coordinator : MonoBehaviour
         else
         {
             upButton.SetActive(true);
+        }
+        if (currIndex == taskmenus.Count - 2)
+        {
+            downButton.SetActive(true);
         }
 
     }

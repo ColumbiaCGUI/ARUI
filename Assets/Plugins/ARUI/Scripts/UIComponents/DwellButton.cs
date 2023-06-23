@@ -1,6 +1,7 @@
 ﻿using Microsoft.MixedReality.Toolkit;
 using Microsoft.MixedReality.Toolkit.Input;
 using System.Collections;
+using System.Diagnostics;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -74,6 +75,9 @@ public class DwellButton : MonoBehaviour, IMixedRealityTouchHandler
     public void InitializeButton(EyeTarget target, UnityAction btnSelectEvent, UnityAction btnHalfSelect, 
         bool touchable, DwellButtonType type)
     {
+        //TODO: FIGURE OUT HOW TO GET RID OF THIS
+        _selectEvent = new UnityEvent();
+        _quarterSelectEvent = new UnityEvent();
         this._target = target;
         _selectEvent.AddListener(btnSelectEvent);
 
