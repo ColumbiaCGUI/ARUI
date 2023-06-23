@@ -1,4 +1,5 @@
 using Microsoft.MixedReality.Toolkit;
+using System.Diagnostics;
 using UnityEngine;
 
 public enum EyeTarget
@@ -8,9 +9,14 @@ public enum EyeTarget
     orbMessage = 2,
     tasklist = 3,
     orbtasklistButton = 4,
+    //USE 6
+    listmenuButton_tasks = 6,
     okButton = 7,
     ringindicator = 8,
-    textConfirmationWindow = 9
+    textConfirmationWindow = 9,
+    listmenuButton_items = 10,
+    upButton = 11,
+    downButton =12
 }
 
 public class EyeGazeManager : Singleton<EyeGazeManager>
@@ -66,6 +72,15 @@ public class EyeGazeManager : Singleton<EyeGazeManager>
 
                 else if (goName.Contains("ringindicator"))
                     CurrentHit = EyeTarget.ringindicator;
+
+                else if (goName.Contains("listmenubutton_tasks"))
+                    CurrentHit = EyeTarget.listmenuButton_tasks;
+                else if (goName.Contains("listmenubutton_items"))
+                    CurrentHit = EyeTarget.listmenuButton_items;
+                else if (goName.Contains("upbutton"))
+                    CurrentHit = EyeTarget.upButton;
+                else if (goName.Contains("downbutton"))
+                    CurrentHit = EyeTarget.downButton;
 
                 else
                     CurrentHit = EyeTarget.nothing;
