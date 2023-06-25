@@ -101,18 +101,19 @@ public class Up_Down_Button_Coordinator : MonoBehaviour
         {
             upButton.SetActive(false);
         }
+        else
+        {
+            upButton.SetActive(true);
+        }
         if (currIndex == taskmenus.Count - 1)
         {
             downButton.SetActive(false);
         }
-        if (currIndex == taskmenus.Count - 2)
+        else
         {
             downButton.SetActive(true);
         }
-        if (currIndex == 1)
-        {
-            upButton.SetActive(true);
-        }
+       
     }
 
 }
