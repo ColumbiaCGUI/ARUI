@@ -16931,7 +16931,7 @@ MonoBehaviour:
   - {fileID: 869211777}
   upButton: {fileID: 166478890}
   downButton: {fileID: 8168965141856010924}
-  resetButton: {fileID: 0}
+  resetButton: {fileID: 207861921}
   currIndex: 0
   taskIndex: 0
 --- !u!1 &1317991910

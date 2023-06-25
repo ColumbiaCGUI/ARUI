@@ -26,7 +26,7 @@ public class Up_Down_Button_Coordinator : MonoBehaviour
         downDwell.InitializeButton(EyeTarget.downButton, () => this.ActivateNextMenu(),
         null, true, DwellButtonType.Toggle);
         resetButton.SetActive(true);
-        DwellButton resetDwell = upButton.AddComponent<DwellButton>();
+        DwellButton resetDwell = resetButton.AddComponent<DwellButton>();
         resetDwell.InitializeButton(EyeTarget.resetButton, () => this.Reset(), null, true, DwellButtonType.Toggle);
         resetButton.SetActive(false);
     }
@@ -95,6 +95,7 @@ public class Up_Down_Button_Coordinator : MonoBehaviour
     {
         taskmenus[currIndex].SetActive(false);
         taskmenus[taskIndex].SetActive(true);
+        currIndex = taskIndex;
         if (currIndex == 0)
         {
             upButton.SetActive(false);
