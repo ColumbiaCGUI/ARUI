@@ -96,6 +96,7 @@ public class Up_Down_Button_Coordinator : MonoBehaviour
         taskmenus[currIndex].SetActive(false);
         taskmenus[taskIndex].SetActive(true);
         currIndex = taskIndex;
+        resetButton.SetActive(false);
         if (currIndex == 0)
         {
             upButton.SetActive(false);
