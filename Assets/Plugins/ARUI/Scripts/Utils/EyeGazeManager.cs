@@ -16,7 +16,8 @@ public enum EyeTarget
     textConfirmationWindow = 9,
     listmenuButton_items = 10,
     upButton = 11,
-    downButton =12
+    downButton =12,
+    resetButton = 13
 }
 
 public class EyeGazeManager : Singleton<EyeGazeManager>
@@ -81,6 +82,8 @@ public class EyeGazeManager : Singleton<EyeGazeManager>
                     CurrentHit = EyeTarget.upButton;
                 else if (goName.Contains("downbutton"))
                     CurrentHit = EyeTarget.downButton;
+                else if (goName.Contains("resetbutton"))
+                    CurrentHit = EyeTarget.resetButton;
 
                 else
                     CurrentHit = EyeTarget.nothing;
