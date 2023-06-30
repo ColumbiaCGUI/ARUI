@@ -8,8 +8,6 @@ public class ActivateTaskList : MonoBehaviour
     public GameObject anchor;
     private bool isLookingAtDot;
     [SerializeField]
-    private float enableDelay = 1.0f;
-    [SerializeField]
     private float disableDelay = 1.0f;
 
     private float delta;

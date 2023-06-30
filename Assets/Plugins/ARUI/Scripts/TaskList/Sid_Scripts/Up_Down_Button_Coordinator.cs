@@ -21,7 +21,10 @@ public class Up_Down_Button_Coordinator : MonoBehaviour
         upButton.SetActive(true);
         DwellButton upDwell = upButton.AddComponent<DwellButton>();
         upDwell.InitializeButton(EyeTarget.upButton, () => this.ActivatePrevMenu(), null, true, DwellButtonType.Toggle);
-        upButton.SetActive(false);
+        if (currIndex == 0)
+        {
+            upButton.SetActive(false);
+        }
         DwellButton downDwell = downButton.AddComponent<DwellButton>();
         downDwell.InitializeButton(EyeTarget.downButton, () => this.ActivateNextMenu(),
         null, true, DwellButtonType.Toggle);
