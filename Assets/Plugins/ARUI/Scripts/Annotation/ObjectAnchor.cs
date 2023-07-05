@@ -10,6 +10,8 @@ public class ObjectAnchor : MonoBehaviour
     private GameObject canvas;
     private GameObject anchor;
 
+    AnnotationCanvasControl canvasCtl;
+
     private bool isLookingAtDot;
     private bool isFadingOut;
     private bool isVisible;
@@ -33,6 +35,8 @@ public class ObjectAnchor : MonoBehaviour
         anchor = transform.Find("Anchor").gameObject;
         pointer = transform.Find("Pointer").GetComponent<Line>();
         canvas = transform.Find("DetectedObjectCanvas").gameObject;
+
+        canvasCtl = canvas.GetComponent<AnnotationCanvasControl>();
 
         canvasGroup = canvas.GetComponent<CanvasGroup>();
         pointerColor = pointer.Color;
@@ -58,7 +62,7 @@ public class ObjectAnchor : MonoBehaviour
             isLookingAtDot = false;
             StartCoroutine(DisableAnnotation());
         }
-        else if (!isLookingAtDot && EyeGazeManager.Instance.CurrentHit == EyeTarget.detectedObject)
+        else if (!isLookingAtDot && EyeGazeManager.Instance.CurrentHit == EyeTarget.detectedObject && EyeGazeManager.Instance.CurrentHitObj.transform.parent.gameObject.name == gameObject.name)
         {
             isLookingAtDot = true;
             if (!isVisible)
@@ -84,8 +88,11 @@ public class ObjectAnchor : MonoBehaviour
     {
         // The anchor dot should always face the user
         anchor.transform.LookAt(mainCamera.transform);
-        // The canvas should always face the user
-        canvas.transform.LookAt(canvas.transform.position + mainCamera.transform.rotation * Vector3.forward, Vector3.up);
+        
+        /* ---- Annotation canvas always faces user ---- */
+        Vector3 diffVector = canvas.transform.position - mainCamera.transform.position;     // Get relative position between camera and canvas
+        Vector3 offsetPos = canvas.transform.position + diffVector;                         // Find relative position on the other side of canvas
+        canvas.transform.LookAt(offsetPos, Vector3.up);                                     // Let canvas face the other side - content shows backwards
     }
 
     private IEnumerator EnableAnnotation()
@@ -98,7 +105,15 @@ public class ObjectAnchor : MonoBehaviour
             elapsed += Time.deltaTime;
 
             // Get relative info between the canvas and anchor
-            Vector3 diffVec = canvas.transform.localPosition - anchor.transform.localPosition;
+            Vector3 targetPos = canvas.transform.localPosition;
+
+            // Decide where to stop the pointer
+            if (canvasCtl.bHasImage)
+            {
+                targetPos = canvas.transform.Find("Image").position;
+            }
+
+            Vector3 diffVec = targetPos - anchor.transform.localPosition;
             Vector3 diffDir = diffVec.normalized;
             float diffSize = diffVec.magnitude;
 
