@@ -9,6 +9,8 @@ public class ActivateTaskList : MonoBehaviour
     private bool isLookingAtDot;
     [SerializeField]
     private float disableDelay = 1.0f;
+    [SerializeField]
+    bool hasUpDown = true;
 
     private float delta;
     // Start is called before the first frame update
@@ -21,7 +23,7 @@ public class ActivateTaskList : MonoBehaviour
     void Update()
     {
         EyeTarget currHit = EyeGazeManager.Instance.CurrentHit;
-        if (currHit == EyeTarget.listmenuButton_tasks || currHit == EyeTarget.listmenuButton_items || currHit == EyeTarget.tasklist || currHit == EyeTarget.upButton || currHit == EyeTarget.downButton || currHit == EyeTarget.resetButton)
+        if ((currHit == EyeTarget.listmenuButton_tasks || currHit == EyeTarget.listmenuButton_items || currHit == EyeTarget.tasklist || currHit == EyeTarget.upButton || currHit == EyeTarget.downButton || currHit == EyeTarget.resetButton))
         {
             delta = 0.0f;
             FadeIn();
@@ -63,7 +65,10 @@ public class ActivateTaskList : MonoBehaviour
         }
         if (!broken)
         {
-            this.GetComponent<Up_Down_Button_Coordinator>().Reset();
+            if (hasUpDown)
+            {
+                this.GetComponent<Up_Down_Button_Coordinator>().Reset();
+            }
             canvas.SetActive(false);
             anchor.SetActive(true);
             canvasGroup.alpha = 1.0f;
