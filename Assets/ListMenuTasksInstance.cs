@@ -13,6 +13,7 @@ public class ListMenuTasksInstance : MonoBehaviour
     [SerializeField]
     private float disableDelay = 1.0f;
 
+
     private float delta;
     // Start is called before the first frame update
     void Start()

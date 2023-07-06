@@ -12,6 +12,8 @@ public class ListMenuMain: MonoBehaviour
     private float enableDelay = 1.0f;
     [SerializeField]
     private float disableDelay = 1.0f;
+    [SerializeField]
+    bool isScroll = false;
 
     private float delta;
     // Start is called before the first frame update
@@ -67,6 +69,10 @@ public class ListMenuMain: MonoBehaviour
             canvas.SetActive(false);
             anchor.SetActive(true);
             canvasGroup.alpha = 1.0f;
+            if (isScroll)
+            {
+                this.GetComponent<Up_Down_Button_Coordinator>().Reset();
+            }
         }
         else
         {
