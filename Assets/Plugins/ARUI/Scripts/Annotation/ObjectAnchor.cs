@@ -104,27 +104,63 @@ public class ObjectAnchor : MonoBehaviour
         {
             elapsed += Time.deltaTime;
 
-            // Get relative info between the canvas and anchor
-            Vector3 targetPos = canvas.transform.localPosition;
+            /* ---- Annotation Pointer ---- */
+            Vector3 targetPos, diffVec, diffDir;
+            float diffSize;
 
             // Decide where to stop the pointer
-            if (canvasCtl.bHasImage)
+            if (canvasCtl.bHasName && (canvasCtl.bHasImage || canvasCtl.bHasVideo || canvasCtl.bHasDescription))
             {
-                targetPos = canvas.transform.Find("Image").position;
+                BoxCollider boxCollider = canvas.GetComponent<BoxCollider>();
+                if (boxCollider)
+                {
+                    float halfHeight = boxCollider.size.y * 0.5f * boxCollider.transform.lossyScale.y;
+                    Vector3 bottomCenter = new Vector3(boxCollider.transform.position.x,
+                        boxCollider.transform.position.y - halfHeight,
+                        boxCollider.transform.position.z);
+                    targetPos = bottomCenter;
+                }
+                else
+                {
+                    targetPos = canvas.transform.position;
+                }
+
+                diffVec = targetPos - anchor.transform.position;
+                diffDir = diffVec.normalized;
+                diffSize = diffVec.magnitude * (1 / this.transform.localScale.x);
+
+                pointer.Start = anchor.transform.localPosition;
             }
+            else if (canvasCtl.bHasName)
+            {
+                Transform nameObj = canvas.transform.Find("Name");
+                RectTransform rt = nameObj.GetComponent<RectTransform>();
+                float nameHeight = rt.rect.height * 0.5f * rt.lossyScale.y;
+                Vector3 namePos = new Vector3(nameObj.position.x,
+                    nameObj.position.y - nameHeight,
+                    nameObj.position.z);
+                targetPos = namePos;
+                diffVec = targetPos - anchor.transform.position;
+                diffDir = diffVec.normalized;
+                diffSize = diffVec.magnitude * (1 / this.transform.localScale.x);
 
-            Vector3 diffVec = targetPos - anchor.transform.localPosition;
-            Vector3 diffDir = diffVec.normalized;
-            float diffSize = diffVec.magnitude;
+                pointer.Start = anchor.transform.localPosition;
+            }
+            else
+            {
+                targetPos = canvas.transform.localPosition;
+                diffVec = targetPos - anchor.transform.localPosition;
+                diffDir = diffVec.normalized;
+                diffSize = diffVec.magnitude;
 
-            // Set the start of the pointer
-            pointer.Start = anchor.transform.localPosition + diffDir * (diffSize * 0.2f);
+                pointer.Start = anchor.transform.localPosition;
+            }
 
             // Calculate the end position of the pointer
             float percent = (elapsed / enableDelay);
-            Vector3 endPos = pointer.Start + (diffDir) * (diffSize * 0.6f * percent);
+            Vector3 endpos = pointer.Start + diffDir * (diffSize * percent);
 
-            pointer.End = endPos;
+            pointer.End = endpos;
 
             if (elapsed > enableDelay && isLookingAtDot)
                 success = true;
