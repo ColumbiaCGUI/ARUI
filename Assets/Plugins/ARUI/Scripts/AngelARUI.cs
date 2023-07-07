@@ -326,4 +326,11 @@ public class AngelARUI : Singleton<AngelARUI>
     }
 
     #endregion
+
+    #region Annotation
+    public void ShowAnnotation(string id, Vector3 position)
+    {
+
+    }
+    #endregion
 }
