@@ -6,6 +6,9 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
+    path: Assets/Plugins/ARUI/Scenes/Sid_Scenes/Sid_Test_All.unity
+    guid: 4d9bf7f2c0eba82458de59c3ab672ee0
+  - enabled: 0
     path: Assets/Plugins/ARUI/Scenes/SampleScene.unity
     guid: 9fc0d4010bbf28b4594072e72b8655ab
   m_configObjects:
