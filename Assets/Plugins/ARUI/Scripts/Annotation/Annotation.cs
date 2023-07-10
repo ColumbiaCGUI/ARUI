@@ -38,7 +38,7 @@ public class Annotation : MonoBehaviour
         mainCamera = GameObject.Find("Main Camera");
 
         anchor = transform.Find("Anchor").gameObject;
-        pointer = transform.Find("Pointer").GetComponent<Line>();
+        pointer = transform.Find("DetectedObjectPointer").GetComponent<Line>();
         canvas = transform.Find("DetectedObjectCanvas").gameObject;
 
         canvasCtl = canvas.GetComponent<AnnotationCanvasControl>();
