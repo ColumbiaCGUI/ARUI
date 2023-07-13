@@ -66,9 +66,6 @@ public class ExampleScript : MonoBehaviour
     private Transform itemList;
     private int id;
 
-    [SerializeField]
-    private int annotationDelay = 1;
-
     private void Start()
     {
         cubeSpawned = false;
@@ -176,17 +173,14 @@ public class ExampleScript : MonoBehaviour
         if (Input.GetKeyUp(KeyCode.C) && !cubeSpawned)
         {
             Instantiate(Resources.Load<GameObject>("Prefabs/TestObject/Cube"), itemList);
-            cubeSpawned = true;
         }
         if (Input.GetKeyUp(KeyCode.K) && !kettleSpawned)
         {
             Instantiate(Resources.Load<GameObject>("Prefabs/TestObject/Kettle"), itemList);
-            kettleSpawned = true;
         }
         if (Input.GetKeyUp(KeyCode.P) && !potSpawned)
         {
             Instantiate(Resources.Load<GameObject>("Prefabs/TestObject/Pot"), itemList);
-            potSpawned = true;
         }
 
         if (itemList != null)
@@ -197,34 +191,51 @@ public class ExampleScript : MonoBehaviour
 
                 if (child.Find("Annotation(Clone)") != null) continue;
 
-                if (child.gameObject.name.Contains("Cube"))
+                if (child.gameObject.name.Contains("Cube") && !cubeSpawned)
                 {
-                    AngelARUI.Instance.AttachAnnotation(id, child.gameObject,
-                    true, "Cube",
-                    false, "A cube is used to be placed around.",
-                    true, "cube",
-                    false, "cubeVideo");
+                    cubeSpawned = true;
+
+                    StartCoroutine(
+                        AngelARUI.Instance.AttachAnnotation(id, child.gameObject,
+                        true, "Cube",
+                        false, "A cube is used to be placed around.",
+                        true, "Images/cubeUnity",
+                        false, "cubeVideo")
+                    );
 
                     id++;
                 }
 
-                if (child.gameObject.name.Contains("Kettle"))
+                if (child.gameObject.name.Contains("Kettle") && !kettleSpawned)
                 {
-                    AngelARUI.Instance.AttachAnnotation(id, child.gameObject,
-                    true, "Cube",
-                    false, "A cube is used to be placed around.",
-                    true, "cube",
-                    false, "cubeVideo");
+                    string kettleDesc = "A kettle is a kitchen appliance used to heat water, often for making hot beverages like tea and coffee. They can be traditional, using a stovetop, or electric with an automatic shutoff.";
+
+                    kettleSpawned = true;
+
+                    StartCoroutine(
+                        AngelARUI.Instance.AttachAnnotation(id, child.gameObject,
+                        true, "Kettle",
+                        false, kettleDesc,
+                        false, "cube",
+                        true, "Videos/kettle")
+                    );
+
                     id++;
                 }
 
-                if (child.gameObject.name.Contains("Pot"))
+                if (child.gameObject.name.Contains("Pot") && !potSpawned)
                 {
-                    AngelARUI.Instance.AttachAnnotation(id, child.gameObject,
-                    true, "Cube",
-                    false, "A cube is used to be placed around.",
-                    true, "cube",
-                    false, "cubeVideo");
+                    string potDesc = "A pot is a round kitchen utensil used for cooking food.";
+                    potSpawned = true;
+
+                    StartCoroutine(
+                        AngelARUI.Instance.AttachAnnotation(id, child.gameObject,
+                        true, "Pot",
+                        true, potDesc,
+                        false, "cube",
+                        false, "cubeVideo")
+                    );
+
                     id++;
                 }
             }

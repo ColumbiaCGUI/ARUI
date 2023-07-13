@@ -73,6 +73,19 @@ public class Annotation : MonoBehaviour
 
         /* Adjust anchor based on the object detected */
         // anchor.transform.localPosition = detectedObj.GetComponent<BoxCollider>().center;
+
+        /* Adjust the eye gaze collider size */
+        Transform annotationCollider = transform.Find("AnnotationCollider");
+        if (annotationCollider != null ) 
+        {
+            BoxCollider bc = annotationCollider.GetComponent<BoxCollider>();
+            if (bc != null)
+            {
+                BoxCollider actualCollider = detectedObj.GetComponent<BoxCollider>();
+                bc.center = actualCollider.center;
+                bc.size = actualCollider.size * (detectedObj.localScale.x / 0.1f);
+            }
+        }
     }
 
     // Update is called once per frame
@@ -219,6 +232,13 @@ public class Annotation : MonoBehaviour
             Vector3 endpos = pointer.Start + diffDir * (diffSize * percent);
 
             pointer.End = endpos;
+
+            // Control the capsule collider's size - it is used to make sure that user can look at the pointer when it grows
+            CapsuleCollider capsule = pointer.GetComponent<CapsuleCollider>();
+            Vector3 capsuleCenter = (pointer.Start + pointer.End) / 2;
+            capsule.center = capsuleCenter;
+            float capsuleHeight = (pointer.Start - pointer.End).magnitude;
+            capsule.height = capsuleHeight;
 
             if (elapsed > enableDelay && isLookingAtDot)
                 success = true;

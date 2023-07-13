@@ -481,7 +481,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   id: 0
-  enableDelay: 1
+  enableDelay: 0.5
   disableDelay: 1
   canvasPosOffset: 0.1
 --- !u!1 &5126138227090050312
@@ -954,7 +954,7 @@ MonoBehaviour:
       m_Calls: []
   m_Sprite: {fileID: 21300000, guid: 54ec22ea4ef2a94468456f9a9a4fe543, type: 3}
   m_Type: 0
-  m_PreserveAspect: 0
+  m_PreserveAspect: 1
   m_FillCenter: 1
   m_FillMethod: 4
   m_FillAmount: 1
