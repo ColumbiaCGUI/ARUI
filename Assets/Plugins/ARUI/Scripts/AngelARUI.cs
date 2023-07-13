@@ -37,6 +37,9 @@ public class AngelARUI : Singleton<AngelARUI>
     private ConfirmationDialogue _confirmationWindow = null;     /// <Reference to confirmation dialogue
     private GameObject _confirmationWindowPrefab = null;
 
+    [SerializeField]
+    private int annotationDelay = 1;
+
     private Dictionary<string, CVDetectedObj> DetectedObjects = new Dictionary<string, CVDetectedObj>();
 
     private void Awake() => StartCoroutine(InitProjectSettingsAndScene());

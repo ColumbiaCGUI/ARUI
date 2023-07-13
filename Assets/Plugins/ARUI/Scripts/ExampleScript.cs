@@ -1,10 +1,15 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System.Collections;
+using UnityEngine.InputSystem.HID;
 
 public class ExampleScript : MonoBehaviour
 {
     public bool Automate = false;
+
+    private bool cubeSpawned;
+    private bool kettleSpawned;
+    private bool potSpawned;
 
     // Testing Task List
     string[,] _tasks0 =
@@ -58,32 +63,25 @@ public class ExampleScript : MonoBehaviour
     };
 
     private int currentTask = 0;
+    private Transform itemList;
+    private int id;
+
+    [SerializeField]
+    private int annotationDelay = 1;
 
     private void Start()
     {
-        if (Automate)
-            //StartCoroutine(RunTasksAtRuntime());
-            StartCoroutine(AnnotationAtRuntime());
-    }
+        cubeSpawned = false;
+        kettleSpawned = false;
+        potSpawned = false;
 
-    private IEnumerator AnnotationAtRuntime()
-    {
-        yield return new WaitForSeconds(3);
+        itemList = GameObject.Find("FakeItem").transform;
 
-        GameObject itemList = GameObject.Find("FakeItem");
-        if (itemList == null) yield return new WaitForEndOfFrame();
+        id = 0;
 
-        int id = 0;
-        foreach (Transform child in itemList.transform)
-        {
-            if (!child.gameObject.activeSelf) continue;
-
-            AngelARUI.Instance.AttachAnnotation(id, child.gameObject, 
-                true, "Cube",
-                false, "A cube is used to be placed around.",
-                true, "cube",
-                false, "cubeVideo");
-        }
+        //if (Automate)
+        //StartCoroutine(RunTasksAtRuntime());
+        //StartCoroutine(AnnotationAtRuntime());
     }
 
     private IEnumerator RunTasksAtRuntime()
@@ -174,6 +172,63 @@ public class ExampleScript : MonoBehaviour
     /// </summary>
     public void Update()
     {
+        // Simulate a Cube is detected
+        if (Input.GetKeyUp(KeyCode.C) && !cubeSpawned)
+        {
+            Instantiate(Resources.Load<GameObject>("Prefabs/TestObject/Cube"), itemList);
+            cubeSpawned = true;
+        }
+        if (Input.GetKeyUp(KeyCode.K) && !kettleSpawned)
+        {
+            Instantiate(Resources.Load<GameObject>("Prefabs/TestObject/Kettle"), itemList);
+            kettleSpawned = true;
+        }
+        if (Input.GetKeyUp(KeyCode.P) && !potSpawned)
+        {
+            Instantiate(Resources.Load<GameObject>("Prefabs/TestObject/Pot"), itemList);
+            potSpawned = true;
+        }
+
+        if (itemList != null)
+        {
+            foreach (Transform child in itemList.transform)
+            {
+                if (!child.gameObject.activeSelf) continue;
+
+                if (child.Find("Annotation(Clone)") != null) continue;
+
+                if (child.gameObject.name.Contains("Cube"))
+                {
+                    AngelARUI.Instance.AttachAnnotation(id, child.gameObject,
+                    true, "Cube",
+                    false, "A cube is used to be placed around.",
+                    true, "cube",
+                    false, "cubeVideo");
+
+                    id++;
+                }
+
+                if (child.gameObject.name.Contains("Kettle"))
+                {
+                    AngelARUI.Instance.AttachAnnotation(id, child.gameObject,
+                    true, "Cube",
+                    false, "A cube is used to be placed around.",
+                    true, "cube",
+                    false, "cubeVideo");
+                    id++;
+                }
+
+                if (child.gameObject.name.Contains("Pot"))
+                {
+                    AngelARUI.Instance.AttachAnnotation(id, child.gameObject,
+                    true, "Cube",
+                    false, "A cube is used to be placed around.",
+                    true, "cube",
+                    false, "cubeVideo");
+                    id++;
+                }
+            }
+        }
         /* Input from Bettina's test 
         //Example how to set the recipe(task list in the ARUI) -example data see on top
         if (Input.GetKeyUp(KeyCode.O))
