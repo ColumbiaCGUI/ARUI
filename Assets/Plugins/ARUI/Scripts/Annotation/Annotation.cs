@@ -11,6 +11,11 @@ public struct AnnotationSignal
 
 public class Annotation : MonoBehaviour
 {
+    [SerializeField]
+    private int id;
+
+    private Transform detectedObj;
+
     private GameObject mainCamera;
     private GameObject canvas;
     private GameObject anchor;
@@ -20,6 +25,7 @@ public class Annotation : MonoBehaviour
     private bool isLookingAtDot;
     private bool isFadingOut;
     private bool isVisible;
+    private bool isInit;
 
     private Line pointer;
     private CanvasGroup canvasGroup;
@@ -31,15 +37,18 @@ public class Annotation : MonoBehaviour
     private float enableDelay = 1.0f;
     [SerializeField]
     private float disableDelay = 1.0f;
+    [SerializeField]
+    private float canvasPosOffset = 0.01f;
 
     // Start is called before the first frame update
     void Start()
     {
-        mainCamera = GameObject.Find("Main Camera");
+        detectedObj = transform.parent;
 
+        mainCamera = GameObject.Find("Main Camera");
+        canvas = transform.Find("AnnotationCanvas").gameObject;
         anchor = transform.Find("Anchor").gameObject;
-        pointer = transform.Find("DetectedObjectPointer").GetComponent<Line>();
-        canvas = transform.Find("DetectedObjectCanvas").gameObject;
+        pointer = transform.Find("AnnotationPointer").gameObject.GetComponent<Line>();
 
         canvasCtl = canvas.GetComponent<AnnotationCanvasControl>();
 
@@ -51,6 +60,19 @@ public class Annotation : MonoBehaviour
         isLookingAtDot = false;
         isFadingOut = false;
         isVisible = false;
+        isInit = true;
+
+        transform.localScale = anchor.transform.localScale / (detectedObj.localScale.x / 0.1f);
+
+        // Put canvas into the right position
+        Collider objCollider = detectedObj.GetComponent<BoxCollider>();
+        Bounds objBounds = objCollider.bounds;
+
+        Vector3 canvasPos = objBounds.center + new Vector3(0, objBounds.extents.y + canvasPosOffset, 0);
+        canvas.transform.position = canvasPos;
+
+        /* Adjust anchor based on the object detected */
+        // anchor.transform.localPosition = detectedObj.GetComponent<BoxCollider>().center;
     }
 
     // Update is called once per frame
@@ -62,12 +84,22 @@ public class Annotation : MonoBehaviour
             return;
         }
 
-        if (isLookingAtDot && EyeGazeManager.Instance.CurrentHit != EyeTarget.detectedObject)
+        if (isInit)
+        {
+            canvas.SetActive(false);
+            canvasCtl.canvasInitDone();
+            isInit = false;
+        }
+
+        EyeTarget currentHit = EyeGazeManager.Instance.CurrentHit;
+        GameObject currentHitObject = EyeGazeManager.Instance.CurrentHitObj;
+
+        if (isLookingAtDot && currentHit != EyeTarget.annotation)
         {
             isLookingAtDot = false;
             StartCoroutine(DisableAnnotation());
         }
-        else if (!isLookingAtDot && EyeGazeManager.Instance.CurrentHit == EyeTarget.detectedObject && EyeGazeManager.Instance.CurrentHitObj.transform.parent.gameObject.name == gameObject.name)
+        else if (!isLookingAtDot && currentHit == EyeTarget.annotation && currentHitObject.transform.parent.parent.gameObject.name == gameObject.transform.parent.name)
         {
             isLookingAtDot = true;
             if (!isVisible)
@@ -114,42 +146,63 @@ public class Annotation : MonoBehaviour
             float diffSize;
 
             // Decide where to stop the pointer
-            if (canvasCtl.bHasName && (canvasCtl.bHasImage || canvasCtl.bHasVideo || canvasCtl.bHasDescription))
+            if (canvasCtl.bHasName)
             {
-                BoxCollider boxCollider = canvas.GetComponent<BoxCollider>();
-                if (boxCollider)
+                if (canvasCtl.bHasImage || canvasCtl.bHasVideo)
                 {
-                    float halfHeight = boxCollider.size.y * 0.5f * boxCollider.transform.lossyScale.y;
-                    Vector3 bottomCenter = new Vector3(boxCollider.transform.position.x,
-                        boxCollider.transform.position.y - halfHeight,
-                        boxCollider.transform.position.z);
-                    targetPos = bottomCenter;
+                    BoxCollider boxCollider = canvas.GetComponent<BoxCollider>();
+                    if (boxCollider)
+                    {
+                        float halfHeight = boxCollider.size.y * 0.5f * boxCollider.transform.lossyScale.y;
+                        Vector3 bottomCenter = new Vector3(boxCollider.transform.position.x,
+                            boxCollider.transform.position.y - halfHeight,
+                            boxCollider.transform.position.z);
+                        targetPos = bottomCenter;
+                    }
+                    else
+                    {
+                        targetPos = canvas.transform.position;
+                    }
+
+                    diffVec = targetPos - anchor.transform.position;
+                    diffDir = diffVec.normalized;
+                    // diffSize = diffVec.magnitude * (1 / detectedObj.localScale.y);
+                    diffSize = diffVec.magnitude * (1 / 0.1f);
+
+                    pointer.Start = anchor.transform.localPosition;
+                }
+                else if (canvasCtl.bHasDescription)
+                {
+                    Transform descObj = canvas.transform.Find("Description");
+                    RectTransform rt = descObj.GetComponent<RectTransform>();
+                    float nameHeight = rt.rect.height * 0.5f * rt.lossyScale.y;
+                    Vector3 namePos = new Vector3(descObj.position.x,
+                        descObj.position.y - nameHeight,
+                        descObj.position.z);
+                    targetPos = namePos;
+                    diffVec = targetPos - anchor.transform.position;
+                    diffDir = diffVec.normalized;
+                    //diffSize = diffVec.magnitude * (1 / detectedObj.localScale.y);
+                    diffSize = diffVec.magnitude * (1 / 0.1f);
+
+                    pointer.Start = anchor.transform.localPosition;
                 }
                 else
                 {
-                    targetPos = canvas.transform.position;
+                    Transform nameObj = canvas.transform.Find("Name");
+                    RectTransform rt = nameObj.GetComponent<RectTransform>();
+                    float nameHeight = rt.rect.height * 0.5f * rt.lossyScale.y;
+                    Vector3 namePos = new Vector3(nameObj.position.x,
+                        nameObj.position.y - nameHeight,
+                        nameObj.position.z);
+                    targetPos = namePos;
+                    diffVec = targetPos - anchor.transform.position;
+                    diffDir = diffVec.normalized;
+                    //diffSize = diffVec.magnitude * (1 / detectedObj.localScale.y);
+                    diffSize = diffVec.magnitude * (1 / 0.1f);
+
+                    pointer.Start = anchor.transform.localPosition;
                 }
-
-                diffVec = targetPos - anchor.transform.position;
-                diffDir = diffVec.normalized;
-                diffSize = diffVec.magnitude * (1 / this.transform.localScale.x);
-
-                pointer.Start = anchor.transform.localPosition;
-            }
-            else if (canvasCtl.bHasName)
-            {
-                Transform nameObj = canvas.transform.Find("Name");
-                RectTransform rt = nameObj.GetComponent<RectTransform>();
-                float nameHeight = rt.rect.height * 0.5f * rt.lossyScale.y;
-                Vector3 namePos = new Vector3(nameObj.position.x,
-                    nameObj.position.y - nameHeight,
-                    nameObj.position.z);
-                targetPos = namePos;
-                diffVec = targetPos - anchor.transform.position;
-                diffDir = diffVec.normalized;
-                diffSize = diffVec.magnitude * (1 / this.transform.localScale.x);
-
-                pointer.Start = anchor.transform.localPosition;
             }
             else
             {

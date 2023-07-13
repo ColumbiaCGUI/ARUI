@@ -4,7 +4,7 @@ using System.Collections;
 
 public class ExampleScript : MonoBehaviour
 {
-    public bool Automate = true;
+    public bool Automate = false;
 
     // Testing Task List
     string[,] _tasks0 =
@@ -62,7 +62,28 @@ public class ExampleScript : MonoBehaviour
     private void Start()
     {
         if (Automate)
-            StartCoroutine(RunTasksAtRuntime());
+            //StartCoroutine(RunTasksAtRuntime());
+            StartCoroutine(AnnotationAtRuntime());
+    }
+
+    private IEnumerator AnnotationAtRuntime()
+    {
+        yield return new WaitForSeconds(3);
+
+        GameObject itemList = GameObject.Find("FakeItem");
+        if (itemList == null) yield return new WaitForEndOfFrame();
+
+        int id = 0;
+        foreach (Transform child in itemList.transform)
+        {
+            if (!child.gameObject.activeSelf) continue;
+
+            AngelARUI.Instance.AttachAnnotation(id, child.gameObject, 
+                true, "Cube",
+                false, "A cube is used to be placed around.",
+                true, "cube",
+                false, "cubeVideo");
+        }
     }
 
     private IEnumerator RunTasksAtRuntime()
@@ -153,6 +174,7 @@ public class ExampleScript : MonoBehaviour
     /// </summary>
     public void Update()
     {
+        /* Input from Bettina's test 
         //Example how to set the recipe(task list in the ARUI) -example data see on top
         if (Input.GetKeyUp(KeyCode.O))
         {
@@ -241,6 +263,7 @@ public class ExampleScript : MonoBehaviour
         {
             AngelARUI.Instance.PrintVMDebug = false;
         }
+        */
     }
 
 #endif

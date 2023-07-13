@@ -9,7 +9,7 @@ public class AnnotationCanvasControl : MonoBehaviour
     [SerializeField]
     private Canvas canvas;
     [SerializeField]
-    private GameObject textObj;
+    private GameObject nameObj;
     [SerializeField]
     private GameObject imgObj;
     [SerializeField]
@@ -26,13 +26,17 @@ public class AnnotationCanvasControl : MonoBehaviour
     [SerializeField]
     public bool bHasVideo = false;
 
+    private bool isInit;
+
     // Start is called before the first frame update
     void Start()
     {
+        isInit = true;
+
         /* Get canvas objects */
         canvas = GetComponent<Canvas>();
 
-        textObj = transform.Find("Name").gameObject;
+        nameObj = transform.Find("Name").gameObject;
         imgObj = transform.Find("Image").gameObject;
         videoObj = transform.Find("Video").gameObject;
         dscpObj = transform.Find("Description").gameObject;
@@ -46,7 +50,7 @@ public class AnnotationCanvasControl : MonoBehaviour
         {
             /* Only has name - Place name in the middle */
             // Set the RectTransform
-            RectTransform rectTransform = textObj.GetComponent<RectTransform>();
+            RectTransform rectTransform = nameObj.GetComponent<RectTransform>();
             rectTransform.anchoredPosition = Vector2.zero;
             rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
             rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
@@ -55,7 +59,7 @@ public class AnnotationCanvasControl : MonoBehaviour
         else
         {
             /* Name go to the top */
-            RectTransform rectTransform = textObj.GetComponent<RectTransform>();
+            RectTransform rectTransform = nameObj.GetComponent<RectTransform>();
             rectTransform.anchoredPosition = Vector2.zero;
             rectTransform.anchorMin = new Vector2(0.5f, 1f);
             rectTransform.anchorMax = new Vector2(0.5f, 1f);
@@ -93,5 +97,13 @@ public class AnnotationCanvasControl : MonoBehaviour
             rectTransform.anchorMax = new Vector2(0.5f, 0f);
             rectTransform.pivot = new Vector2(0.5f, 0.5f);
         }
+    }
+
+    public void canvasInitDone()
+    {
+        nameObj.SetActive(bHasName);
+        dscpObj.SetActive(bHasDescription);
+        imgObj.SetActive(bHasImage);
+        videoObj.SetActive(bHasVideo);
     }
 }
