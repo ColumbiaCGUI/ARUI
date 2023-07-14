@@ -23,6 +23,7 @@ public static class StringResources
     public static string Taskprefab_path = "Prefabs/Task";
     public static string EyeTarget_path = "Prefabs/EyeTarget";
     public static string ConfNotification_path = "Prefabs/ConfirmationNotification";
+    public static string AnnotationPrefab_path = "Prefabs/Annotation";
 
     //Textures
     public static string zBufferTexture_path = "Textures/zBuffer";
@@ -41,6 +42,4 @@ public static class StringResources
     public static string eyeGazeManager_name = "EyeGazeManager";
     public static string audioManager_name = "AudioManager";
     public static string confirmationWindow_name = "ConfirmatioWindow";
-
-
 }

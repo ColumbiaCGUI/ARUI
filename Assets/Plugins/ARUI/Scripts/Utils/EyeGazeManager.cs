@@ -8,6 +8,8 @@ public enum EyeTarget
     orbMessage = 2,
     tasklist = 3,
     orbtasklistButton = 4,
+    detectedObject = 5,
+    annotation = 6,
     okButton = 7,
     ringindicator = 8,
     textConfirmationWindow = 9
@@ -57,6 +59,12 @@ public class EyeGazeManager : Singleton<EyeGazeManager>
 
                 else if (goName.Contains("facetasklistbutton"))
                     CurrentHit = EyeTarget.orbtasklistButton;
+
+                else if (goName.Contains("detectedobject"))
+                    CurrentHit = EyeTarget.detectedObject;
+
+                else if (goName.Contains("annotation"))
+                    CurrentHit = EyeTarget.annotation;
 
                 else if (goName.Contains("okbutton"))
                     CurrentHit = EyeTarget.okButton;
