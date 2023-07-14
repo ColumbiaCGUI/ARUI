@@ -231,7 +231,7 @@ public class ExampleScript : MonoBehaviour
                     StartCoroutine(
                         AngelARUI.Instance.AttachAnnotation(id, child.gameObject,
                         true, "Pot",
-                        true, potDesc,
+                        false, potDesc,
                         false, "cube",
                         false, "cubeVideo")
                     );
