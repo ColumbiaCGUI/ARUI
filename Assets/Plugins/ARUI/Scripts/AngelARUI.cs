@@ -334,14 +334,12 @@ public class AngelARUI : Singleton<AngelARUI>
     #endregion
 
     #region Annotation
-    public IEnumerator AttachAnnotation(int id, GameObject target, 
+    public void AttachAnnotation(int id, GameObject target, 
         bool hasName, string name,
         bool hasDesc, string desc,
         bool hasImg, string imgPath,
         bool hasVideo, string videoPath)
     {
-        yield return new WaitForSeconds(annotationDelay);
-
         // Attach annotation to the object
         GameObject annotation = Instantiate(Resources.Load(StringResources.AnnotationPrefab_path), target.transform) as GameObject;
 

@@ -1,4 +1,6 @@
 using Microsoft.MixedReality.Toolkit;
+using Microsoft.MixedReality.Toolkit.Input;
+using UnityEditor.PackageManager;
 using UnityEngine;
 
 public enum EyeTarget
@@ -24,21 +26,70 @@ public class EyeGazeManager : Singleton<EyeGazeManager>
     private MeshRenderer _eyeGazeTargetCube;
     private bool _showRayDebugCube = false;
 
-    private void Awake() => _eyeGazeTargetCube = gameObject.GetComponent<MeshRenderer>();
+    bool bSphere;
+    private Ray rayToCenter_copy;
+    private RaycastHit hitInfo_copy;
+
+    [SerializeField] 
+    private float sphereRadius = 0.1f;
+    private Vector3 sphereCenter;
+
+    int layerMask;
+
+    private void Awake()
+    {
+        _eyeGazeTargetCube = gameObject.GetComponent<MeshRenderer>();
+
+        // layerMask = LayerMask.GetMask(StringResources.UI_layer, StringResources.VM_layer, "Annotation");
+        layerMask = LayerMask.GetMask("Annotation");
+    }
+
+    /*
+    private void OnDrawGizmos()
+    {
+        if (bSphere)
+        {
+            Debug.DrawRay(rayToCenter_copy.origin, rayToCenter_copy.direction * hitInfo_copy.distance, Color.red);
+
+            Gizmos.color = Color.blue;
+            Gizmos.DrawWireSphere(rayToCenter_copy.origin + rayToCenter_copy.direction * hitInfo_copy.distance, sphereRadius);
+        }
+        else
+        {
+            Debug.DrawRay(rayToCenter_copy.origin, rayToCenter_copy.direction * 100f, Color.green);
+        }
+    }
+    */
+
+    private void OnDrawGizmos()
+    {
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(sphereCenter, sphereRadius);
+    }
 
     private void Update()
     {
         var eyeGazeProvider = CoreServices.InputSystem?.EyeGazeProvider;
         if (eyeGazeProvider != null)
         {
+            sphereCenter = eyeGazeProvider.HitPosition;
+            Collider[] hitColliders = Physics.OverlapSphere(sphereCenter, sphereRadius, layerMask);
+            foreach (var hitCollider in hitColliders)
+            {
+                Debug.Log("Selection Debug ---- " + hitCollider.name);
+            }
+
             gameObject.transform.position = eyeGazeProvider.GazeOrigin + eyeGazeProvider.GazeDirection.normalized * 2.0f;
             _eyeGazeTargetCube.enabled = false;
 
             Ray rayToCenter = new Ray(eyeGazeProvider.GazeOrigin, eyeGazeProvider.GazeDirection);
+            rayToCenter_copy = rayToCenter;
             RaycastHit hitInfo;
 
-            int layerMask = LayerMask.GetMask(StringResources.UI_layer, StringResources.VM_layer);
-            UnityEngine.Physics.Raycast(rayToCenter, out hitInfo, 100f, layerMask);
+            //UnityEngine.Physics.Raycast(rayToCenter, out hitInfo, 100f, layerMask);
+
+            bSphere = UnityEngine.Physics.SphereCast(rayToCenter, sphereRadius, out hitInfo, 100, layerMask);
+            hitInfo_copy = hitInfo;
 
             // Update GameObject to the current eye gaze position at a given distance
             if (hitInfo.collider != null)

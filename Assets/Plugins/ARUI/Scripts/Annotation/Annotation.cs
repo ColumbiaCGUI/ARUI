@@ -107,7 +107,7 @@ public class Annotation : MonoBehaviour
         EyeTarget currentHit = EyeGazeManager.Instance.CurrentHit;
         GameObject currentHitObject = EyeGazeManager.Instance.CurrentHitObj;
 
-        if (isLookingAtDot && currentHit != EyeTarget.annotation)
+        if (isLookingAtDot && (currentHit != EyeTarget.annotation || currentHitObject.transform.parent.parent.gameObject.name != gameObject.transform.parent.name))
         {
             isLookingAtDot = false;
             StartCoroutine(DisableAnnotation());
