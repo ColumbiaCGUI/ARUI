@@ -320,7 +320,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &438880989835831749
 RectTransform:
   m_ObjectHideFlags: 0
@@ -528,6 +528,7 @@ MonoBehaviour:
   enableDelay: 0.5
   disableDelay: 1
   canvasPosOffset: 0.1
+  bCloseGaze: 0
 --- !u!1 &5126138227090050312
 GameObject:
   m_ObjectHideFlags: 0
@@ -783,7 +784,7 @@ VideoPlayer:
   - 1
   m_Url: 
   m_EnabledAudioTracks: 01
-  m_DirectAudioMutes: 00
+  m_DirectAudioMutes: 01
   m_ControlledAudioTrackCount: 1
   m_PlayOnAwake: 1
   m_SkipOnDrop: 1
@@ -1016,7 +1017,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3031455689252047542}
   - component: {fileID: 544045541778445127}
-  m_Layer: 9
+  m_Layer: 8
   m_Name: AnnotationCollider
   m_TagString: Untagged
   m_Icon: {fileID: 0}

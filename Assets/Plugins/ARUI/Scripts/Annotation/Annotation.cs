@@ -1,38 +1,16 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using Shapes;
 using static UnityEditor.Experimental.AssetDatabaseExperimental.AssetDatabaseCounters;
 
-public struct AnnotationSignal
-{
-
-}
-
 public class Annotation : MonoBehaviour
 {
+    // private properties =====================================================
+
     [SerializeField]
     private int id;
-
-    private Transform detectedObj;
-
-    private GameObject mainCamera;
-    private GameObject canvas;
-    private GameObject anchor;
-
-    AnnotationCanvasControl canvasCtl;
-
-    private bool isLookingAtDot;
-    private bool isFadingOut;
-    private bool isVisible;
-    private bool isInit;
-
-    private Line pointer;
-    private CanvasGroup canvasGroup;
-    private Color pointerColor;
-
-    private Coroutine fadeOutCoroutine;
-
     [SerializeField]
     private float enableDelay = 1.0f;
     [SerializeField]
@@ -40,7 +18,27 @@ public class Annotation : MonoBehaviour
     [SerializeField]
     private float canvasPosOffset = 0.01f;
 
-    // Start is called before the first frame update
+    private bool isGazing;
+    private bool isFadingOut;
+    private bool isVisible;
+
+    private Line pointer;
+
+    private Color pointerColor;
+
+    private Coroutine fadeOutCoroutine;
+
+    private Transform detectedObj;
+
+    private GameObject mainCamera;
+    private GameObject canvas;
+    private GameObject anchor;
+
+    private CanvasGroup canvasGroup;
+
+    private AnnotationCanvasControl canvasCtl;
+
+    // Start() ================================================================
     void Start()
     {
         detectedObj = transform.parent;
@@ -57,11 +55,9 @@ public class Annotation : MonoBehaviour
 
         pointer.Thickness = 0.0125f;
 
-        isLookingAtDot = false;
+        isGazing = false;
         isFadingOut = false;
         isVisible = false;
-        isInit = true;
-
         transform.localScale = anchor.transform.localScale / (detectedObj.localScale.x / 0.1f);
 
         // Put canvas into the right position
@@ -70,9 +66,6 @@ public class Annotation : MonoBehaviour
 
         Vector3 canvasPos = objBounds.center + new Vector3(0, objBounds.extents.y + canvasPosOffset, 0);
         canvas.transform.position = canvasPos;
-
-        /* Adjust anchor based on the object detected */
-        // anchor.transform.localPosition = detectedObj.GetComponent<BoxCollider>().center;
 
         /* Adjust the eye gaze collider size */
         Transform annotationCollider = transform.Find("AnnotationCollider");
@@ -88,69 +81,94 @@ public class Annotation : MonoBehaviour
         }
     }
 
-    // Update is called once per frame
+    // Update() ===============================================================
     void Update()
     {
         // TODO: Remove this as other scripts didn't need this
-        if (!EyeGazeManager.Instance) 
-        {
-            return;
-        }
+        if (!EyeGazeManager.Instance) return;
 
-        if (isInit)
-        {
-            canvas.SetActive(false);
-            canvasCtl.canvasInitDone();
-            isInit = false;
-        }
-
+        // Get eye gaze data
         EyeTarget currentHit = EyeGazeManager.Instance.CurrentHit;
         GameObject currentHitObject = EyeGazeManager.Instance.CurrentHitObj;
 
-        if (isLookingAtDot && (currentHit != EyeTarget.annotation || currentHitObject.transform.parent.parent.gameObject.name != gameObject.transform.parent.name))
+        Collider[] hitColliders = EyeGazeManager.Instance.hitColliders;
+        Collider currentCollider = transform.Find("AnnotationCollider").GetComponent<Collider>();
+
+        // If start looking at this object
+        if (!isGazing
+            && ((currentHit == EyeTarget.annotation && currentHitObject.transform.parent.parent.name == transform.parent.name)
+                || EyeGazeManager.Instance.HitCollidersHave(currentCollider)))
         {
-            isLookingAtDot = false;
-            StartCoroutine(DisableAnnotation());
-        }
-        else if (!isLookingAtDot && currentHit == EyeTarget.annotation && currentHitObject.transform.parent.parent.gameObject.name == gameObject.transform.parent.name)
-        {
-            isLookingAtDot = true;
+            isGazing = true;
             if (!isVisible)
             {
                 StartCoroutine(EnableAnnotation());
             }
         }
-
-        if (isFadingOut && isLookingAtDot) 
+        // If moved eye away from current object
+        else if (isGazing
+                 && ((currentHit != EyeTarget.annotation || currentHitObject.transform.parent.parent.name != transform.parent.name)
+                     && !EyeGazeManager.Instance.HitCollidersHave(currentCollider)))
         {
+            isGazing = false;
+            StartCoroutine(DisableAnnotation());
+        }
+
+        //// If moved eye away from current object -----
+        //if (isGazing
+        //    && (currentHit != EyeTarget.annotation || currentHitObject.transform.parent.parent.name != gameObject.transform.parent.name))
+        //{
+        //    // Set flag and disable annotation
+        //    isGazing = false;
+        //    StartCoroutine(DisableAnnotation());
+        //}
+        //// If start looking at the current object -----
+        //else if (!isGazing
+        //    && ((currentHit == EyeTarget.annotation && currentHitObject.transform.parent.parent.name == gameObject.transform.parent.name)
+        //    || EyeGazeManager.Instance.HitCollidersHave(transform.Find("AnnotationCollider").GetComponent<BoxCollider>())))
+        //{
+        //    // Set flag and enable annotation
+        //    isGazing = true;
+        //    if (!isVisible)
+        //    {
+        //        StartCoroutine(EnableAnnotation());
+        //    }
+        //}
+
+        // If look back when fading out
+        if (isFadingOut && isGazing) 
+        {
+            // Stop fading out
             StopCoroutine(fadeOutCoroutine);
-
             isFadingOut = false;
-
+            // Resume alpha
             canvasGroup.alpha = 1.0f;
             pointer.Color = pointerColor;
         }
 
+        // Update collider position of canvas
         UpdateCanvasCollider();
     }
 
+    // LateUpdate() ===========================================================
     private void LateUpdate()
     {
-        // The anchor dot should always face the user
+        /* ---- Anchor dot faces user ---- */
         anchor.transform.LookAt(mainCamera.transform);
         
-        /* ---- Annotation canvas always faces user ---- */
+        /* ---- Canvas faces user ---- */
         Vector3 diffVector = canvas.transform.position - mainCamera.transform.position;     // Get relative position between camera and canvas
         Vector3 offsetPos = canvas.transform.position + diffVector;                         // Find relative position on the other side of canvas
         canvas.transform.LookAt(offsetPos, Vector3.up);                                     // Let canvas face the other side - content shows backwards
     }
 
+    // EnableAnnotation() =====================================================
     private IEnumerator EnableAnnotation()
     {
         float elapsed = 0f;
         bool success = false;
 
-        while (isLookingAtDot && elapsed < enableDelay)
+        while (isGazing && elapsed < enableDelay)
         {
             elapsed += Time.deltaTime;
 
@@ -240,7 +258,7 @@ public class Annotation : MonoBehaviour
             float capsuleHeight = (pointer.Start - pointer.End).magnitude;
             capsule.height = capsuleHeight;
 
-            if (elapsed > enableDelay && isLookingAtDot)
+            if (elapsed > enableDelay && isGazing)
                 success = true;
 
             yield return null;
@@ -258,6 +276,8 @@ public class Annotation : MonoBehaviour
         }
     }
 
+
+    // DisableAnnotation() ====================================================
     private IEnumerator DisableAnnotation()
     {
 
@@ -266,6 +286,7 @@ public class Annotation : MonoBehaviour
         fadeOutCoroutine = StartCoroutine(FadeOut());
     }
 
+    // UpdateCanvasCollider() =================================================
     private void UpdateCanvasCollider()
     {
         // Get collider instance and recttransform
@@ -275,6 +296,7 @@ public class Annotation : MonoBehaviour
         collider.size = new Vector3(rectTransform.rect.width, rectTransform.rect.height, 1);
     }
 
+    // Fadeout() ==============================================================
     private IEnumerator FadeOut()
     {
         isFadingOut = true;
@@ -306,4 +328,6 @@ public class Annotation : MonoBehaviour
         isFadingOut = false;
         isVisible = false;
     }
+
+    // 
 }

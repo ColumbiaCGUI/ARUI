@@ -35,6 +35,8 @@ public static class StringResources
     public static string zBuffer_layer = "zBuffer";
     public static string Hand_layer = "Hand";
     public static string spatialAwareness_layer = "Spatial Awareness";
+    public static string Annotation_layer = "Annotation";
+    public static string ObjectCollider_Layer = "ObjectCollider";
 
     // GO names
     public static string tasklist_name = "TaskOverview";

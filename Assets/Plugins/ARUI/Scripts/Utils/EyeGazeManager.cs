@@ -10,8 +10,7 @@ public enum EyeTarget
     orbMessage = 2,
     tasklist = 3,
     orbtasklistButton = 4,
-    detectedObject = 5,
-    annotation = 6,
+    annotation = 5,
     okButton = 7,
     ringindicator = 8,
     textConfirmationWindow = 9
@@ -22,44 +21,34 @@ public class EyeGazeManager : Singleton<EyeGazeManager>
     public EyeTarget CurrentHit = EyeTarget.nothing;
     public GameObject CurrentHitObj;
 
+    public Collider[] hitColliders;
+
     /// ** Debug eye gaze target cube
     private MeshRenderer _eyeGazeTargetCube;
     private bool _showRayDebugCube = false;
-
-    bool bSphere;
-    private Ray rayToCenter_copy;
-    private RaycastHit hitInfo_copy;
 
     [SerializeField] 
     private float sphereRadius = 0.1f;
     private Vector3 sphereCenter;
 
-    int layerMask;
+    private int rayLayerMask;
+    private int sphereLayerMask;
+
+    private GameObject prevHitObj;
 
     private void Awake()
     {
         _eyeGazeTargetCube = gameObject.GetComponent<MeshRenderer>();
 
-        // layerMask = LayerMask.GetMask(StringResources.UI_layer, StringResources.VM_layer, "Annotation");
-        layerMask = LayerMask.GetMask("Annotation");
-    }
+        rayLayerMask = LayerMask.GetMask(
+            StringResources.UI_layer,
+            StringResources.VM_layer,
+            StringResources.Annotation_layer,
+            StringResources.ObjectCollider_Layer);
 
-    /*
-    private void OnDrawGizmos()
-    {
-        if (bSphere)
-        {
-            Debug.DrawRay(rayToCenter_copy.origin, rayToCenter_copy.direction * hitInfo_copy.distance, Color.red);
-
-            Gizmos.color = Color.blue;
-            Gizmos.DrawWireSphere(rayToCenter_copy.origin + rayToCenter_copy.direction * hitInfo_copy.distance, sphereRadius);
-        }
-        else
-        {
-            Debug.DrawRay(rayToCenter_copy.origin, rayToCenter_copy.direction * 100f, Color.green);
-        }
+        sphereLayerMask = LayerMask.GetMask(
+            StringResources.ObjectCollider_Layer);
     }
-    */
 
     private void OnDrawGizmos()
     {
@@ -72,31 +61,23 @@ public class EyeGazeManager : Singleton<EyeGazeManager>
         var eyeGazeProvider = CoreServices.InputSystem?.EyeGazeProvider;
         if (eyeGazeProvider != null)
         {
-            sphereCenter = eyeGazeProvider.HitPosition;
-            Collider[] hitColliders = Physics.OverlapSphere(sphereCenter, sphereRadius, layerMask);
-            foreach (var hitCollider in hitColliders)
-            {
-                Debug.Log("Selection Debug ---- " + hitCollider.name);
-            }
-
             gameObject.transform.position = eyeGazeProvider.GazeOrigin + eyeGazeProvider.GazeDirection.normalized * 2.0f;
             _eyeGazeTargetCube.enabled = false;
 
             Ray rayToCenter = new Ray(eyeGazeProvider.GazeOrigin, eyeGazeProvider.GazeDirection);
-            rayToCenter_copy = rayToCenter;
             RaycastHit hitInfo;
 
-            //UnityEngine.Physics.Raycast(rayToCenter, out hitInfo, 100f, layerMask);
+            Physics.Raycast(rayToCenter, out hitInfo, 100f, rayLayerMask);
+            sphereCenter = hitInfo.point;
 
-            bSphere = UnityEngine.Physics.SphereCast(rayToCenter, sphereRadius, out hitInfo, 100, layerMask);
-            hitInfo_copy = hitInfo;
+            hitColliders = Physics.OverlapSphere(sphereCenter, sphereRadius, sphereLayerMask);
 
             // Update GameObject to the current eye gaze position at a given distance
             if (hitInfo.collider != null)
             {
                 float dist = (hitInfo.point - AngelARUI.Instance.ARCamera.transform.position).magnitude;
                 gameObject.transform.position = eyeGazeProvider.GazeOrigin + eyeGazeProvider.GazeDirection.normalized * dist;
-                //Debug.Log(hitInfo.collider.gameObject.name);
+
                 string goName = hitInfo.collider.gameObject.name.ToLower();
 
                 if (goName.Contains("flexibletextcontainer_orb"))
@@ -110,9 +91,6 @@ public class EyeGazeManager : Singleton<EyeGazeManager>
 
                 else if (goName.Contains("facetasklistbutton"))
                     CurrentHit = EyeTarget.orbtasklistButton;
-
-                else if (goName.Contains("detectedobject"))
-                    CurrentHit = EyeTarget.detectedObject;
 
                 else if (goName.Contains("annotation"))
                     CurrentHit = EyeTarget.annotation;
@@ -152,7 +130,33 @@ public class EyeGazeManager : Singleton<EyeGazeManager>
             CurrentHit = EyeTarget.nothing;
             CurrentHitObj = null;
         }
+
+        if (prevHitObj == CurrentHitObj)
+        {
+            if(sphereRadius >= 0.01f)
+            {
+                sphereRadius -= (0.01f * Time.deltaTime);
+            }
+        }
+        else
+        {
+            sphereRadius = 0.1f;
+            prevHitObj = CurrentHitObj;
+        }
     }
 
     public void ShowDebugTarget(bool showEyeGazeTarget) => _showRayDebugCube = showEyeGazeTarget;
+
+    public bool HitCollidersHave(Collider collider)
+    {
+        if (hitColliders == null) return false;
+
+        foreach (Collider c in hitColliders)
+            if (c == collider)
+            {
+                return true;
+            }
+
+        return false;
+    }
 }
