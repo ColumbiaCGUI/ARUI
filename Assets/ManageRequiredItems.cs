@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using TMPro;
 
 public class ManageRequiredItems : MonoBehaviour
 {
@@ -13,7 +14,8 @@ public class ManageRequiredItems : MonoBehaviour
     {
         foreach(string item in items)
         {
-            Instantiate(ItemTextPrefab, VerticalLayoutGroupObj.transform);
+            GameObject currItem = Instantiate(ItemTextPrefab, VerticalLayoutGroupObj.transform);
+            currItem.GetComponent<TMP_Text>().SetText(item);
         }
     }
 
