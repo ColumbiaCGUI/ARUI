@@ -11,7 +11,10 @@ public class ManageRequiredItems : MonoBehaviour
     //fucntion to add items
     public void AddItems(List<string> items)
     {
-
+        foreach(string item in items)
+        {
+            Instantiate(ItemTextPrefab, VerticalLayoutGroupObj.transform);
+        }
     }
 
     //function to clear all items
