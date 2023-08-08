@@ -4,15 +4,20 @@ using UnityEngine;
 
 public class SetupCurrTaskOverview : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
+    public ManageStepFlashcardMulti currFlashcard;
+    public ManageStepFlashcardSolo prevFlashcard;
+    public ManageStepFlashcardSolo nextFlashcard;
+    public void SetupCurrTask(Step currStep)
     {
-        
+        currFlashcard.InitializeFlashcad(currStep);
     }
 
-    // Update is called once per frame
-    void Update()
+    public void SetupPrevTask(Step prevStep)
     {
-        
+        prevFlashcard.InitializeFlashcard(prevStep);
+    }
+    public void SetupNextTask(Step nextStep)
+    {
+        nextFlashcard.InitializeFlashcard(nextStep);
     }
 }

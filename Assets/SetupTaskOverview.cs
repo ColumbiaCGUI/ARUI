@@ -4,15 +4,26 @@ using UnityEngine;
 
 public class SetupTaskOverview : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
+    public SetupCurrTaskOverview currOverview;
+    public GameObject OverviewObj;
+    public void SetupCurrentStep(TaskList list)
     {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
+        OverviewObj.SetActive(true);
+        if (list != null)
+        {
+            if (list.CurrStepIndex != -1)
+            {
+                currOverview.SetupCurrTask(list.Steps[list.CurrStepIndex]);
+            } 
+            if(list.NextStepIndex != -1)
+            {
+                currOverview.SetupNextTask(list.Steps[list.NextStepIndex]);
+            }
+            if (list.PrevStepIndex != -1)
+            {
+                currOverview.SetupPrevTask(list.Steps[list.PrevStepIndex]);
+            }
+        }
+        OverviewObj.SetActive(false);
     }
 }

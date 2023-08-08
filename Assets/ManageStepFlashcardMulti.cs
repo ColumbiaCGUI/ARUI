@@ -34,18 +34,17 @@ public class ManageStepFlashcardMulti : MonoBehaviour
             parentCol.center = new Vector3(parentCol.center.x, parentCol.center.y + 0.01f, parentCol.center.z);
             //Increase position of parent rectangle
             RectTransform ParentRectangle = ParentRect.GetComponent<RectTransform>();
-            ParentRectangle.anchoredPosition = new Vector2(ParentRectangle.anchoredPosition.x, ParentRectangle.anchoredPosition.y + 0.01f);
+            ParentRectangle.localPosition = new Vector2(ParentRectangle.localPosition.x, ParentRectangle.localPosition.y + 0.01f);
             //Increase rectangle border height and center
             BorderRect.GetComponent<Rectangle>().Height += 0.03f;
             RectTransform rect = BorderRect.GetComponent<RectTransform>();
-            rect.anchoredPosition = new Vector2(rect.anchoredPosition.x, rect.anchoredPosition.y - 0.005f);
+            rect.localPosition = new Vector2(rect.localPosition.x, rect.localPosition.y - 0.005f);
             //Increase box collider border height and center
             BoxCollider collider = VerticalLayoutGroupObj.GetComponent<BoxCollider>();
-            collider.center = new Vector3(collider.center.x, collider.center.y - 0.015f, collider.center.z);
+            collider.center = new Vector3(collider.center.x, collider.center.y - 0.005f, collider.center.z);
             collider.size = new Vector3(collider.size.x, collider.size.y + 0.03f, collider.size.z);
         }
         int currIndex = currStep.CurrSubStepIndex;
-        ReqItemsScript.AddItems(currStep.SubSteps[currIndex].RequiredItems);
     }
 
 
@@ -63,12 +62,12 @@ public class ManageStepFlashcardMulti : MonoBehaviour
             parentCol.center = new Vector3(parentCol.center.x, parentCol.center.y - 0.01f, parentCol.center.z);
             //Decrease position of parent rectangle
             RectTransform ParentRectangle = ParentRect.GetComponent<RectTransform>();
-            ParentRectangle.anchoredPosition = new Vector2(ParentRectangle.anchoredPosition.x, ParentRectangle.anchoredPosition.y - 0.01f);
+            ParentRectangle.localPosition = new Vector2(ParentRectangle.localPosition.x, ParentRectangle.localPosition.y - 0.01f);
             //Decrease rectangle border height and center
             BorderRect.GetComponent<Rectangle>().Height -= 0.03f;
             RectTransform rect = BorderRect.GetComponent<RectTransform>();
-            rect.anchoredPosition = new Vector2(rect.anchoredPosition.x, rect.anchoredPosition.y + 0.015f);
-            //Fecrease box collider border height and center
+            rect.localPosition = new Vector2(rect.localPosition.x, rect.localPosition.y + 0.005f);
+            //Decrease box collider border height and center
             BoxCollider collider = VerticalLayoutGroupObj.GetComponent<BoxCollider>();
             collider.center = new Vector3(collider.center.x, collider.center.y + 0.005f, collider.center.z);
             collider.size = new Vector3(collider.size.x, collider.size.y - 0.03f, collider.size.z);

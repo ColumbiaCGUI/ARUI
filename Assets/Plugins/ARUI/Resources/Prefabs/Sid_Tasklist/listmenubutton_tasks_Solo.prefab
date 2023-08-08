@@ -303,6 +303,7 @@ GameObject:
   - component: {fileID: 5258463852195754737}
   - component: {fileID: 5258463852195754742}
   - component: {fileID: 4668959644090683752}
+  - component: {fileID: 3670776259572236000}
   m_Layer: 5
   m_Name: listmenubutton_tasks_Solo
   m_TagString: Untagged
@@ -411,6 +412,22 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   TaskText: {fileID: 5258463852564998637}
   ReqItemsScript: {fileID: 1695861425733974511}
+--- !u!114 &3670776259572236000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5258463852195754739}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8114392cd29a3044d85209fd6a8efd10, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  canvas: {fileID: 4136728158942898388}
+  anchor: {fileID: 2866135203935097098}
+  enableDelay: 1
+  disableDelay: 1
 --- !u!1 &5258463852312029780
 GameObject:
   m_ObjectHideFlags: 0
