@@ -255,7 +255,7 @@ public class ExampleScript : MonoBehaviour
                 {
                     AngelARUI.Instance.AttachAnnotation(id, child.gameObject,
                     true, "Dishes",
-                    false, "WARNING: MAY BE HOT",
+                    true, "Dishes refer to the food prepared and served for consumption. They vary widely in ingredients, cooking techniques, flavors, and cultural influences, offering a diverse culinary experience.",
                     false, "Images/dishes",
                     false, "cubeVideo");
                 }

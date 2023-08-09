@@ -26,7 +26,6 @@ public class AnnotationCanvasControl : MonoBehaviour
     [SerializeField]
     public bool bHasVideo = false;
 
-    // Start is called before the first frame update
     void Awake()
     {
         /* Get canvas objects */
@@ -36,11 +35,6 @@ public class AnnotationCanvasControl : MonoBehaviour
         imgObj = transform.Find("Image").gameObject;
         videoObj = transform.Find("Video").gameObject;
         dscpObj = transform.Find("Description").gameObject;
-
-        nameObj.SetActive(bHasName);
-        dscpObj.SetActive(bHasDescription);
-        imgObj.SetActive(bHasImage);
-        videoObj.SetActive(bHasVideo);
 
         /* ---- Dynamically locate name ---- */
         if (!bHasName)
@@ -98,5 +92,13 @@ public class AnnotationCanvasControl : MonoBehaviour
             rectTransform.anchorMax = new Vector2(0.5f, 0f);
             rectTransform.pivot = new Vector2(0.5f, 0.5f);
         }
+    }
+
+    public void canvasInitDone()
+    {
+        nameObj.SetActive(bHasName);
+        dscpObj.SetActive(bHasDescription);
+        imgObj.SetActive(bHasImage);
+        videoObj.SetActive(bHasVideo);
     }
 }

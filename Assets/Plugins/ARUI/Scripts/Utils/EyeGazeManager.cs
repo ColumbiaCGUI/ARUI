@@ -18,12 +18,20 @@ public enum EyeTarget
 
 public class EyeGazeManager : Singleton<EyeGazeManager>
 {
+    // ========================================================================
+    // public
+    // ========================================================================
     public EyeTarget CurrentHit = EyeTarget.nothing;
     public GameObject CurrentHitObj;
+    public EyeTarget PrevHit = EyeTarget.nothing;
+    public GameObject PrevHitObj;
 
     public Collider[] hitColliders;
 
-    /// ** Debug eye gaze target cube
+    // ========================================================================
+    // private
+    // ========================================================================
+    // ** Debug eye gaze target cube
     private MeshRenderer _eyeGazeTargetCube;
     private bool _showRayDebugCube = false;
 
@@ -34,8 +42,10 @@ public class EyeGazeManager : Singleton<EyeGazeManager>
     private int rayLayerMask;
     private int sphereLayerMask;
 
-    private GameObject prevHitObj;
 
+    // ========================================================================
+    // Awake()
+    // ========================================================================
     private void Awake()
     {
         _eyeGazeTargetCube = gameObject.GetComponent<MeshRenderer>();
@@ -50,12 +60,18 @@ public class EyeGazeManager : Singleton<EyeGazeManager>
             StringResources.ObjectCollider_Layer);
     }
 
+    // ========================================================================
+    // OnDrawGizmos()
+    // ========================================================================
     private void OnDrawGizmos()
     {
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(sphereCenter, sphereRadius);
     }
 
+    // ========================================================================
+    // Update()
+    // ========================================================================
     private void Update()
     {
         var eyeGazeProvider = CoreServices.InputSystem?.EyeGazeProvider;
@@ -66,10 +82,9 @@ public class EyeGazeManager : Singleton<EyeGazeManager>
 
             Ray rayToCenter = new Ray(eyeGazeProvider.GazeOrigin, eyeGazeProvider.GazeDirection);
             RaycastHit hitInfo;
-
             Physics.Raycast(rayToCenter, out hitInfo, 100f, rayLayerMask);
-            sphereCenter = hitInfo.point;
 
+            sphereCenter = hitInfo.point;
             hitColliders = Physics.OverlapSphere(sphereCenter, sphereRadius, sphereLayerMask);
 
             // Update GameObject to the current eye gaze position at a given distance
@@ -131,22 +146,32 @@ public class EyeGazeManager : Singleton<EyeGazeManager>
             CurrentHitObj = null;
         }
 
-        if (prevHitObj == CurrentHitObj)
+        if (CurrentHit == EyeTarget.annotation && PrevHitObj != CurrentHitObj)
+        {
+            sphereRadius = 0.1f;
+            PrevHitObj = CurrentHitObj;
+            PrevHit = CurrentHit;
+        }
+        else
         {
             if(sphereRadius >= 0.01f)
             {
                 sphereRadius -= (0.01f * Time.deltaTime);
             }
         }
-        else
-        {
-            sphereRadius = 0.1f;
-            prevHitObj = CurrentHitObj;
-        }
+
+        if (PrevHitObj != null) Debug.Log("PrevHitObj = " + PrevHitObj.transform.parent.parent.name);
+        else Debug.Log("PrevHitObj = null");
     }
 
+    // ========================================================================
+    // ShowDebugTarget()
+    // ========================================================================
     public void ShowDebugTarget(bool showEyeGazeTarget) => _showRayDebugCube = showEyeGazeTarget;
 
+    // ========================================================================
+    // HitCollidersHave()
+    // ========================================================================
     public bool HitCollidersHave(Collider collider)
     {
         if (hitColliders == null) return false;

@@ -7,38 +7,41 @@ using static UnityEditor.Experimental.AssetDatabaseExperimental.AssetDatabaseCou
 
 public class Annotation : MonoBehaviour
 {
-    // private properties =====================================================
-
+    // ========================================================================
+    // private properties
+    // ========================================================================
     [SerializeField]
     private int id;
     [SerializeField]
     private float enableDelay = 1.0f;
     [SerializeField]
-    private float disableDelay = 1.0f;
+    private float disableDelay = 10.0f;
     [SerializeField]
     private float canvasPosOffset = 0.01f;
+    [SerializeField]
+    private float pointerResetTime = 1f;
+
+    private float elapsed;
 
     private bool isGazing;
     private bool isFadingOut;
     private bool isVisible;
+    private bool isInit;
+    private bool isDisabling;
 
     private Line pointer;
-
     private Color pointerColor;
-
     private Coroutine fadeOutCoroutine;
-
     private Transform detectedObj;
-
     private GameObject mainCamera;
     private GameObject canvas;
     private GameObject anchor;
-
     private CanvasGroup canvasGroup;
-
     private AnnotationCanvasControl canvasCtl;
 
-    // Start() ================================================================
+    // ========================================================================
+    // Start()
+    // ========================================================================
     void Start()
     {
         detectedObj = transform.parent;
@@ -58,6 +61,9 @@ public class Annotation : MonoBehaviour
         isGazing = false;
         isFadingOut = false;
         isVisible = false;
+        isInit = true;
+        isDisabling = false;
+
         transform.localScale = anchor.transform.localScale / (detectedObj.localScale.x / 0.1f);
 
         // Put canvas into the right position
@@ -79,17 +85,30 @@ public class Annotation : MonoBehaviour
                 bc.size = actualCollider.size * (detectedObj.localScale.x / 0.1f);
             }
         }
+
+        elapsed = 0;
     }
 
-    // Update() ===============================================================
+    // ========================================================================
+    // Update()
+    // ========================================================================
     void Update()
     {
         // TODO: Remove this as other scripts didn't need this
         if (!EyeGazeManager.Instance) return;
 
+        if (isInit)
+        {
+            canvas.SetActive(false);
+            // canvasCtl.canvasInitDone();
+            isInit = false;
+        }
+
         // Get eye gaze data
         EyeTarget currentHit = EyeGazeManager.Instance.CurrentHit;
         GameObject currentHitObject = EyeGazeManager.Instance.CurrentHitObj;
+        EyeTarget prevHit = EyeGazeManager.Instance.PrevHit;
+        GameObject prevHitObj = EyeGazeManager.Instance.PrevHitObj;
 
         Collider[] hitColliders = EyeGazeManager.Instance.hitColliders;
         Collider currentCollider = transform.Find("AnnotationCollider").GetComponent<Collider>();
@@ -114,26 +133,15 @@ public class Annotation : MonoBehaviour
             StartCoroutine(DisableAnnotation());
         }
 
-        //// If moved eye away from current object -----
-        //if (isGazing
-        //    && (currentHit != EyeTarget.annotation || currentHitObject.transform.parent.parent.name != gameObject.transform.parent.name))
-        //{
-        //    // Set flag and disable annotation
-        //    isGazing = false;
-        //    StartCoroutine(DisableAnnotation());
-        //}
-        //// If start looking at the current object -----
-        //else if (!isGazing
-        //    && ((currentHit == EyeTarget.annotation && currentHitObject.transform.parent.parent.name == gameObject.transform.parent.name)
-        //    || EyeGazeManager.Instance.HitCollidersHave(transform.Find("AnnotationCollider").GetComponent<BoxCollider>())))
-        //{
-        //    // Set flag and enable annotation
-        //    isGazing = true;
-        //    if (!isVisible)
-        //    {
-        //        StartCoroutine(EnableAnnotation());
-        //    }
-        //}
+        if (isDisabling)
+        {
+            if (prevHit == EyeTarget.annotation && prevHitObj.transform.parent.parent.name != transform.parent.name)
+            {
+                StopCoroutine(DisableAnnotation());
+
+                fadeOutCoroutine = StartCoroutine(FadeOut());
+            }
+        }
 
         // If look back when fading out
         if (isFadingOut && isGazing) 
@@ -150,7 +158,9 @@ public class Annotation : MonoBehaviour
         UpdateCanvasCollider();
     }
 
-    // LateUpdate() ===========================================================
+    // ========================================================================
+    // LateUpdate()
+    // ========================================================================
     private void LateUpdate()
     {
         /* ---- Anchor dot faces user ---- */
@@ -160,13 +170,18 @@ public class Annotation : MonoBehaviour
         Vector3 diffVector = canvas.transform.position - mainCamera.transform.position;     // Get relative position between camera and canvas
         Vector3 offsetPos = canvas.transform.position + diffVector;                         // Find relative position on the other side of canvas
         canvas.transform.LookAt(offsetPos, Vector3.up);                                     // Let canvas face the other side - content shows backwards
+
+        AnchorVisibility();
     }
 
-    // EnableAnnotation() =====================================================
+    // ========================================================================
+    // EnableAnnotation()
+    // ========================================================================
     private IEnumerator EnableAnnotation()
     {
-        float elapsed = 0f;
         bool success = false;
+
+        canvas.SetActive(true);
 
         while (isGazing && elapsed < enableDelay)
         {
@@ -197,7 +212,6 @@ public class Annotation : MonoBehaviour
 
                     diffVec = targetPos - anchor.transform.position;
                     diffDir = diffVec.normalized;
-                    // diffSize = diffVec.magnitude * (1 / detectedObj.localScale.y);
                     diffSize = diffVec.magnitude * (1 / 0.1f);
 
                     pointer.Start = anchor.transform.localPosition;
@@ -213,7 +227,6 @@ public class Annotation : MonoBehaviour
                     targetPos = namePos;
                     diffVec = targetPos - anchor.transform.position;
                     diffDir = diffVec.normalized;
-                    //diffSize = diffVec.magnitude * (1 / detectedObj.localScale.y);
                     diffSize = diffVec.magnitude * (1 / 0.1f);
 
                     pointer.Start = anchor.transform.localPosition;
@@ -229,7 +242,6 @@ public class Annotation : MonoBehaviour
                     targetPos = namePos;
                     diffVec = targetPos - anchor.transform.position;
                     diffDir = diffVec.normalized;
-                    //diffSize = diffVec.magnitude * (1 / detectedObj.localScale.y);
                     diffSize = diffVec.magnitude * (1 / 0.1f);
 
                     pointer.Start = anchor.transform.localPosition;
@@ -263,30 +275,43 @@ public class Annotation : MonoBehaviour
 
             yield return null;
         }
+
         if (success)
         {
-            canvas.SetActive(true);
+            if (canvasCtl.bHasName) canvas.transform.Find("Name").gameObject.SetActive(true);
+            if (canvasCtl.bHasDescription) canvas.transform.Find("Description").gameObject.SetActive(true);
+            if (canvasCtl.bHasImage) canvas.transform.Find("Image").gameObject.SetActive(true);
+            if (canvasCtl.bHasVideo) canvas.transform.Find("Video").gameObject.SetActive(true);
+
             isVisible = true;
+            elapsed = 0;
         }
         else
         {
             // Erase the pointer if user looked away in the progress
             pointer.Start = anchor.transform.localPosition;
             pointer.End = anchor.transform.localPosition;
+            ResetPointer();
         }
     }
 
-
-    // DisableAnnotation() ====================================================
+    // ========================================================================
+    // DisableAnnotation()
+    // ========================================================================
     private IEnumerator DisableAnnotation()
     {
+        isDisabling = true;
 
         yield return new WaitForSeconds(disableDelay);
+
+        isDisabling = false;
 
         fadeOutCoroutine = StartCoroutine(FadeOut());
     }
 
-    // UpdateCanvasCollider() =================================================
+    // ========================================================================
+    // UpdateCanvasCollider()
+    // ========================================================================
     private void UpdateCanvasCollider()
     {
         // Get collider instance and recttransform
@@ -296,7 +321,9 @@ public class Annotation : MonoBehaviour
         collider.size = new Vector3(rectTransform.rect.width, rectTransform.rect.height, 1);
     }
 
-    // Fadeout() ==============================================================
+    // ========================================================================
+    // Fadeout()
+    // ========================================================================
     private IEnumerator FadeOut()
     {
         isFadingOut = true;
@@ -321,13 +348,47 @@ public class Annotation : MonoBehaviour
         canvasGroup.alpha = 1.0f;
         canvas.SetActive(false);
 
+        for (int i = 0; i < canvas.transform.childCount; i++)
+        {
+            canvas.transform.GetChild(i).gameObject.SetActive(false);
+        }
+
         pointer.Color = pointerColor;
         pointer.Start = anchor.transform.localPosition;
         pointer.End = anchor.transform.localPosition;
 
         isFadingOut = false;
         isVisible = false;
+        elapsed = 0;
     }
 
-    // 
+    // ========================================================================
+    // AnchorVisibility()
+    // ========================================================================
+    private void AnchorVisibility()
+    {
+        int objectColliderLayer = LayerMask.GetMask("ObjectCollider");
+        Vector3 anchorToCamera = mainCamera.transform.position - anchor.transform.position;
+        Ray ray = new Ray(anchor.transform.position, anchorToCamera);
+        RaycastHit[] hits = Physics.RaycastAll(ray, anchorToCamera.magnitude, objectColliderLayer);
+
+        if (hits.Length > 0)
+        {
+            anchor.SetActive(false);
+        }
+        else
+        {
+            anchor.SetActive(true);
+        }
+    }
+
+    // ========================================================================
+    // ResetPointer()
+    // ========================================================================
+    private IEnumerator ResetPointer()
+    {
+        yield return new WaitForSeconds(pointerResetTime);
+
+        if (!isVisible) elapsed = 0;
+    }
 }
