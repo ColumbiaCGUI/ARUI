@@ -22,12 +22,14 @@ public class EyeGazeManager : Singleton<EyeGazeManager>
     // public
     // ========================================================================
     public EyeTarget CurrentHit = EyeTarget.nothing;
-    public GameObject CurrentHitObj;
     public EyeTarget PrevHit = EyeTarget.nothing;
+
+    public GameObject CurrentHitObj;
     public GameObject PrevHitObj;
 
     public Collider[] hitColliders;
 
+    public GameObject PrevAnnotation;
     // ========================================================================
     // private
     // ========================================================================
@@ -124,6 +126,7 @@ public class EyeGazeManager : Singleton<EyeGazeManager>
 
                 if (CurrentHit != EyeTarget.nothing)
                 {
+                    if (CurrentHit == EyeTarget.annotation && CurrentHitObj != hitInfo.collider.gameObject) PrevAnnotation = CurrentHitObj;
                     CurrentHitObj = hitInfo.collider.gameObject;
                     if (_showRayDebugCube)
                         _eyeGazeTargetCube.enabled = true;
@@ -160,8 +163,8 @@ public class EyeGazeManager : Singleton<EyeGazeManager>
             }
         }
 
-        if (PrevHitObj != null) Debug.Log("PrevHitObj = " + PrevHitObj.transform.parent.parent.name);
-        else Debug.Log("PrevHitObj = null");
+        if (PrevHitObj != null) Debug.Log("PrevAnnotation = " + PrevAnnotation.transform.parent.parent.name);
+        else Debug.Log("PrevAnnotation = null");
     }
 
     // ========================================================================
