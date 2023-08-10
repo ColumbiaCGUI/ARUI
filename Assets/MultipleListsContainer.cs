@@ -81,6 +81,7 @@ public class MultipleListsContainer : MonoBehaviour
         {
             canvas.SetActive(false);
             canvasGroup.alpha = 1.0f;
+            //Take orb out of thingy
         }
         else
         {

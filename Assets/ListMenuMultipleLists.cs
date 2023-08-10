@@ -19,6 +19,7 @@ public class ListMenuMultipleLists : MonoBehaviour
         if (EyeGazeManager.Instance.CurrentHitObj.GetInstanceID() == this.gameObject.GetInstanceID())
         {
             FadeIn();
+            //Put orb into area
         }
     }
     private void FadeIn()

@@ -24,14 +24,14 @@ public class Center_of_Objs : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        // Debug code
-        ClearObjs();
         Vector3 centroid = new Vector3(0, 0, 0);
-        foreach(GameObject o in objs){
-            AddObj(o.name, o);
+        // Debug code
+        //ClearObjs();
+        foreach(KeyValuePair<string, GameObject> pair in objsDict){
+            UpdateLines(pair.Key, pair.Value);
         }
         // Debug end
-        foreach(KeyValuePair<string, GameObject> obj in objsDict){
+        foreach (KeyValuePair<string, GameObject> obj in objsDict){
             centroid += obj.Value.transform.position;
         }
         centroid = centroid / objs.Count;
@@ -65,6 +65,13 @@ public class Center_of_Objs : MonoBehaviour
         pointer.Start = transform.position;
         pointer.End = obj.transform.position;
         //Add new line here
+    }
+
+    public void UpdateLines(string key, GameObject obj)
+    {
+        Line pointer = linesDict[key].GetComponent<Line>();
+        pointer.Start = transform.position;
+        pointer.End = obj.transform.position;
     }
 
 

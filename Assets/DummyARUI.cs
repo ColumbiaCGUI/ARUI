@@ -26,14 +26,14 @@ public class DummyARUI : MonoBehaviour
         // newList.Steps = new List<Step>();
         // newList.Steps.Add(step1);
         // string json = JsonUtility.ToJson(newList);
-        LoadNewTaskList("Text/Task1");
+        LoadNewTaskList("Task1");
         Debug.Log(TaskLists[0].Steps[0].StepDesc);
-        setupScript.SetupCurrentStep(TaskLists[0]);
+        setupScript.SetupCurrentStep(TaskLists[0], "Task1");
     }
 
-    public void LoadNewTaskList(string path)
+    public void LoadNewTaskList(string taskname)
     {
-        var jsonTextFile = Resources.Load<TextAsset>(path);
+        var jsonTextFile = Resources.Load<TextAsset>("Text/" + taskname);
         Debug.Log(jsonTextFile.text);
         TaskList currList = JsonUtility.FromJson<TaskList>(jsonTextFile.text);
         TaskLists.Add(currList);
