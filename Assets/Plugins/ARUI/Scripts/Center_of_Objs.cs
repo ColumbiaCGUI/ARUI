@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Shapes;
+using System.Diagnostics;
 
 public class Center_of_Objs : MonoBehaviour
 {
@@ -18,15 +19,13 @@ public class Center_of_Objs : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        
+       
     }
 
     // Update is called once per frame
     void Update()
     {
         Vector3 centroid = new Vector3(0, 0, 0);
-        // Debug code
-        //ClearObjs();
         foreach(KeyValuePair<string, GameObject> pair in objsDict){
             UpdateLines(pair.Key, pair.Value);
         }
@@ -36,11 +35,14 @@ public class Center_of_Objs : MonoBehaviour
         }
         centroid = centroid / objs.Count;
 
+        UnityEngine.Debug.Log(centroid);
+
         this.transform.position = Vector3.Lerp(transform.position, centroid, Time.deltaTime * movementSpeed);
 
     }
 
     public void RemoveObj(string key){
+        objs.Remove(objsDict[key]);
         objsDict.Remove(key);
         Destroy(linesDict[key]);
         linesDict.Remove(key);
@@ -49,7 +51,8 @@ public class Center_of_Objs : MonoBehaviour
 
     public void ClearObjs(){
         objsDict.Clear();
-        foreach(KeyValuePair<string, GameObject> line in linesDict)
+        objs.Clear();
+        foreach (KeyValuePair<string, GameObject> line in linesDict)
         {
             Destroy(line.Value);
         }
@@ -59,7 +62,8 @@ public class Center_of_Objs : MonoBehaviour
 
     public void AddObj(string key, GameObject obj){
         objsDict.Add(key, obj);
-        GameObject pointerObj = Instantiate(LinePrefab, Vector3.zero, this.transform.rotation);
+        objs.Add(obj);
+        GameObject pointerObj = Instantiate(LinePrefab);
         linesDict.Add(key, pointerObj);
         Line pointer = pointerObj.GetComponent<Line>();
         pointer.Start = transform.position;
@@ -69,9 +73,12 @@ public class Center_of_Objs : MonoBehaviour
 
     public void UpdateLines(string key, GameObject obj)
     {
-        Line pointer = linesDict[key].GetComponent<Line>();
-        pointer.Start = transform.position;
-        pointer.End = obj.transform.position;
+        if (key != "MainCam")
+        {
+            Line pointer = linesDict[key].GetComponent<Line>();
+            pointer.Start = transform.position;
+            pointer.End = obj.transform.position;
+        }
     }
 
 

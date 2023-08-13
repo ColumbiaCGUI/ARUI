@@ -4,31 +4,15 @@ using UnityEngine;
 
 public class DummyARUI : MonoBehaviour
 {
-    List<TaskList> TaskLists = new List<TaskList>();
-    int CurrTaskListIndex = 0;
-    int SecondaryTaskListIndex1 = 0;
-    int SecondaryTaskListIndex2 = 0;
+    Dictionary<string, TaskList> TaskLists = new Dictionary<string, TaskList>();
+    string CurrTaskList = "";
+    string SecondaryTaskList1 = "";
+    string SecondaryTaskList2 = "";
     public SetupTaskOverview setupScript;
 
     void Start()
     {
-        // TaskList newList = new TaskList();
-        // Step step1 = new Step();
-        // SubStep substep = new SubStep();
-        // step1.StepDesc = "This is step 1";
-        // step1.RequiredItems = new List<string>();
-        // substep.StepDesc = "This is a substep 1";
-        // substep.RequiredItems = new List<string>();
-        // substep.RequiredItems.Add("Knife");
-        // substep.RequiredItems.Add("Susage");
-        // step1.SubSteps = new List<SubStep>();
-        // step1.SubSteps.Add(substep);
-        // newList.Steps = new List<Step>();
-        // newList.Steps.Add(step1);
-        // string json = JsonUtility.ToJson(newList);
-        LoadNewTaskList("Task1");
-        Debug.Log(TaskLists[0].Steps[0].StepDesc);
-        setupScript.SetupCurrentStep(TaskLists[0], "Task1");
+        StartCoroutine(ExampleScript());
     }
 
     public void LoadNewTaskList(string taskname)
@@ -36,22 +20,27 @@ public class DummyARUI : MonoBehaviour
         var jsonTextFile = Resources.Load<TextAsset>("Text/" + taskname);
         Debug.Log(jsonTextFile.text);
         TaskList currList = JsonUtility.FromJson<TaskList>(jsonTextFile.text);
-        TaskLists.Add(currList);
+        TaskLists.Add(taskname, currList);
     }
 
-    public void UpdateCurrTaskListIndex(int index)
+    public void ReloadCurrTaskList()
     {
-        CurrTaskListIndex = index;
+        setupScript.SetupCurrentStep(TaskLists[CurrTaskList], CurrTaskList);
     }
 
-    public void UpdateSecondaryTaskListIndex1(int index)
+    public void UpdateCurrTaskList(string taskname)
     {
-        SecondaryTaskListIndex1 = index;
+        CurrTaskList = taskname;
     }
 
-    public void UpdateSecondaryTaskListIndex2(int index)
+    public void UpdateSecondaryTaskListIndex1(string taskname)
     {
-        SecondaryTaskListIndex2 = index;
+        SecondaryTaskList1 = taskname;
+    }
+
+    public void UpdateSecondaryTaskListIndex2(string taskname)
+    {
+        SecondaryTaskList2 = taskname;
     }
 
     public void RefreshTaskList()
@@ -61,18 +50,32 @@ public class DummyARUI : MonoBehaviour
 
     public void UpdateNextStepIndex(int index)
     {
-        TaskLists[CurrTaskListIndex].NextStepIndex = index;
+        TaskLists[CurrTaskList].NextStepIndex = index;
     }
 
     public void GoToNextSubStep()
     {
-        TaskList currTaskList = TaskLists[CurrTaskListIndex];
-        int currStepIndex = TaskLists[CurrTaskListIndex].CurrStepIndex;
+        TaskList currTaskList = TaskLists[CurrTaskList];
+        int currStepIndex = TaskLists[CurrTaskList].CurrStepIndex;
         currTaskList.Steps[currStepIndex].CurrSubStepIndex++;
     }
 
     public void GoToNextStep()
     {
-        TaskLists[CurrTaskListIndex].CurrStepIndex++;
+        TaskLists[CurrTaskList].CurrStepIndex++;
+    }
+
+    IEnumerator ExampleScript()
+    {
+        LoadNewTaskList("Task1");
+        UpdateCurrTaskList("Task1");
+        //TODO: change to map?
+        setupScript.SetupCurrentStep(TaskLists["Task1"], "Task1");
+        yield return new WaitForSeconds(20.0f);
+        GoToNextSubStep();
+        ReloadCurrTaskList();
+        yield return new WaitForSeconds(20.0f);
+        GoToNextSubStep();
+        ReloadCurrTaskList();
     }
 }

@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+//Handles setting up the text + required items for the flashcards 
+
 public class SetupCurrTaskOverview : MonoBehaviour
 {
     public ManageStepFlashcardMulti currFlashcard;

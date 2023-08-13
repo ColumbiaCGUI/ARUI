@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.XR.OpenXR.Features.Interactions;
 
+//Script attached to rectangle to activate respctive task list
 public class ListMenuMultipleLists : MonoBehaviour
 {
     public int index;
@@ -16,6 +17,7 @@ public class ListMenuMultipleLists : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        //Once user looks at this object, set the task list visible
         if (EyeGazeManager.Instance.CurrentHitObj.GetInstanceID() == this.gameObject.GetInstanceID())
         {
             FadeIn();
@@ -25,5 +27,16 @@ public class ListMenuMultipleLists : MonoBehaviour
     private void FadeIn()
     {
         ListContainer.GetComponent<MultipleListsContainer>().SetMenuActive(index);
+        ListContainer.GetComponent<MultipleListsContainer>().AttachOrb();
+    }
+
+    public void SetContainer(GameObject container)
+    {
+        ListContainer = container;
+    }
+
+    public void SetIndex(int index)
+    {
+        this.index = index;
     }
 }

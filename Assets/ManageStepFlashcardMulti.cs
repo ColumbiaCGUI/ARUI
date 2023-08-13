@@ -41,7 +41,7 @@ public class ManageStepFlashcardMulti : MonoBehaviour
             rect.localPosition = new Vector2(rect.localPosition.x, rect.localPosition.y - 0.005f);
             //Increase box collider border height and center
             BoxCollider collider = VerticalLayoutGroupObj.GetComponent<BoxCollider>();
-            collider.center = new Vector3(collider.center.x, collider.center.y - 0.005f, collider.center.z);
+            collider.center = new Vector3(collider.center.x, collider.center.y - 0.015f, collider.center.z);
             collider.size = new Vector3(collider.size.x, collider.size.y + 0.03f, collider.size.z);
         }
         int currIndex = currStep.CurrSubStepIndex;
@@ -69,7 +69,7 @@ public class ManageStepFlashcardMulti : MonoBehaviour
             rect.localPosition = new Vector2(rect.localPosition.x, rect.localPosition.y + 0.005f);
             //Decrease box collider border height and center
             BoxCollider collider = VerticalLayoutGroupObj.GetComponent<BoxCollider>();
-            collider.center = new Vector3(collider.center.x, collider.center.y + 0.005f, collider.center.z);
+            collider.center = new Vector3(collider.center.x, collider.center.y + 0.015f, collider.center.z);
             collider.size = new Vector3(collider.size.x, collider.size.y - 0.03f, collider.size.z);
         }
     }
