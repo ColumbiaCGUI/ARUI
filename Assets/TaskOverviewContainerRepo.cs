@@ -13,4 +13,6 @@ public class TaskOverviewContainerRepo : MonoBehaviour
     public SetupCurrTaskOverview setupInstance;
     //TMP object containing the name of the tasklist
     public TMP_Text taskNameText;
+    //Task overview UI object 
+    public GameObject taskUI;
 }

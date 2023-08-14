@@ -2,10 +2,21 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using static TMPro.SpriteAssetUtilities.TexturePacker_JsonArray;
+using Shapes;
 
 public class MultipleListsContainer : MonoBehaviour
 {
     public List<GameObject> itemsMenus;
+
+    public GameObject Main_TaskOverview_Container;
+
+    public GameObject TaskOverview_Container;
+
+    public Line OverviewLine;
+
+    public GameObject MenusContainer;
+
+    int numSecondaryTasks = 0;
 
     //List of containers for each of the current lists
     public List<TaskOverviewContainerRepo> containers;
@@ -140,16 +151,53 @@ public class MultipleListsContainer : MonoBehaviour
     //INCOMPLETE!!
     #region Managing task overview steps and recipes
     //TODO: COMPLETE!!!
-    public void UpdateAllSteps(List<TaskList> tasks, int currTaskIndex)
+    public void UpdateAllSteps(Dictionary<string, TaskList> tasks, string currTask)
     {
-        for(int i = 0; i < tasks.Count; i++) { 
-            if(i== currTaskIndex)
+        ResetAllTaskOverviews();
+        int index = 0;
+        foreach(KeyValuePair<string, TaskList> pair in tasks)
+        {
+            if (pair.Key == currTask)
             {
-
-            } else
-            {
-
+                containers[0].taskNameText.SetText(pair.Value.Name);
+                SetupCurrTaskOverview currSetup = containers[0].setupInstance;
+                if (pair.Value.CurrStepIndex != -1)
+                {
+                    currSetup.SetupCurrTask(pair.Value.Steps[pair.Value.CurrStepIndex], this.GetComponent<Center_of_Objs>());
+                }
+                if (pair.Value.NextStepIndex != -1)
+                {
+                    currSetup.SetupNextTask(pair.Value.Steps[pair.Value.NextStepIndex]);
+                }
+                if (pair.Value.PrevStepIndex != -1)
+                {
+                    currSetup.SetupPrevTask(pair.Value.Steps[pair.Value.PrevStepIndex]);
+                }
             }
+            else
+            {
+                GameObject currOverview = AddNewTaskOverview();
+                containers.Add(currOverview.GetComponent<TaskOverviewContainerRepo>());
+                TaskOverviewContainerRepo curr = containers[containers.Count - 1];
+                curr.multiListInstance.ListContainer = this.gameObject;
+                curr.multiListInstance.index = index;
+                curr.taskNameText.SetText(pair.Value.Name);
+                itemsMenus.Add(curr.taskUI);
+                SetupCurrTaskOverview currSetup = curr.setupInstance;
+                if (pair.Value.CurrStepIndex != -1)
+                {
+                    currSetup.SetupCurrTask(pair.Value.Steps[pair.Value.CurrStepIndex]);
+                }
+                if (pair.Value.NextStepIndex != -1)
+                {
+                    currSetup.SetupNextTask(pair.Value.Steps[pair.Value.NextStepIndex]);
+                }
+                if (pair.Value.PrevStepIndex != -1)
+                {
+                    currSetup.SetupPrevTask(pair.Value.Steps[pair.Value.PrevStepIndex]);
+                }
+            }
+            index++;
         }
         //Clear all lists from currContainer (except for current one of course) 
         //For loop to go through all tasklists
@@ -158,12 +206,31 @@ public class MultipleListsContainer : MonoBehaviour
         //if not currtasklistindex then create a new object and set up based on task
     }
 
-    public void AddNewTaskOverview()
+    public void ResetAllTaskOverviews()
     {
-        //Take Main_TaskOverview_Container position and subtract 0.07 to the y value
-        //Add 0.015 to line start y value
-        //Increase multiple Menu 1 y position by 0.02
+        TaskOverviewContainerRepo firstCont = containers[0];
+        GameObject firstObj = itemsMenus[0];
+        for(int i = 1; i < containers.Count; i++)
+        {
+            Destroy(containers[i].gameObject);
+            OverviewLine.Start = new Vector3(OverviewLine.Start.x, OverviewLine.Start.y + 0.015f, OverviewLine.Start.z);
+            MenusContainer.transform.localPosition = new Vector3(MenusContainer.transform.localPosition.x, MenusContainer.transform.localPosition.y - 0.025f, MenusContainer.transform.localPosition.z);
+            numSecondaryTasks--;
+        }
+        itemsMenus.Clear();
+        itemsMenus.Add(firstObj);
+        containers.Clear();
+        containers.Add(firstCont);
+    }
 
+    public GameObject AddNewTaskOverview()
+    {
+        numSecondaryTasks++;
+        GameObject newOverview = Instantiate(SecondaryListPrefab, TaskOverview_Container.transform);
+        newOverview.transform.localPosition = new Vector3(Main_TaskOverview_Container.transform.localPosition.x, Main_TaskOverview_Container.transform.localPosition.y - (0.07f * numSecondaryTasks), Main_TaskOverview_Container.transform.localPosition.z);
+        OverviewLine.Start = new Vector3(OverviewLine.Start.x, OverviewLine.Start.y - 0.015f, OverviewLine.Start.z);
+        MenusContainer.transform.localPosition = new Vector3(MenusContainer.transform.localPosition.x, MenusContainer.transform.localPosition.y + 0.025f, MenusContainer.transform.localPosition.z);
+        return newOverview;
     }
     #endregion
 }

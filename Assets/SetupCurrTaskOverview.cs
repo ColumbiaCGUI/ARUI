@@ -9,10 +9,9 @@ public class SetupCurrTaskOverview : MonoBehaviour
     public ManageStepFlashcardMulti currFlashcard;
     public ManageStepFlashcardSolo prevFlashcard;
     public ManageStepFlashcardSolo nextFlashcard;
-    public void SetupCurrTask(Step currStep, Center_of_Objs centerScript)
+    public void SetupCurrTask(Step currStep, Center_of_Objs centerScript = null)
     {
         currFlashcard.InitializeFlashcad(currStep);
-        centerScript.ClearObjs();
         List<string> reqList;
         if (currStep.SubSteps.Count > 0)
         {
@@ -21,9 +20,13 @@ public class SetupCurrTaskOverview : MonoBehaviour
         {
             reqList = currStep.RequiredItems;
         }
-        foreach (string str in reqList)
+        if (centerScript != null)
         {
-            centerScript.AddObj(str, GameObject.Find(str));
+            centerScript.ClearObjs();
+            foreach (string str in reqList)
+            {
+                centerScript.AddObj(str, GameObject.Find(str));
+            }
         }
     }
 

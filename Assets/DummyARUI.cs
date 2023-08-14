@@ -8,7 +8,7 @@ public class DummyARUI : MonoBehaviour
     string CurrTaskList = "";
     string SecondaryTaskList1 = "";
     string SecondaryTaskList2 = "";
-    public SetupTaskOverview setupScript;
+    public MultipleListsContainer setupScript;
 
     void Start()
     {
@@ -25,7 +25,7 @@ public class DummyARUI : MonoBehaviour
 
     public void ReloadCurrTaskList()
     {
-        setupScript.SetupCurrentStep(TaskLists[CurrTaskList], CurrTaskList);
+        setupScript.UpdateAllSteps(TaskLists, CurrTaskList);
     }
 
     public void UpdateCurrTaskList(string taskname)
@@ -68,9 +68,10 @@ public class DummyARUI : MonoBehaviour
     IEnumerator ExampleScript()
     {
         LoadNewTaskList("Task1");
+        LoadNewTaskList("Task2");
         UpdateCurrTaskList("Task1");
         //TODO: change to map?
-        setupScript.SetupCurrentStep(TaskLists["Task1"], "Task1");
+        ReloadCurrTaskList();
         yield return new WaitForSeconds(20.0f);
         GoToNextSubStep();
         ReloadCurrTaskList();
