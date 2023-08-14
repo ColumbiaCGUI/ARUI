@@ -12,6 +12,8 @@ public class Center_of_Objs : MonoBehaviour
     public GameObject LinePrefab;
 
     public float movementSpeed = 1.0f;
+
+    public float zOffset = 0.5f;
     // Debug end
 
     Dictionary<string, GameObject> objsDict = new Dictionary<string, GameObject>();
@@ -19,7 +21,6 @@ public class Center_of_Objs : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-       
     }
 
     // Update is called once per frame
@@ -36,6 +37,10 @@ public class Center_of_Objs : MonoBehaviour
         centroid = centroid / objs.Count;
 
         UnityEngine.Debug.Log(centroid);
+
+        Vector3 MainCameraTransform = Camera.main.transform.position;
+
+        centroid = new Vector3(centroid.x, centroid.y, MainCameraTransform.z + zOffset);
 
         this.transform.position = Vector3.Lerp(transform.position, centroid, Time.deltaTime * movementSpeed);
 

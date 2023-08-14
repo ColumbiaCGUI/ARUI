@@ -52,6 +52,7 @@ MonoBehaviour:
   - {fileID: 0}
   LinePrefab: {fileID: 7063555848741500438, guid: 1398ba00eb8dccd419ca4febd09f374b, type: 3}
   movementSpeed: 1
+  zOffset: 0.75
 --- !u!114 &2201655951576466256
 MonoBehaviour:
   m_ObjectHideFlags: 0
