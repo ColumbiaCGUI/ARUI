@@ -72,11 +72,18 @@ public class DummyARUI : MonoBehaviour
         UpdateCurrTaskList("Task1");
         //TODO: change to map?
         ReloadCurrTaskList();
-        yield return new WaitForSeconds(20.0f);
+        yield return new WaitForSeconds(10.0f);
         GoToNextSubStep();
         ReloadCurrTaskList();
-        yield return new WaitForSeconds(20.0f);
+        yield return new WaitForSeconds(10.0f);
         GoToNextSubStep();
+        ReloadCurrTaskList();
+        yield return new WaitForSeconds(10.0f);
+        TaskLists.Remove("Task2");
+        ReloadCurrTaskList();
+        yield return new WaitForSeconds(10.0f);
+        LoadNewTaskList("Task2");
+        LoadNewTaskList("Task3");
         ReloadCurrTaskList();
     }
 }

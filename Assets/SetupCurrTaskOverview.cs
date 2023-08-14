@@ -6,19 +6,25 @@ using UnityEngine;
 
 public class SetupCurrTaskOverview : MonoBehaviour
 {
-    public ManageStepFlashcardMulti currFlashcard;
+    public ManageStepFlashcardMulti currFlashcardMulti;
+    public ManageStepFlashcardSolo currFlashcardSolo;
     public ManageStepFlashcardSolo prevFlashcard;
     public ManageStepFlashcardSolo nextFlashcard;
     public void SetupCurrTask(Step currStep, Center_of_Objs centerScript = null)
     {
-        currFlashcard.InitializeFlashcad(currStep);
         List<string> reqList;
         if (currStep.SubSteps.Count > 0)
         {
             reqList = currStep.SubSteps[currStep.CurrSubStepIndex].RequiredItems;
+            currFlashcardMulti.gameObject.SetActive(true);
+            currFlashcardSolo.gameObject.SetActive(false);
+            currFlashcardMulti.InitializeFlashcad(currStep);
         } else
         {
+            currFlashcardMulti.gameObject.SetActive(false);
+            currFlashcardSolo.gameObject.SetActive(true);
             reqList = currStep.RequiredItems;
+            currFlashcardSolo.InitializeFlashcard(currStep);
         }
         if (centerScript != null)
         {
