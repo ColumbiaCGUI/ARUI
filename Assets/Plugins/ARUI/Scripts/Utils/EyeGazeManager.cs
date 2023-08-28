@@ -49,7 +49,7 @@ public class EyeGazeManager : Singleton<EyeGazeManager>
     [SerializeField]
     private float velocityThreshold = 100f;
     [SerializeField]
-    private float angularVelocityThreshold = 30f;
+    private float angularVelocityThreshold = 50f;
     [SerializeField]
     private float minFixationDuration = 0.1f;
 
@@ -150,20 +150,11 @@ public class EyeGazeManager : Singleton<EyeGazeManager>
             Vector3 currentGazeDirection = eyeGazeProvider.GazeDirection;
             gazePosition = currentGazePoint;
 
-            Debug.Log("Previous Gaze Direction: " + previousGazeDirection);
-            Debug.Log("Current Gaze Direction: " + currentGazeDirection);
-
-            float velocity = (currentGazePoint - previousGazePoint).magnitude / Time.deltaTime;
-
             float dotProduct = Vector3.Dot(previousGazeDirection.normalized, currentGazeDirection.normalized);
             float clampedDotProduct = Mathf.Clamp(dotProduct, -1f + Mathf.Epsilon, 1f - Mathf.Epsilon);
             float angularDistanceRadians = Mathf.Acos(clampedDotProduct);
             float angularDistanceDegrees = angularDistanceRadians * Mathf.Rad2Deg;
             float angularVelocity = angularDistanceDegrees / Time.deltaTime;
-
-            Debug.Log("Dot Product: " + dotProduct);
-            Debug.Log("Angular Distance (Radians): " + angularDistanceRadians);
-            Debug.Log("Angular Distance (Degrees): " + angularDistanceDegrees);
 
             if (angularVelocity < angularVelocityThreshold)
             {
@@ -185,7 +176,7 @@ public class EyeGazeManager : Singleton<EyeGazeManager>
 
                 if (sizeRatio >= 0.1)
                 {
-                    sizeRatio -= (0.1f * Time.deltaTime);
+                    sizeRatio -= (0.33f * Time.deltaTime);
                 }
             }
             else
@@ -203,25 +194,6 @@ public class EyeGazeManager : Singleton<EyeGazeManager>
             CurrentHit = EyeTarget.nothing;
             CurrentHitObj = null;
         }
-
-        //if (CurrentHit == EyeTarget.annotation && PrevHitObj != CurrentHitObj)
-        //{
-        //    sphereRadius = 0.1f;
-        //    sizeRatio = 1;
-        //    PrevHitObj = CurrentHitObj;
-        //    PrevHit = CurrentHit;
-        //}
-        //else
-        //{
-        //    if(sphereRadius >= 0.01f)
-        //    {
-        //        sphereRadius -= (0.01f * Time.deltaTime);
-        //    }
-        //    if (sizeRatio >= 0.1)
-        //    {
-        //        sizeRatio -= (0.1f * Time.deltaTime);
-        //    }
-        //}
     }
 
     // ========================================================================

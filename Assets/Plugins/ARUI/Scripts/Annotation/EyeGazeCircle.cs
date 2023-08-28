@@ -42,8 +42,9 @@ public class EyeGazeCircle : MonoBehaviour
             }
 
             float radius = total / childCount;
+            Vector3 gazeSphereSize = new Vector3(radius, radius, 0.05f);
 
-            initDiscSize = new Vector3(radius, radius, 0.05f);
+            initDiscSize = gazeSphereSize * 3.5f;
 
             init = true;
         }
