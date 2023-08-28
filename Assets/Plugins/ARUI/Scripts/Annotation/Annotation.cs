@@ -15,7 +15,7 @@ public class Annotation : MonoBehaviour
     [SerializeField]
     private float enableDelay = 1.0f;
     [SerializeField]
-    private float disableDelay = 10.0f;
+    private float disableDelay = 1.0f;
     [SerializeField]
     private float canvasPosOffset = 0.01f;
     [SerializeField]
@@ -27,7 +27,6 @@ public class Annotation : MonoBehaviour
     private bool isFadingOut;
     private bool isVisible;
     private bool isInit;
-    private bool isDisabling;
 
     private Line pointer;
     private Color pointerColor;
@@ -38,6 +37,8 @@ public class Annotation : MonoBehaviour
     private GameObject anchor;
     private CanvasGroup canvasGroup;
     private AnnotationCanvasControl canvasCtl;
+
+    public bool isInDisc;
 
     // ========================================================================
     // Start()
@@ -62,7 +63,7 @@ public class Annotation : MonoBehaviour
         isFadingOut = false;
         isVisible = false;
         isInit = true;
-        isDisabling = false;
+        isInDisc = false;
 
         transform.localScale = anchor.transform.localScale / (detectedObj.localScale.x / 0.1f);
 
@@ -77,8 +78,7 @@ public class Annotation : MonoBehaviour
         Transform annotationCollider = transform.Find("AnnotationCollider");
         if (annotationCollider != null ) 
         {
-            BoxCollider bc = annotationCollider.GetComponent<BoxCollider>();
-            if (bc != null)
+            if (annotationCollider.TryGetComponent<BoxCollider>(out var bc))
             {
                 BoxCollider actualCollider = detectedObj.GetComponent<BoxCollider>();
                 bc.center = actualCollider.center;
@@ -94,29 +94,22 @@ public class Annotation : MonoBehaviour
     // ========================================================================
     void Update()
     {
-        // TODO: Remove this as other scripts didn't need this
         if (!EyeGazeManager.Instance) return;
 
         if (isInit)
         {
             canvas.SetActive(false);
-            // canvasCtl.canvasInitDone();
             isInit = false;
         }
 
         // Get eye gaze data
         EyeTarget currentHit = EyeGazeManager.Instance.CurrentHit;
         GameObject currentHitObject = EyeGazeManager.Instance.CurrentHitObj;
-        EyeTarget prevHit = EyeGazeManager.Instance.PrevHit;
-        GameObject prevHitObj = EyeGazeManager.Instance.PrevHitObj;
-
-        Collider[] hitColliders = EyeGazeManager.Instance.hitColliders;
-        Collider currentCollider = transform.Find("AnnotationCollider").GetComponent<Collider>();
 
         // If start looking at this object
         if (!isGazing
             && ((currentHit == EyeTarget.annotation && currentHitObject.transform.parent.parent.name == transform.parent.name)
-                || EyeGazeManager.Instance.HitCollidersHave(currentCollider)))
+                || isInDisc))
         {
             isGazing = true;
             if (!isVisible)
@@ -127,20 +120,10 @@ public class Annotation : MonoBehaviour
         // If moved eye away from current object
         else if (isGazing
                  && ((currentHit != EyeTarget.annotation || currentHitObject.transform.parent.parent.name != transform.parent.name)
-                     && !EyeGazeManager.Instance.HitCollidersHave(currentCollider)))
+                     && !isInDisc))
         {
             isGazing = false;
             StartCoroutine(DisableAnnotation());
-        }
-
-        if (isDisabling)
-        {
-            if (prevHit == EyeTarget.annotation && prevHitObj.transform.parent.parent.name != transform.parent.name)
-            {
-                StopCoroutine(DisableAnnotation());
-
-                fadeOutCoroutine = StartCoroutine(FadeOut());
-            }
         }
 
         // If look back when fading out
@@ -291,7 +274,7 @@ public class Annotation : MonoBehaviour
             // Erase the pointer if user looked away in the progress
             pointer.Start = anchor.transform.localPosition;
             pointer.End = anchor.transform.localPosition;
-            ResetPointer();
+            StartCoroutine(ResetPointer());
         }
     }
 
@@ -300,11 +283,7 @@ public class Annotation : MonoBehaviour
     // ========================================================================
     private IEnumerator DisableAnnotation()
     {
-        isDisabling = true;
-
         yield return new WaitForSeconds(disableDelay);
-
-        isDisabling = false;
 
         fadeOutCoroutine = StartCoroutine(FadeOut());
     }
