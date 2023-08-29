@@ -154,7 +154,7 @@ public class MultipleListsContainer : MonoBehaviour
     public void UpdateAllSteps(Dictionary<string, TaskList> tasks, string currTask)
     {
         ResetAllTaskOverviews();
-        int index = 0;
+        int index = 1;
         foreach(KeyValuePair<string, TaskList> pair in tasks)
         {
             if (pair.Key == currTask)
@@ -168,10 +168,16 @@ public class MultipleListsContainer : MonoBehaviour
                 if (pair.Value.NextStepIndex != -1)
                 {
                     currSetup.SetupNextTask(pair.Value.Steps[pair.Value.NextStepIndex]);
+                } else
+                {
+                    currSetup.DeactivateNextTask();
                 }
                 if (pair.Value.PrevStepIndex != -1)
                 {
                     currSetup.SetupPrevTask(pair.Value.Steps[pair.Value.PrevStepIndex]);
+                } else
+                {
+                    currSetup.DeactivatePrevTask();
                 }
             }
             else
@@ -191,13 +197,19 @@ public class MultipleListsContainer : MonoBehaviour
                 if (pair.Value.NextStepIndex != -1)
                 {
                     currSetup.SetupNextTask(pair.Value.Steps[pair.Value.NextStepIndex]);
+                } else
+                {
+                    currSetup.DeactivateNextTask();
                 }
                 if (pair.Value.PrevStepIndex != -1)
                 {
                     currSetup.SetupPrevTask(pair.Value.Steps[pair.Value.PrevStepIndex]);
+                } else
+                {
+                    currSetup.DeactivatePrevTask();
                 }
+                index++;
             }
-            index++;
         }
         //Clear all lists from currContainer (except for current one of course) 
         //For loop to go through all tasklists

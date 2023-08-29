@@ -68,22 +68,19 @@ public class DummyARUI : MonoBehaviour
     IEnumerator ExampleScript()
     {
         LoadNewTaskList("Task1");
-        LoadNewTaskList("Task2");
+        //LoadNewTaskList("Task2");
         UpdateCurrTaskList("Task1");
         //TODO: change to map?
         ReloadCurrTaskList();
-        yield return new WaitForSeconds(10.0f);
-        GoToNextSubStep();
-        ReloadCurrTaskList();
-        yield return new WaitForSeconds(10.0f);
-        GoToNextSubStep();
-        ReloadCurrTaskList();
-        yield return new WaitForSeconds(10.0f);
-        TaskLists.Remove("Task2");
+        //yield return new WaitForSeconds(10.0f);
+/*        TaskLists.Remove("Task2");
         ReloadCurrTaskList();
         yield return new WaitForSeconds(10.0f);
         LoadNewTaskList("Task2");
         LoadNewTaskList("Task3");
+        ReloadCurrTaskList();*/
+        yield return new WaitForSeconds(10.0f);
+        //UpdateCurrTaskList("Task2");
         ReloadCurrTaskList();
     }
 }

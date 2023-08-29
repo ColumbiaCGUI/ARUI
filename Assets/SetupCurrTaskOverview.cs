@@ -38,10 +38,23 @@ public class SetupCurrTaskOverview : MonoBehaviour
 
     public void SetupPrevTask(Step prevStep)
     {
+        prevFlashcard.gameObject.SetActive(true);
         prevFlashcard.InitializeFlashcard(prevStep);
     }
+
+    public void DeactivatePrevTask()
+    {
+        prevFlashcard.gameObject.SetActive(false);
+    }
+
     public void SetupNextTask(Step nextStep)
     {
+        nextFlashcard.gameObject.SetActive(true);
         nextFlashcard.InitializeFlashcard(nextStep);
+    }
+
+    public void DeactivateNextTask()
+    {
+        nextFlashcard.gameObject.SetActive(false);
     }
 }

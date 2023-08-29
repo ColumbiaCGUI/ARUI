@@ -13,8 +13,9 @@ public class Center_of_Objs : MonoBehaviour
 
     public float movementSpeed = 1.0f;
 
-    public float zOffset = 0.5f;
-    // Debug end
+    public float xOffset;
+    public float yOffset;
+    public float zOffset;
 
     Dictionary<string, GameObject> objsDict = new Dictionary<string, GameObject>();
     Dictionary<string, GameObject> linesDict = new Dictionary<string, GameObject>();
@@ -27,26 +28,19 @@ public class Center_of_Objs : MonoBehaviour
     void Update()
     {
         Vector3 centroid = new Vector3(0, 0, 0);
-        foreach(KeyValuePair<string, GameObject> pair in objsDict){
+        foreach (KeyValuePair<string, GameObject> pair in objsDict)
+        {
             UpdateLines(pair.Key, pair.Value);
         }
-        // Debug end
-        foreach (KeyValuePair<string, GameObject> obj in objsDict){
-            centroid += obj.Value.transform.position;
-        }
-        centroid = centroid / objs.Count;
 
-        UnityEngine.Debug.Log(centroid);
+        Vector3 finalPos = Camera.main.transform.position + Camera.main.transform.forward * zOffset + Camera.main.transform.right * xOffset + Camera.main.transform.up * yOffset;
 
-        Vector3 MainCameraTransform = Camera.main.transform.position;
-
-        centroid = new Vector3(centroid.x, centroid.y, MainCameraTransform.z + zOffset);
-
-        this.transform.position = Vector3.Lerp(transform.position, centroid, Time.deltaTime * movementSpeed);
+        this.transform.position = Vector3.Lerp(transform.position, finalPos, Time.deltaTime * movementSpeed);
 
     }
 
-    public void RemoveObj(string key){
+    public void RemoveObj(string key)
+    {
         objs.Remove(objsDict[key]);
         objsDict.Remove(key);
         Destroy(linesDict[key]);
@@ -54,7 +48,8 @@ public class Center_of_Objs : MonoBehaviour
         //Delete corresponding lines
     }
 
-    public void ClearObjs(){
+    public void ClearObjs()
+    {
         objsDict.Clear();
         objs.Clear();
         foreach (KeyValuePair<string, GameObject> line in linesDict)
@@ -65,7 +60,8 @@ public class Center_of_Objs : MonoBehaviour
         //Delete all lines here
     }
 
-    public void AddObj(string key, GameObject obj){
+    public void AddObj(string key, GameObject obj)
+    {
         objsDict.Add(key, obj);
         objs.Add(obj);
         GameObject pointerObj = Instantiate(LinePrefab);

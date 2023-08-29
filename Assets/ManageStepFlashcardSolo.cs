@@ -11,6 +11,9 @@ public class ManageStepFlashcardSolo : MonoBehaviour
     public void InitializeFlashcard(Step currStep)
     {
         TaskText.SetText(currStep.StepDesc);
-        ReqItemsScript.AddItems(currStep.RequiredItems);
+        foreach(string item in currStep.RequiredItems) {
+            this.GetComponent<UnderlineSubText>().FindSubtext(item);
+        }
+        //ReqItemsScript.AddItems(currStep.RequiredItems);
     }
 }
