@@ -25,6 +25,7 @@ public class Annotation : MonoBehaviour
 
     private bool isGazing;
     private bool isFadingOut;
+    [SerializeField]
     private bool isVisible;
     private bool isInit;
 

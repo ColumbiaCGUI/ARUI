@@ -526,9 +526,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: 0
   enableDelay: 0.5
-  disableDelay: 1
+  disableDelay: 0.9
   canvasPosOffset: 0.1
   pointerResetTime: 0.5
+  isVisible: 0
   isInDisc: 0
 --- !u!1 &5126138227090050312
 GameObject:
