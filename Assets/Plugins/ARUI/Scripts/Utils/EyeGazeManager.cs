@@ -49,7 +49,7 @@ public class EyeGazeManager : Singleton<EyeGazeManager>
     [SerializeField]
     private float velocityThreshold = 100f;
     [SerializeField]
-    private float angularVelocityThreshold = 50f;
+    private float angularVelocityThreshold = 100f;
     [SerializeField]
     private float minFixationDuration = 0.1f;
 
@@ -167,8 +167,6 @@ public class EyeGazeManager : Singleton<EyeGazeManager>
 
             if (currentFixationDuration >= minFixationDuration)
             {
-                Debug.Log("Current gaze is a fixation. Velocity: " + angularVelocity);
-
                 if (sphereRadius >= 0.01f)
                 {
                     sphereRadius -= (0.01f * Time.deltaTime);
@@ -181,7 +179,6 @@ public class EyeGazeManager : Singleton<EyeGazeManager>
             }
             else
             {
-                Debug.Log("Current gaze is a saccade. Velocity: " + angularVelocity);
                 sphereRadius = 0.1f;
                 sizeRatio = 1;
             }
