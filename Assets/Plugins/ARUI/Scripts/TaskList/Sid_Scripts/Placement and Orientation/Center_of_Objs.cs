@@ -59,6 +59,7 @@ public class Center_of_Objs : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        this.GetComponent<MultipleListsContainer>().SetLineStart(ListPrefab.transform.position);
         Vector3 centroid = new Vector3(0, 0, 0);
         foreach (KeyValuePair<string, GameObject> pair in objsDict)
         {
@@ -104,16 +105,12 @@ public class Center_of_Objs : MonoBehaviour
         }
         else
         {
-            DeactivateLines();
-            if (CurrDelay == 0.0f)
-            {
-                LastPosition = Camera.main.transform.position;
-            }
             CurrDelay += Time.deltaTime;
-            if(CurrDelay >= SnapDelay)
+            if (CurrDelay >= SnapDelay)
             {
-                float currDistance = Vector3.Distance(Camera.main.transform.position, LastPosition);
-                if(currDistance > minDistance)
+                DeactivateLines();
+                float currDistance = Vector3.Distance(Camera.main.transform.position, this.transform.position);
+                if (currDistance > minDistance)
                 {
                     Vector3 finalPos = Camera.main.transform.position + Camera.main.transform.forward * zOffset + Camera.main.transform.right * xOffset + Camera.main.transform.up * yOffset;
                     BeginLerp(this.transform.position, finalPos);
@@ -189,6 +186,7 @@ public class Center_of_Objs : MonoBehaviour
         pointer.Start = transform.position;
         pointer.End = obj.transform.position;
         SnapToCentroid();
+        DeactivateLines();
     }
 
     public void DeactivateLines()

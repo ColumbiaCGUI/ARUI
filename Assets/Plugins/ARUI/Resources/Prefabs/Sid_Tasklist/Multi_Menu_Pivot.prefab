@@ -1283,7 +1283,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   blendMode: 1
   scaleMode: 1
-  color: {r: 1, g: 1, b: 1, a: 1}
+  color: {r: 1, g: 1, b: 1, a: 0}
   detailLevel: 2
   renderQueue: -1
   zTest: 4
@@ -1295,8 +1295,8 @@ MonoBehaviour:
   stencilReadMask: 255
   stencilWriteMask: 255
   geometry: 1
-  colorMode: 0
-  colorEnd: {r: 1, g: 1, b: 1, a: 1}
+  colorMode: 1
+  colorEnd: {r: 1, g: 1, b: 1, a: 0.22745098}
   start: {x: 0, y: 0.03, z: 0}
   end: {x: 0, y: 0, z: 0}
   thickness: 0.001
@@ -1607,11 +1607,11 @@ GameObject:
   - component: {fileID: 1735085396694344571}
   - component: {fileID: 1735085396694344548}
   - component: {fileID: 1750494463168848157}
-  - component: {fileID: 4457979626692272208}
-  - component: {fileID: 567925976989633539}
-  - component: {fileID: 6532553039400316523}
-  - component: {fileID: 3832844540582747904}
-  - component: {fileID: 6035482698596429447}
+  - component: {fileID: 7387432270431237105}
+  - component: {fileID: 6473157197095737792}
+  - component: {fileID: 6597955565745825878}
+  - component: {fileID: 8044146250310382076}
+  - component: {fileID: 4833931531380733501}
   m_Layer: 0
   m_Name: Multi_Menu_Pivot
   m_TagString: Untagged
@@ -1652,11 +1652,11 @@ MonoBehaviour:
   ListPrefab: {fileID: 5401681680357383070}
   movementSpeed: 1
   xOffset: 0
-  yOffset: -0.5
+  yOffset: 0.5
   zOffset: 0.5
   heightOffset: 0.04
   SnapDelay: 2
-  minDistance: 0.5
+  minDistance: 1
 --- !u!114 &1750494463168848157
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1682,7 +1682,7 @@ MonoBehaviour:
   currIndex: 0
   isMenu: 1
   disableDelay: 1
---- !u!114 &4457979626692272208
+--- !u!114 &7387432270431237105
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1696,7 +1696,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   autoConstraintSelection: 1
   selectedConstraints: []
---- !u!114 &567925976989633539
+--- !u!114 &6473157197095737792
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1725,8 +1725,8 @@ MonoBehaviour:
   rotateLerpTime: 0.001
   scaleLerpTime: 0.001
   enableConstraints: 1
-  constraintsManager: {fileID: 4457979626692272208}
-  elasticsManager: {fileID: 3832844540582747904}
+  constraintsManager: {fileID: 7387432270431237105}
+  elasticsManager: {fileID: 6597955565745825878}
   onManipulationStarted:
     m_PersistentCalls:
       m_Calls: []
@@ -1739,21 +1739,7 @@ MonoBehaviour:
   onHoverExited:
     m_PersistentCalls:
       m_Calls: []
---- !u!114 &6532553039400316523
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1735085396694344570}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5afd5316c63705643b3daba5a6e923bd, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  ShowTetherWhenManipulating: 0
-  IsBoundsHandles: 0
---- !u!114 &3832844540582747904
+--- !u!114 &6597955565745825878
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1789,7 +1775,21 @@ MonoBehaviour:
     RepeatSnapPoints: 0
     SnapRadius: 0
   elasticTypes: 0
---- !u!114 &6035482698596429447
+--- !u!114 &8044146250310382076
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1735085396694344570}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5afd5316c63705643b3daba5a6e923bd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ShowTetherWhenManipulating: 0
+  IsBoundsHandles: 0
+--- !u!114 &4833931531380733501
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

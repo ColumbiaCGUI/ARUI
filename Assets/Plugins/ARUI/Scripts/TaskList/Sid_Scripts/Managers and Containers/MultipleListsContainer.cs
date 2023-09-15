@@ -65,6 +65,13 @@ public class MultipleListsContainer : MonoBehaviour
         OverviewLine.End = finalCords;
     }
 
+    public void SetLineStart(Vector3 EndCords)
+    {
+        Vector3 finalCords = OverviewLine.transform.InverseTransformPoint(EndCords);
+        //OverviewLine.End = new Vector3(OverviewLine.End.x, finalCords.y, OverviewLine.End.z);
+        OverviewLine.Start = finalCords;
+    }
+
     #region Setting menu active and inactive
     public void SetMenuActive(int index)
     {
@@ -111,6 +118,7 @@ public class MultipleListsContainer : MonoBehaviour
             canvas.SetActive(false);
             this.GetComponent<Center_of_Objs>().SetIsLooking(false);
             canvasGroup.alpha = 1.0f;
+            this.GetComponent<Center_of_Objs>().DeactivateLines();
             ResetOrb();
         }
         else
@@ -126,7 +134,7 @@ public class MultipleListsContainer : MonoBehaviour
     #region Managing Orb
     public void AttachOrb()
     {
-        Orb currOrb = GameObject.FindObjectOfType<Orb>();
+/*        Orb currOrb = GameObject.FindObjectOfType<Orb>();
         //currOrb.enabled = false;
         GameObject orb = currOrb.gameObject;
         //TODO: Change to current task object's thingy
@@ -140,12 +148,12 @@ public class MultipleListsContainer : MonoBehaviour
         orb.transform.localPosition = Vector3.zero;
         orb.transform.localRotation = Quaternion.Euler(0f, 0f, 0f);
         //Disable box colldider 
-        child.gameObject.GetComponent<BoxCollider>().enabled = false;
+        child.gameObject.GetComponent<BoxCollider>().enabled = false;*/
     }
 
     public void ResetOrb()
     {
-        Orb currOrb = GameObject.FindObjectOfType<Orb>();
+/*        Orb currOrb = GameObject.FindObjectOfType<Orb>();
         GameObject orb = currOrb.gameObject;
         //TODO: Change to current task object's thingy
         orb.transform.parent = AngelARUI.Instance.transform;
@@ -153,7 +161,7 @@ public class MultipleListsContainer : MonoBehaviour
         Transform child = orb.transform.GetChild(0);
         child.gameObject.GetComponent<OrbFollowerSolver>().enabled = true;
         //Disable box colldider 
-        child.gameObject.GetComponent<BoxCollider>().enabled = true;
+        child.gameObject.GetComponent<BoxCollider>().enabled = true;*/
     }
     #endregion
 
