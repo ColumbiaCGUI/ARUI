@@ -61,7 +61,8 @@ public class MultipleListsContainer : MonoBehaviour
     public void SetLineEnd(Vector3 EndCords)
     {
         Vector3 finalCords = OverviewLine.transform.InverseTransformPoint(EndCords);
-        OverviewLine.End = new Vector3(OverviewLine.End.x, finalCords.y, OverviewLine.End.z);
+        //OverviewLine.End = new Vector3(OverviewLine.End.x, finalCords.y, OverviewLine.End.z);
+        OverviewLine.End = finalCords;
     }
 
     #region Setting menu active and inactive
