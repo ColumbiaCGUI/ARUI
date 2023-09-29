@@ -1940,7 +1940,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2503953391973429925}
-  - component: {fileID: 2503953391973429927}
   m_Layer: 5
   m_Name: Task_Components
   m_TagString: Untagged
@@ -1965,22 +1964,6 @@ Transform:
   m_Father: {fileID: 2503953391156332362}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &2503953391973429927
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2503953391973429924}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8114392cd29a3044d85209fd6a8efd10, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  canvas: {fileID: 2503953392011893491}
-  anchor: {fileID: 2503953391027966270}
-  enableDelay: 1
-  disableDelay: 1
 --- !u!1 &2503953392011893491
 GameObject:
   m_ObjectHideFlags: 0
@@ -2567,6 +2550,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: listmenubutton_tasks_Solo
       objectReference: {fileID: 0}
+    - target: {fileID: 5258463852195754739, guid: 1470a68adce4e5544ac4739b766eafa7, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 5258463852195754742, guid: 1470a68adce4e5544ac4739b766eafa7, type: 3}
       propertyPath: m_Size.y
       value: 0.097916886
@@ -2962,6 +2949,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: listmenubutton_tasks_Solo (1)
       objectReference: {fileID: 0}
+    - target: {fileID: 5258463852195754739, guid: 1470a68adce4e5544ac4739b766eafa7, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 5258463852195754742, guid: 1470a68adce4e5544ac4739b766eafa7, type: 3}
       propertyPath: m_Size.y
       value: 0.097916886
@@ -2980,11 +2971,6 @@ PrefabInstance:
       objectReference: {fileID: 21300000, guid: 2adc8135dd936004db37d5cead85f951, type: 3}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 1470a68adce4e5544ac4739b766eafa7, type: 3}
---- !u!224 &9199617094108336308 stripped
-RectTransform:
-  m_CorrespondingSourceObject: {fileID: 5258463852195754738, guid: 1470a68adce4e5544ac4739b766eafa7, type: 3}
-  m_PrefabInstance: {fileID: 3986329993527190086}
-  m_PrefabAsset: {fileID: 0}
 --- !u!114 &8617972194695492398 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 4668959644090683752, guid: 1470a68adce4e5544ac4739b766eafa7, type: 3}
@@ -2996,6 +2982,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0016b7693ad92ff44bd5dddfc46156ed, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!224 &9199617094108336308 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 5258463852195754738, guid: 1470a68adce4e5544ac4739b766eafa7, type: 3}
+  m_PrefabInstance: {fileID: 3986329993527190086}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &7720208046321219306
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3114,6 +3105,10 @@ PrefabInstance:
     - target: {fileID: 5258463852195754739, guid: 1470a68adce4e5544ac4739b766eafa7, type: 3}
       propertyPath: m_Name
       value: listmenubutton_tasks_WO_Subtasks
+      objectReference: {fileID: 0}
+    - target: {fileID: 5258463852195754739, guid: 1470a68adce4e5544ac4739b766eafa7, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5258463852195754742, guid: 1470a68adce4e5544ac4739b766eafa7, type: 3}
       propertyPath: m_Size.y

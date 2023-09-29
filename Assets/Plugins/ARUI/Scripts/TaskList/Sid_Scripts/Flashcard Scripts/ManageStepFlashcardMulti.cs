@@ -12,7 +12,6 @@ public class ManageStepFlashcardMulti : MonoBehaviour
     public TMP_Text ParentTaskText;
     public GameObject SubTaskPrefab;
     public GameObject VerticalLayoutGroupObj;
-    public ManageRequiredItems ReqItemsScript;
 
     //Function that takes in task and then uses it to initiailize the list 
     //Also need to add all required items
@@ -20,7 +19,6 @@ public class ManageStepFlashcardMulti : MonoBehaviour
     {
         ResetSubTasks();
         ParentTaskText.SetText(currStep.StepDesc);
-        ReqItemsScript.AddItems(currStep.SubSteps[currStep.CurrSubStepIndex].RequiredItems);
         for(int i = currStep.CurrSubStepIndex; i < currStep.SubSteps.Count; i++)
         {
             SubStep sub = currStep.SubSteps[i];

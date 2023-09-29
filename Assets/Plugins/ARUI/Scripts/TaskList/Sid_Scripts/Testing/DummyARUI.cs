@@ -6,7 +6,7 @@ public class DummyARUI : MonoBehaviour
 {
     Dictionary<string, TaskList> TaskLists = new Dictionary<string, TaskList>();
     string CurrTaskList = "";
-    public MultipleListsContainer setupScript;
+    MultipleListsContainer setupScript;
     public GameObject OverviewPrefab;
 
     void Start()
@@ -72,13 +72,13 @@ public class DummyARUI : MonoBehaviour
         UpdateCurrTaskList("Task1");
         ReloadCurrTaskList();
         yield return new WaitForSeconds(10.0f);
-/*        TaskLists.Remove("Task2");
+        TaskLists.Remove("Task2");
         ReloadCurrTaskList();
         yield return new WaitForSeconds(10.0f);
         LoadNewTaskList("Task2");
         ReloadCurrTaskList();
         yield return new WaitForSeconds(10.0f);
         UpdateCurrTaskList("Task2");
-        ReloadCurrTaskList();*/
+        ReloadCurrTaskList();
     }
 }
