@@ -57,7 +57,7 @@ public class MultipleListsContainer : MonoBehaviour
             }
         }
     }
-
+    #region Managing the main task line (not lines for items)
     public void SetLineEnd(Vector3 EndCords)
     {
         Vector3 finalCords = OverviewLine.transform.InverseTransformPoint(EndCords);
@@ -71,6 +71,7 @@ public class MultipleListsContainer : MonoBehaviour
         //OverviewLine.End = new Vector3(OverviewLine.End.x, finalCords.y, OverviewLine.End.z);
         OverviewLine.Start = finalCords;
     }
+    #endregion
 
     #region Setting menu active and inactive
     public void SetMenuActive(int index)
@@ -119,7 +120,6 @@ public class MultipleListsContainer : MonoBehaviour
             this.GetComponent<Center_of_Objs>().SetIsLooking(false);
             canvasGroup.alpha = 1.0f;
             this.GetComponent<Center_of_Objs>().DeactivateLines();
-            ResetOrb();
         }
         else
         {
@@ -130,41 +130,6 @@ public class MultipleListsContainer : MonoBehaviour
 
     }
     #endregion
-
-    #region Managing Orb
-    public void AttachOrb()
-    {
-/*        Orb currOrb = GameObject.FindObjectOfType<Orb>();
-        //currOrb.enabled = false;
-        GameObject orb = currOrb.gameObject;
-        //TODO: Change to current task object's thingy
-        orb.transform.parent = currOverviewParent;
-        //Change child position + rotation
-        Transform child = orb.transform.GetChild(0);
-        child.gameObject.GetComponent<OrbFollowerSolver>().enabled = false;
-        child.localPosition = Vector3.zero;
-        child.localRotation = Quaternion.Euler(0f, 0f, 0f);
-        //Change position + rotation
-        orb.transform.localPosition = Vector3.zero;
-        orb.transform.localRotation = Quaternion.Euler(0f, 0f, 0f);
-        //Disable box colldider 
-        child.gameObject.GetComponent<BoxCollider>().enabled = false;*/
-    }
-
-    public void ResetOrb()
-    {
-/*        Orb currOrb = GameObject.FindObjectOfType<Orb>();
-        GameObject orb = currOrb.gameObject;
-        //TODO: Change to current task object's thingy
-        orb.transform.parent = AngelARUI.Instance.transform;
-        //Change child position + rotation
-        Transform child = orb.transform.GetChild(0);
-        child.gameObject.GetComponent<OrbFollowerSolver>().enabled = true;
-        //Disable box colldider 
-        child.gameObject.GetComponent<BoxCollider>().enabled = true;*/
-    }
-    #endregion
-
 
     #region Managing task overview steps and recipes
     public void UpdateAllSteps(Dictionary<string, TaskList> tasks, string currTask)

@@ -31,7 +31,7 @@ public class SetupCurrTaskOverview : MonoBehaviour
             centerScript.ClearObjs();
             foreach (string str in reqList)
             {
-                centerScript.AddObj(str, GameObject.Find(str));
+                centerScript.AddObj(str);
             }
         }
     }

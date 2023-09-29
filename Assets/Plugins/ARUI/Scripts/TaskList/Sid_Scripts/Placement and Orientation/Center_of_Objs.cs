@@ -13,19 +13,23 @@ public class Center_of_Objs : MonoBehaviour
     public GameObject ListPrefab;
 
     public float movementSpeed = 1.0f;
-
+    //Offset from camera if no objects exist
     public float xOffset;
-    public float yOffset;
     public float zOffset;
+
+    #region Delay Values
+    //public float xOffset;
+    //public float yOffset;
+    //public float zOffset;
+    //public float SnapDelay = 2.0f;
+    //public float minDistance = 0.5f;
+    //Vector3 LastPosition;
+    //float CurrDelay;
+    #endregion
     public float heightOffset;
-    public float SnapDelay = 2.0f;
-    public float minDistance = 0.5f;
 
     Dictionary<string, GameObject> objsDict = new Dictionary<string, GameObject>();
     Dictionary<string, GameObject> linesDict = new Dictionary<string, GameObject>();
-
-    float CurrDelay;
-    Vector3 LastPosition;
     float LerpTime = 2.0f;
 
     Vector3 lerpStart;
@@ -35,23 +39,34 @@ public class Center_of_Objs : MonoBehaviour
     float timeStarted;
 
     bool isLooking = false;
+    #region Delay Code
     // Start is called before the first frame update
     void Start()
     {
-        LastPosition = Camera.main.transform.position;
+        //LastPosition = Camera.main.transform.position;
     }
-
-    void SnapToCentroid()
+    #endregion
+    //Function to have the task overview snap to the center of all required objects
+    //This is done when the recipe goes from one step to another. By default, the overview
+    //stays on the center of all required objects
+    public void SnapToCentroid()
     {
         Vector3 centroid = new Vector3(0, 0, 0);
-        foreach (KeyValuePair<string, GameObject> pair in objsDict)
+        if (objsDict.Count > 0)
         {
-            centroid += pair.Value.transform.position;
+            foreach (KeyValuePair<string, GameObject> pair in objsDict)
+            {
+                centroid += pair.Value.transform.position;
+            }
+            centroid = centroid / objsDict.Count;
+            this.GetComponent<MultipleListsContainer>().SetLineEnd(centroid);
         }
-        centroid = centroid / objsDict.Count;
-        this.GetComponent<MultipleListsContainer>().SetLineEnd(centroid);
-        UnityEngine.Debug.Log(centroid);
-        UnityEngine.Debug.Log(Camera.main.transform.position.y);
+        else
+        {
+            centroid = Camera.main.transform.position + Camera.main.transform.forward * zOffset + Camera.main.transform.right * xOffset;
+        }
+        //UnityEngine.Debug.Log(centroid);
+        //UnityEngine.Debug.Log(Camera.main.transform.position.y);
         Vector3 finalPos = new Vector3(centroid.x, Camera.main.transform.position.y + heightOffset, centroid.z);
         BeginLerp(this.transform.position, finalPos);
     }
@@ -67,13 +82,12 @@ public class Center_of_Objs : MonoBehaviour
         }
         centroid = centroid / objsDict.Count;
         this.GetComponent<MultipleListsContainer>().SetLineEnd(centroid);
-        // Store last position of camera 
-        // Get current position. If distance greater than a certain amount, snap task overview closer to user
-        // Set Current position as last position
+        //If user is looking at task overview
         if (isLooking)
         {
             int currIndex = this.GetComponent<MultipleListsContainer>().currIndex;
-            CurrDelay = 0.0f;
+            //If they are looking at the current recipe, show lines pointing to required items
+            //CurrDelay = 0.0f;
             if (currIndex == 0)
             {
                 foreach (KeyValuePair<string, GameObject> pair in objsDict)
@@ -85,7 +99,6 @@ public class Center_of_Objs : MonoBehaviour
             {
                 DeactivateLines();
             }
-            //Snap 50 cm away from user??
             #region old code
             /*            this.GetComponent<MultipleListsContainer>().OverviewLine.gameObject.SetActive(false);
                         int currIndex = this.GetComponent<MultipleListsContainer>().currIndex;
@@ -103,20 +116,27 @@ public class Center_of_Objs : MonoBehaviour
                         this.transform.position = Vector3.Lerp(transform.position, finalPos, Time.deltaTime * movementSpeed);*/
             #endregion
         }
+        //If user is not looking at task overview
         else
         {
-            CurrDelay += Time.deltaTime;
-            if (CurrDelay >= SnapDelay)
-            {
-                DeactivateLines();
-                float currDistance = Vector3.Distance(Camera.main.transform.position, this.transform.position);
-                if (currDistance > minDistance)
-                {
-                    Vector3 finalPos = Camera.main.transform.position + Camera.main.transform.forward * zOffset + Camera.main.transform.right * xOffset + Camera.main.transform.up * yOffset;
-                    BeginLerp(this.transform.position, finalPos);
-                }
-                CurrDelay = 0.0f;
-            }
+            DeactivateLines();
+            #region Delay code
+            /*            CurrDelay += Time.deltaTime;
+                        if (CurrDelay >= SnapDelay)
+                        {
+                            DeactivateLines();
+                            float currDistance = Vector3.Distance(Camera.main.transform.position, this.transform.position);
+                            if (currDistance > minDistance)
+                            {
+                                //Once the user moves a certain distance away from the task overview
+                                //start lerping the object position to the camera position
+                                //with an offset in the z-axis by zOffset and an offset in y-axis by yOffset
+                                Vector3 finalPos = Camera.main.transform.position + Camera.main.transform.forward * zOffset + Camera.main.transform.right * xOffset + Camera.main.transform.up * yOffset;
+                                BeginLerp(this.transform.position, finalPos);
+                            }
+                            CurrDelay = 0.0f;
+                        }*/
+            #endregion
             #region old code
             /*            this.GetComponent<MultipleListsContainer>().OverviewLine.gameObject.SetActive(true);
                         DeactivateLines();
@@ -134,6 +154,7 @@ public class Center_of_Objs : MonoBehaviour
 
     }
     //Source -> https://www.blueraja.com/blog/404/how-to-use-unity-3ds-linear-interpolation-vector3-lerp-correctly
+    //Code to lerp from one position to another
     void BeginLerp(Vector3 startPos, Vector3 endPos)
     {
         timeStarted = Time.time;
@@ -144,18 +165,20 @@ public class Center_of_Objs : MonoBehaviour
 
     void FixedUpdate()
     {
-        if (isLerping) {
+        if (isLerping)
+        {
             float timeSinceStarted = Time.time - timeStarted;
             float percentComplete = timeSinceStarted / LerpTime;
             transform.position = Vector3.Lerp(lerpStart, lerpEnd, percentComplete);
-            if (percentComplete >= 1.0f) { 
-                isLerping= false;
+            if (percentComplete >= 1.0f)
+            {
+                isLerping = false;
             }
         }
     }
 
-    
 
+    //Remove a specific object (based on key given)
     public void RemoveObj(string key)
     {
         objs.Remove(objsDict[key]);
@@ -163,7 +186,7 @@ public class Center_of_Objs : MonoBehaviour
         Destroy(linesDict[key]);
         linesDict.Remove(key);
     }
-
+    //Clear all required objects
     public void ClearObjs()
     {
         objsDict.Clear();
@@ -174,21 +197,26 @@ public class Center_of_Objs : MonoBehaviour
         }
         linesDict.Clear();
     }
-
-    public void AddObj(string key, GameObject obj)
+    //Add new gameobject as a required task object
+    public void AddObj(string key)
     {
-        objsDict.Add(key, obj);
-        objs.Add(obj);
-        GameObject pointerObj = Instantiate(LinePrefab);
-        pointerObj.name = key;
-        linesDict.Add(key, pointerObj);
-        Line pointer = pointerObj.GetComponent<Line>();
-        pointer.Start = transform.position;
-        pointer.End = obj.transform.position;
-        SnapToCentroid();
-        DeactivateLines();
+        //TODO: Replace with script for searching for object
+        GameObject obj = GameObject.Find(key);
+        if (obj != null)
+        {
+            objsDict.Add(key, obj);
+            objs.Add(obj);
+            GameObject pointerObj = Instantiate(LinePrefab);
+            pointerObj.name = key;
+            linesDict.Add(key, pointerObj);
+            Line pointer = pointerObj.GetComponent<Line>();
+            pointer.Start = transform.position;
+            pointer.End = obj.transform.position;
+            SnapToCentroid();
+            DeactivateLines();
+        }
     }
-
+    //Set all lines inactive (once user is not looking at current task
     public void DeactivateLines()
     {
         foreach(KeyValuePair<string, GameObject> pair in linesDict)
@@ -196,7 +224,7 @@ public class Center_of_Objs : MonoBehaviour
             pair.Value.SetActive(false);
         }
     }
-
+    //Update all the lines that point to task objects 
     public void UpdateLines(string key, GameObject obj)
     {
         if (key != "MainCam")
@@ -207,13 +235,27 @@ public class Center_of_Objs : MonoBehaviour
             pointer.End = obj.transform.position;
         }
     }
-
+    
+    //Set the start location of the line pointing at required objects
     public void SetLineStart(string key, Vector3 StartPos)
     {
-        Line pointer = linesDict[key].GetComponent<Line>();
-        pointer.Start = StartPos;
+        //Check if key exists in dictionary first!!
+        if (linesDict.ContainsKey(key))
+        {
+            Line pointer = linesDict[key].GetComponent<Line>();
+            pointer.Start = StartPos;
+        } else
+        {
+            AddObj(key);
+            if(linesDict.ContainsKey(key))
+            {
+                Line pointer = linesDict[key].GetComponent<Line>();
+                pointer.Start = StartPos;
+            }
+        }
     }
-
+    //If the user is looking at a task overview object
+    //then set isLooking to true
     public void SetIsLooking(bool val)
     {
         isLooking = val;

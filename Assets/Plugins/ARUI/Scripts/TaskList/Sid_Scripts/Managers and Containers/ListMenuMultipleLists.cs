@@ -27,7 +27,6 @@ public class ListMenuMultipleLists : MonoBehaviour
     private void FadeIn()
     {
         ListContainer.GetComponent<MultipleListsContainer>().SetMenuActive(index);
-        ListContainer.GetComponent<MultipleListsContainer>().AttachOrb();
     }
 
     public void SetContainer(GameObject container)
