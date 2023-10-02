@@ -1,10 +1,15 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System.Collections;
+using UnityEngine.InputSystem.HID;
 
 public class ExampleScript : MonoBehaviour
 {
-    public bool Automate = true;
+    public bool Automate = false;
+
+    private bool cubeSpawned;
+    private bool kettleSpawned;
+    private bool potSpawned;
 
     // Testing Task List
     string[,] _tasks0 =
@@ -58,11 +63,22 @@ public class ExampleScript : MonoBehaviour
     };
 
     private int currentTask = 0;
+    private Transform itemList;
+    private int id;
 
     private void Start()
     {
-        if (Automate)
-            StartCoroutine(RunTasksAtRuntime());
+        cubeSpawned = false;
+        kettleSpawned = false;
+        potSpawned = false;
+
+        itemList = GameObject.Find("FakeItem").transform;
+
+        id = 0;
+
+        //if (Automate)
+        //StartCoroutine(RunTasksAtRuntime());
+        //StartCoroutine(AnnotationAtRuntime());
     }
 
     private IEnumerator RunTasksAtRuntime()
@@ -153,6 +169,108 @@ public class ExampleScript : MonoBehaviour
     /// </summary>
     public void Update()
     {
+        // Simulate a Cube is detected
+        if (Input.GetKeyUp(KeyCode.C) && !cubeSpawned)
+        {
+            Instantiate(Resources.Load<GameObject>("Prefabs/TestObject/Cube"), itemList);
+        }
+        if (Input.GetKeyUp(KeyCode.K) && !kettleSpawned)
+        {
+            Instantiate(Resources.Load<GameObject>("Prefabs/TestObject/Kettle"), itemList);
+        }
+        if (Input.GetKeyUp(KeyCode.P) && !potSpawned)
+        {
+            Instantiate(Resources.Load<GameObject>("Prefabs/TestObject/Pot"), itemList);
+        }
+
+        if (itemList != null)
+        {
+            foreach (Transform child in itemList.transform)
+            {
+                if (!child.gameObject.activeSelf) continue;
+
+                if (child.Find("Annotation(Clone)") != null) continue;
+
+                if (child.gameObject.name.Contains("Cube") && !cubeSpawned)
+                {
+                    cubeSpawned = true;
+
+                    AngelARUI.Instance.AttachAnnotation(id, child.gameObject,
+                    true, "Cube",
+                    true, "In Unity, a cube is a basic 3D object, a six-sided geometric figure with equal sides. It's a fundamental building block in game development, used for creating simple structures, complex terrain, or even characters. With Unity's powerful tools, you can easily modify, texture, and animate cubes to fit your game's needs.",
+                    false, "Images/cubeUnity",
+                    false, "cubeVideo");
+
+                    id++;
+                }
+
+                if (child.gameObject.name.Contains("Kettle") && !kettleSpawned)
+                {
+                    string kettleDesc = "A kettle is a kitchen appliance used to heat water, often for making hot beverages like tea and coffee. They can be traditional, using a stovetop, or electric with an automatic shutoff.";
+
+                    kettleSpawned = true;
+
+                    AngelARUI.Instance.AttachAnnotation(id, child.gameObject,
+                    true, "Kettle",
+                    false, kettleDesc,
+                    false, "cube",
+                    true, "Videos/kettle");
+
+                    id++;
+                }
+
+                if (child.gameObject.name.Contains("Pot") && !potSpawned)
+                {
+                    string potDesc = "A pot is a round kitchen utensil used for cooking food.";
+                    potSpawned = true;
+
+                    AngelARUI.Instance.AttachAnnotation(id, child.gameObject,
+                    true, "Pot",
+                    false, potDesc,
+                    true, "Images/pot",
+                    false, "cubeVideo");
+
+                    id++;
+                }
+
+                if (child.gameObject.name.Contains("Stovetop"))
+                {
+                    AngelARUI.Instance.AttachAnnotation(id, child.gameObject,
+                    true, "Stovetop",
+                    true, "WARNING: MAY BE HOT",
+                    false, "cube",
+                    false, "cubeVideo");
+                }
+
+                if (child.gameObject.name.Contains("Bowls"))
+                {
+                    AngelARUI.Instance.AttachAnnotation(id, child.gameObject,
+                    true, "Bowls",
+                    false, "WARNING: MAY BE HOT",
+                    false, "Images/dishes",
+                    false, "cubeVideo");
+                }
+
+                if (child.gameObject.name.Contains("Dishes"))
+                {
+                    AngelARUI.Instance.AttachAnnotation(id, child.gameObject,
+                    true, "Dishes",
+                    true, "Dishes refer to the food prepared and served for consumption. They vary widely in ingredients, cooking techniques, flavors, and cultural influences, offering a diverse culinary experience.",
+                    false, "Images/dishes",
+                    false, "cubeVideo");
+                }
+
+                if (child.gameObject.name.Contains("Knife"))
+                {
+                    AngelARUI.Instance.AttachAnnotation(id, child.gameObject,
+                    true, "Knife",
+                    false, "WARNING: MAY BE HOT",
+                    false, "Images/knife",
+                    true, "Videos/knife");
+                }
+            }
+        }
+        /* Input from Bettina's test 
         //Example how to set the recipe(task list in the ARUI) -example data see on top
         if (Input.GetKeyUp(KeyCode.O))
         {
@@ -241,6 +359,7 @@ public class ExampleScript : MonoBehaviour
         {
             AngelARUI.Instance.PrintVMDebug = false;
         }
+        */
     }
 
 #endif
