@@ -198,8 +198,8 @@ public class ExampleScript : MonoBehaviour
                     AngelARUI.Instance.AttachAnnotation(id, child.gameObject,
                     true, "Cube",
                     true, "In Unity, a cube is a basic 3D object, a six-sided geometric figure with equal sides. It's a fundamental building block in game development, used for creating simple structures, complex terrain, or even characters. With Unity's powerful tools, you can easily modify, texture, and animate cubes to fit your game's needs.",
-                    false, "Images/cubeUnity",
-                    false, "cubeVideo");
+                    false, "AnnotationDemo/Img/cubeUnity",
+                    false, "AnnotationDemo/Videos/cubeVideo");
 
                     id++;
                 }
@@ -213,8 +213,8 @@ public class ExampleScript : MonoBehaviour
                     AngelARUI.Instance.AttachAnnotation(id, child.gameObject,
                     true, "Kettle",
                     false, kettleDesc,
-                    false, "cube",
-                    true, "Videos/kettle");
+                    false, "AnnotationDemo/Img/cube",
+                    true, "AnnotationDemo/Videos/kettle");
 
                     id++;
                 }
@@ -227,8 +227,8 @@ public class ExampleScript : MonoBehaviour
                     AngelARUI.Instance.AttachAnnotation(id, child.gameObject,
                     true, "Pot",
                     false, potDesc,
-                    true, "Images/pot",
-                    false, "cubeVideo");
+                    true, "AnnotationDemo/Img/pot",
+                    false, "AnnotationDemo/Videos/cubeVideo");
 
                     id++;
                 }
@@ -238,8 +238,8 @@ public class ExampleScript : MonoBehaviour
                     AngelARUI.Instance.AttachAnnotation(id, child.gameObject,
                     true, "Stovetop",
                     true, "WARNING: MAY BE HOT",
-                    false, "cube",
-                    false, "cubeVideo");
+                    false, "AnnotationDemo/Img/cube",
+                    false, "AnnotationDemo/Videos/cubeVideo");
                 }
 
                 if (child.gameObject.name.Contains("Bowls"))
@@ -247,8 +247,8 @@ public class ExampleScript : MonoBehaviour
                     AngelARUI.Instance.AttachAnnotation(id, child.gameObject,
                     true, "Bowls",
                     false, "WARNING: MAY BE HOT",
-                    false, "Images/dishes",
-                    false, "cubeVideo");
+                    false, "AnnotationDemo/Img/dishes",
+                    false, "AnnotationDemo/Videos/cubeVideo");
                 }
 
                 if (child.gameObject.name.Contains("Dishes"))
@@ -256,8 +256,8 @@ public class ExampleScript : MonoBehaviour
                     AngelARUI.Instance.AttachAnnotation(id, child.gameObject,
                     true, "Dishes",
                     true, "Dishes refer to the food prepared and served for consumption. They vary widely in ingredients, cooking techniques, flavors, and cultural influences, offering a diverse culinary experience.",
-                    false, "Images/dishes",
-                    false, "cubeVideo");
+                    false, "AnnotationDemo/Img/dishes",
+                    false, "AnnotationDemo/Videos/cubeVideo");
                 }
 
                 if (child.gameObject.name.Contains("Knife"))
@@ -265,8 +265,8 @@ public class ExampleScript : MonoBehaviour
                     AngelARUI.Instance.AttachAnnotation(id, child.gameObject,
                     true, "Knife",
                     false, "WARNING: MAY BE HOT",
-                    false, "Images/knife",
-                    true, "Videos/knife");
+                    false, "AnnotationDemo/Img/knife",
+                    true, "AnnotationDemo/Videos/knife");
                 }
             }
         }
