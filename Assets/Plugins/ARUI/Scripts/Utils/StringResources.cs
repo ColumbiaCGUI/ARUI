@@ -23,6 +23,7 @@ public static class StringResources
     public static string Taskprefab_path = "Prefabs/Task";
     public static string EyeTarget_path = "Prefabs/EyeTarget";
     public static string ConfNotification_path = "Prefabs/ConfirmationNotification";
+    public static string AnnotationPrefab_path = "Prefabs/Annotation";
 
     //Textures
     public static string zBufferTexture_path = "Textures/zBuffer";
@@ -34,6 +35,8 @@ public static class StringResources
     public static string zBuffer_layer = "zBuffer";
     public static string Hand_layer = "Hand";
     public static string spatialAwareness_layer = "Spatial Awareness";
+    public static string Annotation_layer = "Annotation";
+    public static string ObjectCollider_Layer = "ObjectCollider";
 
     // GO names
     public static string tasklist_name = "TaskOverview";
@@ -41,6 +44,4 @@ public static class StringResources
     public static string eyeGazeManager_name = "EyeGazeManager";
     public static string audioManager_name = "AudioManager";
     public static string confirmationWindow_name = "ConfirmatioWindow";
-
-
 }

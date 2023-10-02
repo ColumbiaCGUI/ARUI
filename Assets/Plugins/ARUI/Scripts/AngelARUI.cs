@@ -2,6 +2,9 @@ using UnityEngine;
 using UnityEngine.Events;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.UI;
+using TMPro;
+using UnityEngine.Video;
 
 /// <summary>
 /// Interface to the ARUI Components - a floating assistant in the shape as an orb and a task overview panel.
@@ -33,6 +36,9 @@ public class AngelARUI : Singleton<AngelARUI>
     private UnityAction _onUserIntentConfirmedAction = null;     /// <Action invoked if the user accepts the confirmation dialogue
     private ConfirmationDialogue _confirmationWindow = null;     /// <Reference to confirmation dialogue
     private GameObject _confirmationWindowPrefab = null;
+
+    [SerializeField]
+    private int annotationDelay = 1;
 
     private Dictionary<string, CVDetectedObj> DetectedObjects = new Dictionary<string, CVDetectedObj>();
 
@@ -325,5 +331,46 @@ public class AngelARUI : Singleton<AngelARUI>
         }
     }
 
+    #endregion
+
+    #region Annotation
+    public void AttachAnnotation(int id, GameObject target, 
+        bool hasName, string name,
+        bool hasDesc, string desc,
+        bool hasImg, string imgPath,
+        bool hasVideo, string videoPath)
+    {
+        // Attach annotation to the object
+        GameObject annotation = Instantiate(Resources.Load(StringResources.AnnotationPrefab_path), target.transform) as GameObject;
+
+        // Get canvas control for data assignment
+        Transform annotationCanvas = annotation.transform.Find("AnnotationCanvas");
+        Transform annotationName = annotationCanvas.Find("Name");
+        Transform annotationDesc = annotationCanvas.Find("Description");
+        Transform annotationImg = annotationCanvas.Find("Image");
+        Transform annotationVideo = annotationCanvas.Find("Video");
+        AnnotationCanvasControl canvasControl = annotationCanvas.GetComponent<AnnotationCanvasControl>();
+
+        if (hasName)
+        {
+            canvasControl.bHasName = true;
+            annotationName.GetComponent<TextMeshProUGUI>().text = name;
+        }
+        if (hasDesc)
+        {
+            canvasControl.bHasDescription = true;
+            annotationDesc.GetComponent<TextMeshProUGUI>().text = desc;
+        }
+        if (hasImg)
+        {
+            canvasControl.bHasImage = true;
+            annotationImg.GetComponent<Image>().sprite = Resources.Load<Sprite>(imgPath);
+        }
+        if (hasVideo)
+        {
+            canvasControl.bHasVideo = true;
+            annotationVideo.GetComponent<VideoPlayer>().clip = Resources.Load<VideoClip>(videoPath);
+        }
+    }
     #endregion
 }
