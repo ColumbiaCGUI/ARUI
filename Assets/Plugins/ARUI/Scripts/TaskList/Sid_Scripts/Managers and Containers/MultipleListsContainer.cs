@@ -140,7 +140,7 @@ public class MultipleListsContainer : Singleton<MultipleListsContainer>
         {
             if (pair.Key == currTask)
             {
-                containers[0].taskNameText.SetText(pair.Value.Name);
+                containers[0].taskNameText.SetText(pair.Key);
                 SetupCurrTaskOverview currSetup = containers[0].setupInstance;
                 if (pair.Value.CurrStepIndex != -1)
                 {
@@ -168,7 +168,7 @@ public class MultipleListsContainer : Singleton<MultipleListsContainer>
                 TaskOverviewContainerRepo curr = containers[containers.Count - 1];
                 curr.multiListInstance.ListContainer = this.gameObject;
                 curr.multiListInstance.index = index;
-                curr.taskNameText.SetText(pair.Value.Name);
+                curr.taskNameText.SetText(pair.Key);
                 itemsMenus.Add(curr.taskUI);
                 SetupCurrTaskOverview currSetup = curr.setupInstance;
                 if (pair.Value.CurrStepIndex != -1)

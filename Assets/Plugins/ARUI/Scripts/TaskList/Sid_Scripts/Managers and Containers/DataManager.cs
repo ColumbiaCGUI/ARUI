@@ -1,9 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using UnityEngine;
 
-public class DummyARUI : MonoBehaviour
+public class DataManager : MonoBehaviour
 {
     Dictionary<string, TaskList> TaskLists = new Dictionary<string, TaskList>();
     string CurrTaskList = "";
@@ -53,7 +54,7 @@ public class DummyARUI : MonoBehaviour
     public void LoadNewTaskList(string taskname)
     {
         var jsonTextFile = Resources.Load<TextAsset>("Text/" + taskname);
-        Debug.Log(jsonTextFile.text);
+        UnityEngine.Debug.Log(jsonTextFile.text);
         LoadNewTaskListFromString(jsonTextFile.text);
     }
 
@@ -66,9 +67,10 @@ public class DummyARUI : MonoBehaviour
         if (!TaskLists.ContainsKey(currList.Name))
         {
             TaskLists.Add(currList.Name, currList);
-        } else
+        }
+        else
         {
-            for(int i = 2; i <=5; i++)
+            for (int i = 2; i <= 5; i++)
             {
                 if (!TaskLists.ContainsKey(currList.Name + "_" + i.ToString()))
                 {
@@ -132,12 +134,14 @@ public class DummyARUI : MonoBehaviour
         if (TaskLists[recipeName].CurrStepIndex >= TaskLists[recipeName].Steps.Count - 1 || TaskLists[recipeName].CurrStepIndex == -1)
         {
             TaskLists[recipeName].CurrStepIndex = -1;
-        } else if (TaskLists[recipeName].CurrStepIndex == TaskLists[recipeName].Steps.Count - 2)
+        }
+        else if (TaskLists[recipeName].CurrStepIndex == TaskLists[recipeName].Steps.Count - 2)
         {
             TaskLists[recipeName].CurrStepIndex++;
             TaskLists[recipeName].NextStepIndex = -1;
             TaskLists[recipeName].PrevStepIndex++;
-        } else
+        }
+        else
         {
             TaskLists[recipeName].CurrStepIndex++;
             TaskLists[recipeName].NextStepIndex++;
