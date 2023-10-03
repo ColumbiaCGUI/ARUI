@@ -4,7 +4,7 @@ using UnityEngine;
 using static TMPro.SpriteAssetUtilities.TexturePacker_JsonArray;
 using Shapes;
 
-public class MultipleListsContainer : MonoBehaviour
+public class MultipleListsContainer : Singleton<MultipleListsContainer>
 {
     public List<GameObject> itemsMenus;
 
@@ -57,7 +57,7 @@ public class MultipleListsContainer : MonoBehaviour
             }
         }
     }
-    #region Managing the main task line (not lines for items)
+    #region Managing the main task line 
     public void SetLineEnd(Vector3 EndCords)
     {
         Vector3 finalCords = OverviewLine.transform.InverseTransformPoint(EndCords);
@@ -73,7 +73,7 @@ public class MultipleListsContainer : MonoBehaviour
     }
     #endregion
 
-    #region Setting menu active and inactive
+    #region Setting inidvidual recipe menus active/inative
     public void SetMenuActive(int index)
     {
         this.GetComponent<Center_of_Objs>().SetIsLooking(true);
@@ -219,6 +219,22 @@ public class MultipleListsContainer : MonoBehaviour
         OverviewLine.Start = new Vector3(OverviewLine.Start.x, OverviewLine.Start.y - 0.015f, OverviewLine.Start.z);
         MenusContainer.transform.localPosition = new Vector3(MenusContainer.transform.localPosition.x, MenusContainer.transform.localPosition.y + 0.025f, MenusContainer.transform.localPosition.z);
         return newOverview;
+    }
+    #endregion
+
+    #region Setting task overview active and inactive
+    public void ToggleOverview()
+    {
+        if (!MenusContainer.activeSelf)
+        {
+            OverviewLine.gameObject.SetActive(true);
+            MenusContainer.SetActive(true);
+            Center_of_Objs.Instance.SnapToCentroid();
+        } else
+        {
+            OverviewLine.gameObject.SetActive(false);
+            MenusContainer.SetActive(false);
+        }
     }
     #endregion
 }

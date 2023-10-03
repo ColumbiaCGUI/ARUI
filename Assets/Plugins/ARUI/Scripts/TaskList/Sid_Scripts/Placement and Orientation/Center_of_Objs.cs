@@ -4,7 +4,7 @@ using UnityEngine;
 using Shapes;
 using System.Diagnostics;
 
-public class Center_of_Objs : MonoBehaviour
+public class Center_of_Objs : Singleton<Center_of_Objs>
 {
     // Debug only
     public List<GameObject> objs;
@@ -51,20 +51,19 @@ public class Center_of_Objs : MonoBehaviour
     //stays on the center of all required objects
     public void SnapToCentroid()
     {
-        Vector3 centroid = new Vector3(0, 0, 0);
-        if (objsDict.Count > 0)
-        {
-            foreach (KeyValuePair<string, GameObject> pair in objsDict)
-            {
-                centroid += pair.Value.transform.position;
-            }
-            centroid = centroid / objsDict.Count;
-            this.GetComponent<MultipleListsContainer>().SetLineEnd(centroid);
-        }
-        else
-        {
-            centroid = Camera.main.transform.position + Camera.main.transform.forward * zOffset + Camera.main.transform.right * xOffset;
-        }
+        #region Snapping to center of required items
+            /*        Vector3 centroid = new Vector3(0, 0, 0);
+                    if (objsDict.Count > 0)
+                    {
+                        foreach (KeyValuePair<string, GameObject> pair in objsDict)
+                        {
+                            centroid += pair.Value.transform.position;
+                        }
+                        centroid = centroid / objsDict.Count;
+                        this.GetComponent<MultipleListsContainer>().SetLineEnd(centroid);
+                    }*/
+            #endregion
+        Vector3 centroid = Camera.main.transform.position + Camera.main.transform.forward * zOffset + Camera.main.transform.right * xOffset;
         //UnityEngine.Debug.Log(centroid);
         //UnityEngine.Debug.Log(Camera.main.transform.position.y);
         Vector3 finalPos = new Vector3(centroid.x, Camera.main.transform.position.y + heightOffset, centroid.z);
@@ -212,7 +211,7 @@ public class Center_of_Objs : MonoBehaviour
             Line pointer = pointerObj.GetComponent<Line>();
             pointer.Start = transform.position;
             pointer.End = obj.transform.position;
-            SnapToCentroid();
+            //SnapToCentroid();
             DeactivateLines();
         }
     }
