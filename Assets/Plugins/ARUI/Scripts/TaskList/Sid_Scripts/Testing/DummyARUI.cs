@@ -59,6 +59,7 @@ public class DummyARUI : MonoBehaviour
 
     public void LoadNewTaskListFromString(string json)
     {
+        MultipleListsContainer.Instance.gameObject.SetActive(true);
         TaskList currList = JsonUtility.FromJson<TaskList>(json);
         //If there already is a recipe with the same name, still add it to the main list
         //but add a number to its name (for example the second instance of the "Pinwheels"
@@ -126,6 +127,20 @@ public class DummyARUI : MonoBehaviour
         GoToPrevStep(CurrTaskList);
     }
 
+    public void DeleteRecipe(string recipeName)
+    {
+        if(TaskLists.ContainsKey(recipeName))
+        {
+            TaskLists.Remove(recipeName);
+        }
+
+        if(TaskLists.Count == 0)
+        {
+            Orb.Instance.SetTaskMessage("No pending tasks");
+            MultipleListsContainer.Instance.gameObject.SetActive(false);
+        }
+    }
+
     //For any recipe with key recipeName, have it go to the next step
     public void GoToNextStep(string recipeName)
     {
@@ -183,5 +198,6 @@ public class DummyARUI : MonoBehaviour
         yield return new WaitForSeconds(10.0f);
         UpdateCurrTaskList("Pinwheels_2");
         ReloadTaskList();
+        DeleteRecipe("Pinwheels_2");
     }
 }

@@ -112,16 +112,24 @@ public class MultipleListsContainer : Singleton<MultipleListsContainer>
                 break;
             }
             counter += Time.deltaTime;
-
-            canvasGroup.alpha = Mathf.Lerp(startAlpha, targetAlpha, counter / duration);
+            if (canvasGroup != null)
+            {
+                canvasGroup.alpha = Mathf.Lerp(startAlpha, targetAlpha, counter / duration);
+            }
 
             yield return null;
         }
         if (!broken)
         {
-            canvas.SetActive(false);
+            if (canvas != null)
+            {
+                canvas.SetActive(false);
+            }
             this.GetComponent<Center_of_Objs>().SetIsLooking(false);
-            canvasGroup.alpha = 1.0f;
+            if (canvasGroup != null)
+            {
+                canvasGroup.alpha = 1.0f;
+            }
             this.GetComponent<Center_of_Objs>().DeactivateLines();
         }
         else

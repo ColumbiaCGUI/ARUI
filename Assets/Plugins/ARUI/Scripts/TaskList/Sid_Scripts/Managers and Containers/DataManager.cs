@@ -63,6 +63,37 @@ public class DataManager : MonoBehaviour
         LoadNewTaskListFromString(jsonTextFile.text);
     }
 
+    public void DeleteRecipe(string recipeName)
+    {
+        if (TaskLists.ContainsKey(recipeName))
+        {
+            TaskLists.Remove(recipeName);
+        }
+
+        if (TaskLists.Count == 0)
+        {
+            Orb.Instance.SetTaskMessage("No pending tasks");
+            MultipleListsContainer.Instance.gameObject.SetActive(false);
+        }
+    }
+
+    public void DeleteCurrRecipe(string newCurr = "")
+    {
+        TaskLists.Remove(CurrTaskList);
+
+        if (TaskLists.Count == 0)
+        {
+            Orb.Instance.SetTaskMessage("No pending tasks");
+            MultipleListsContainer.Instance.gameObject.SetActive(false);
+        } else
+        {
+            if (TaskLists.ContainsKey(newCurr))
+            {
+                UpdateCurrTaskList(newCurr);
+            }
+        }
+    }
+
     public void LoadNewTaskListFromString(string json)
     {
         TaskList currList = JsonUtility.FromJson<TaskList>(json);
@@ -202,14 +233,22 @@ public class DataManager : MonoBehaviour
         LoadNewTaskList("Task1");
         UpdateCurrTaskList("Pinwheels");
         ReloadTaskList();
-        yield return new WaitForSeconds(10.0f);
+        yield return new WaitForSeconds(5.0f);
         GoToNextStep("Pinwheels_2");
         ReloadTaskList();
-        yield return new WaitForSeconds(10.0f);
+        yield return new WaitForSeconds(5.0f);
         GoToPrevStep("Pinwheels_3");
         ReloadTaskList();
-        yield return new WaitForSeconds(10.0f);
+        yield return new WaitForSeconds(5.0f);
         UpdateCurrTaskList("Pinwheels_2");
         ReloadTaskList();
+        yield return new WaitForSeconds(5.0f);
+        DeleteCurrRecipe("Pinwheels");
+        ReloadTaskList();
+        yield return new WaitForSeconds(5.0f);
+        DeleteRecipe("Pinwheels_3");
+        ReloadTaskList();
+        yield return new WaitForSeconds(5.0f);
+        DeleteCurrRecipe();
     }
 }
