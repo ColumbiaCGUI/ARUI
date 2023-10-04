@@ -16,12 +16,17 @@ public class DataManager : MonoBehaviour
         StartCoroutine(ExampleScript());
     }
 
+    //MOVE TO ARUI??
     public void InitializeTaskOverview()
     {
         GameObject overviewObj = Instantiate(OverviewPrefab);
         Center_of_Objs.Instance.SnapToCentroid();
     }
 
+    //Converts the tasklist object with key taskname into a matrix of strings
+    //The final matrix would be of size (number of steps and substeps x 2)
+    //Each row element would be of the form [step description, 0] for main steps
+    //and [step description, 1] for sub steps
     public string[,] ConvertToStringList(string taskname)
     {
         var jsonTextFile = Resources.Load<TextAsset>("Text/" + taskname);
@@ -97,9 +102,28 @@ public class DataManager : MonoBehaviour
         Orb.Instance.SetTaskMessage(currTaskList.Steps[currStepIndex].StepDesc);
     }
 
+    //Change the next step index that the current task is pointing to
     public void UpdateCurrNextStepIndex(int index)
     {
-        TaskLists[CurrTaskList].NextStepIndex = index;
+        UpdateNextStepIndex(CurrTaskList, index);
+    }
+
+    //Change the next step index that the task with name "taskname" is pointing to
+    public void UpdateNextStepIndex(string taskname, int index)
+    {
+        TaskLists[taskname].NextStepIndex = index;
+    }
+
+    //Change the previous step index that the current task is pointing to
+    public void UpdateCurrPrevStepIndex(int index)
+    {
+        UpdatePrevStepIndex(CurrTaskList, index);
+    }
+
+    //Change the previous step index that the task with name "taskname" is pointing to
+    public void UpdatePrevStepIndex(string taskname, int index)
+    {
+        TaskLists[taskname].PrevStepIndex = index;
     }
 
     //For the current recipe, have it go to the next substep

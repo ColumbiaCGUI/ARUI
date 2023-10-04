@@ -10,6 +10,8 @@ public class SetupCurrTaskOverview : MonoBehaviour
     public ManageStepFlashcardSolo currFlashcardSolo;
     public ManageStepFlashcardSolo prevFlashcard;
     public ManageStepFlashcardSolo nextFlashcard;
+    public GameObject topPlaceholder;
+    public GameObject bottomPlaceholder;
     public void SetupCurrTask(Step currStep, Center_of_Objs centerScript = null)
     {
         List<string> reqList;
@@ -39,22 +41,26 @@ public class SetupCurrTaskOverview : MonoBehaviour
     public void SetupPrevTask(Step prevStep)
     {
         prevFlashcard.gameObject.SetActive(true);
+        topPlaceholder.gameObject.SetActive(false);
         prevFlashcard.InitializeFlashcard(prevStep);
     }
 
     public void DeactivatePrevTask()
     {
         prevFlashcard.gameObject.SetActive(false);
+        topPlaceholder.gameObject.SetActive(true);
     }
 
     public void SetupNextTask(Step nextStep)
     {
         nextFlashcard.gameObject.SetActive(true);
+        bottomPlaceholder.gameObject.SetActive(false);
         nextFlashcard.InitializeFlashcard(nextStep);
     }
 
     public void DeactivateNextTask()
     {
         nextFlashcard.gameObject.SetActive(false);
+        bottomPlaceholder.gameObject.SetActive(true);
     }
 }

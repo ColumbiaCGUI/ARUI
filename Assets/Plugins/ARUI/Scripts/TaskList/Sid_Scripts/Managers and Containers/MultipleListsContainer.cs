@@ -42,18 +42,21 @@ public class MultipleListsContainer : Singleton<MultipleListsContainer>
         if (isMenu)
         {
             //if eye gaze not on task objects then do fade out currentindex
-            if (EyeGazeManager.Instance.CurrentHit != EyeTarget.listmenuButton_tasks)
+            if (EyeGazeManager.Instance != null)
             {
-                if (delta > disableDelay)
+                if (EyeGazeManager.Instance.CurrentHit != EyeTarget.listmenuButton_tasks)
                 {
-                    StartCoroutine(FadeOut());
-                    StartCoroutine(FadeOut());
-                }
-                else
-                {
-                    delta += Time.deltaTime;
-                }
+                    if (delta > disableDelay)
+                    {
+                        StartCoroutine(FadeOut());
+                        StartCoroutine(FadeOut());
+                    }
+                    else
+                    {
+                        delta += Time.deltaTime;
+                    }
 
+                }
             }
         }
     }

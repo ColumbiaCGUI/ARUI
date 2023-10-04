@@ -18,10 +18,16 @@ public class ListMenuMultipleLists : MonoBehaviour
     void Update()
     {
         //Once user looks at this object, set the task list visible
-        if (EyeGazeManager.Instance.CurrentHitObj.GetInstanceID() == this.gameObject.GetInstanceID())
+        if (EyeGazeManager.Instance != null)
         {
-            FadeIn();
-            //Put orb into area
+            if (EyeGazeManager.Instance.CurrentHitObj != null)
+            {
+                if (EyeGazeManager.Instance.CurrentHitObj.GetInstanceID() == this.gameObject.GetInstanceID())
+                {
+                    FadeIn();
+                    //Put orb into area
+                }
+            }
         }
     }
     private void FadeIn()
