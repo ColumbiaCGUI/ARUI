@@ -6,8 +6,8 @@ using UnityEngine;
 
 public class DataManager : MonoBehaviour
 {
-    Dictionary<string, TaskList> TaskLists = new Dictionary<string, TaskList>();
-    string CurrTaskList = "";
+    Dictionary<string, TaskList> Recipes = new Dictionary<string, TaskList>();
+    string CurrRecipe = "";
     public GameObject OverviewPrefab;
 
     void Start()
@@ -23,13 +23,13 @@ public class DataManager : MonoBehaviour
         Center_of_Objs.Instance.SnapToCentroid();
     }
 
-    //Converts the tasklist object with key taskname into a matrix of strings
+    //Converts the tasklist object with key recipename into a matrix of strings
     //The final matrix would be of size (number of steps and substeps x 2)
     //Each row element would be of the form [step description, 0] for main steps
     //and [step description, 1] for sub steps
-    public string[,] ConvertToStringList(string taskname)
+    public string[,] ConvertToStringMatrix(string recipename)
     {
-        var jsonTextFile = Resources.Load<TextAsset>("Text/" + taskname);
+        var jsonTextFile = Resources.Load<TextAsset>("Text/" + recipename);
         TaskList currList = JsonUtility.FromJson<TaskList>(jsonTextFile.text);
         int currLength = currList.Steps.Count;
         foreach (var step in currList.Steps)
@@ -55,22 +55,22 @@ public class DataManager : MonoBehaviour
 
     //Go to the resources folder and load a new tasklist
     //json file. The name of the file should be in the form
-    //(taskname).json
-    public void LoadNewTaskList(string taskname)
+    //(recipename).json
+    public void LoadNewRecipe(string recipename)
     {
-        var jsonTextFile = Resources.Load<TextAsset>("Text/" + taskname);
+        var jsonTextFile = Resources.Load<TextAsset>("Text/" + recipename);
         UnityEngine.Debug.Log(jsonTextFile.text);
-        LoadNewTaskListFromString(jsonTextFile.text);
+        LoadNewRecipeFromString(jsonTextFile.text);
     }
 
     public void DeleteRecipe(string recipeName)
     {
-        if (TaskLists.ContainsKey(recipeName))
+        if (Recipes.ContainsKey(recipeName))
         {
-            TaskLists.Remove(recipeName);
+            Recipes.Remove(recipeName);
         }
 
-        if (TaskLists.Count == 0)
+        if (Recipes.Count == 0)
         {
             Orb.Instance.SetTaskMessage("No pending tasks");
             MultipleListsContainer.Instance.gameObject.SetActive(false);
@@ -79,38 +79,38 @@ public class DataManager : MonoBehaviour
 
     public void DeleteCurrRecipe(string newCurr = "")
     {
-        TaskLists.Remove(CurrTaskList);
+        Recipes.Remove(CurrRecipe);
 
-        if (TaskLists.Count == 0)
+        if (Recipes.Count == 0)
         {
             Orb.Instance.SetTaskMessage("No pending tasks");
             MultipleListsContainer.Instance.gameObject.SetActive(false);
         } else
         {
-            if (TaskLists.ContainsKey(newCurr))
+            if (Recipes.ContainsKey(newCurr))
             {
-                UpdateCurrTaskList(newCurr);
+                UpdateCurrRecipe(newCurr);
             }
         }
     }
 
-    public void LoadNewTaskListFromString(string json)
+    public void LoadNewRecipeFromString(string json)
     {
         TaskList currList = JsonUtility.FromJson<TaskList>(json);
         //If there already is a recipe with the same name, still add it to the main list
         //but add a number to its name (for example the second instance of the "Pinwheels"
         //recipe would be stored as "Pinwheels_2")
-        if (!TaskLists.ContainsKey(currList.Name))
+        if (!Recipes.ContainsKey(currList.Name))
         {
-            TaskLists.Add(currList.Name, currList);
+            Recipes.Add(currList.Name, currList);
         }
         else
         {
             for (int i = 2; i <= 5; i++)
             {
-                if (!TaskLists.ContainsKey(currList.Name + "_" + i.ToString()))
+                if (!Recipes.ContainsKey(currList.Name + "_" + i.ToString()))
                 {
-                    TaskLists.Add(currList.Name + "_" + i.ToString(), currList);
+                    Recipes.Add(currList.Name + "_" + i.ToString(), currList);
                     break;
                 }
             }
@@ -121,117 +121,117 @@ public class DataManager : MonoBehaviour
     //call this function to see changes reflected on task overview
     public void ReloadTaskList()
     {
-        MultipleListsContainer.Instance.UpdateAllSteps(TaskLists, CurrTaskList);
+        MultipleListsContainer.Instance.UpdateAllSteps(Recipes, CurrRecipe);
     }
 
     //Change which recipe shows up as the "current" one
-    public void UpdateCurrTaskList(string taskname)
+    public void UpdateCurrRecipe(string recipename)
     {
-        CurrTaskList = taskname;
-        TaskList currTaskList = TaskLists[CurrTaskList];
-        int currStepIndex = TaskLists[CurrTaskList].CurrStepIndex;
-        Orb.Instance.SetTaskMessage(currTaskList.Steps[currStepIndex].StepDesc);
+        CurrRecipe = recipename;
+        TaskList CurrRecipeObj = Recipes[CurrRecipe];
+        int currStepIndex = Recipes[CurrRecipe].CurrStepIndex;
+        Orb.Instance.SetTaskMessage(CurrRecipeObj.Steps[currStepIndex].StepDesc);
     }
 
     //Change the next step index that the current task is pointing to
     public void UpdateCurrNextStepIndex(int index)
     {
-        UpdateNextStepIndex(CurrTaskList, index);
+        UpdateNextStepIndex(CurrRecipe, index);
     }
 
-    //Change the next step index that the task with name "taskname" is pointing to
-    public void UpdateNextStepIndex(string taskname, int index)
+    //Change the next step index that the task with name "recipename" is pointing to
+    public void UpdateNextStepIndex(string recipename, int index)
     {
-        TaskLists[taskname].NextStepIndex = index;
+        Recipes[recipename].NextStepIndex = index;
     }
 
     //Change the previous step index that the current task is pointing to
     public void UpdateCurrPrevStepIndex(int index)
     {
-        UpdatePrevStepIndex(CurrTaskList, index);
+        UpdatePrevStepIndex(CurrRecipe, index);
     }
 
-    //Change the previous step index that the task with name "taskname" is pointing to
-    public void UpdatePrevStepIndex(string taskname, int index)
+    //Change the previous step index that the task with name "recipename" is pointing to
+    public void UpdatePrevStepIndex(string recipename, int index)
     {
-        TaskLists[taskname].PrevStepIndex = index;
+        Recipes[recipename].PrevStepIndex = index;
     }
 
     //For the current recipe, have it go to the next substep
     public void GoToNextSubStepCurrRecipe()
     {
-        GoToNextSubStep(CurrTaskList);
+        GoToNextSubStep(CurrRecipe);
     }
 
     //For any recipe with key recipeName, have it go to the next substep
     public void GoToNextSubStep(string recipeName)
     {
-        TaskList currTaskList = TaskLists[recipeName];
-        int currStepIndex = TaskLists[recipeName].CurrStepIndex;
-        currTaskList.Steps[currStepIndex].CurrSubStepIndex++;
+        TaskList CurrRecipe = Recipes[recipeName];
+        int currStepIndex = Recipes[recipeName].CurrStepIndex;
+        CurrRecipe.Steps[currStepIndex].CurrSubStepIndex++;
     }
 
     //For the current recipe, have it go to the next step
     public void GoToNextStepCurrRecipe()
     {
-        GoToNextStep(CurrTaskList);
+        GoToNextStep(CurrRecipe);
     }
 
     //For the current recipe, have it go to the next step
     public void GoToPrevtStepCurrRecipe()
     {
-        GoToPrevStep(CurrTaskList);
+        GoToPrevStep(CurrRecipe);
     }
 
     //For any recipe with key recipeName, have it go to the next step
     public void GoToNextStep(string recipeName)
     {
-        if (TaskLists[recipeName].CurrStepIndex >= TaskLists[recipeName].Steps.Count - 1 || TaskLists[recipeName].CurrStepIndex == -1)
+        if (Recipes[recipeName].CurrStepIndex >= Recipes[recipeName].Steps.Count - 1 || Recipes[recipeName].CurrStepIndex == -1)
         {
-            TaskLists[recipeName].CurrStepIndex = -1;
+            Recipes[recipeName].CurrStepIndex = -1;
         }
-        else if (TaskLists[recipeName].CurrStepIndex == TaskLists[recipeName].Steps.Count - 2)
+        else if (Recipes[recipeName].CurrStepIndex == Recipes[recipeName].Steps.Count - 2)
         {
-            TaskLists[recipeName].CurrStepIndex++;
-            TaskLists[recipeName].NextStepIndex = -1;
-            TaskLists[recipeName].PrevStepIndex++;
+            Recipes[recipeName].CurrStepIndex++;
+            Recipes[recipeName].NextStepIndex = -1;
+            Recipes[recipeName].PrevStepIndex++;
         }
         else
         {
-            TaskLists[recipeName].CurrStepIndex++;
-            TaskLists[recipeName].NextStepIndex++;
-            TaskLists[recipeName].PrevStepIndex++;
+            Recipes[recipeName].CurrStepIndex++;
+            Recipes[recipeName].NextStepIndex++;
+            Recipes[recipeName].PrevStepIndex++;
         }
     }
 
     //For any recipe with key recipeName, have it go to the next step
     public void GoToPrevStep(string recipeName)
     {
-        if (TaskLists[recipeName].CurrStepIndex <= 0 || TaskLists[recipeName].CurrStepIndex == -1)
+        if (Recipes[recipeName].CurrStepIndex <= 0 || Recipes[recipeName].CurrStepIndex == -1)
         {
-            TaskLists[recipeName].CurrStepIndex = -1;
+            Recipes[recipeName].CurrStepIndex = -1;
         }
-        else if (TaskLists[recipeName].CurrStepIndex == 1)
+        else if (Recipes[recipeName].CurrStepIndex == 1)
         {
-            TaskLists[recipeName].CurrStepIndex--;
-            TaskLists[recipeName].PrevStepIndex = -1;
-            TaskLists[recipeName].NextStepIndex--;
+            Recipes[recipeName].CurrStepIndex--;
+            Recipes[recipeName].PrevStepIndex = -1;
+            Recipes[recipeName].NextStepIndex--;
         }
         else
         {
-            TaskLists[recipeName].CurrStepIndex--;
-            TaskLists[recipeName].NextStepIndex--;
-            TaskLists[recipeName].PrevStepIndex--;
+            Recipes[recipeName].CurrStepIndex--;
+            Recipes[recipeName].NextStepIndex--;
+            Recipes[recipeName].PrevStepIndex--;
         }
     }
 
     IEnumerator ExampleScript()
     {
         yield return new WaitForSeconds(0.5f);
-        LoadNewTaskList("Task1");
-        LoadNewTaskList("Task1");
-        LoadNewTaskList("Task1");
-        UpdateCurrTaskList("Pinwheels");
+        LoadNewRecipe("Task1");
+        LoadNewRecipe("Task1");
+        LoadNewRecipe("Task1");
+        UpdateCurrRecipe("Pinwheels");
         ReloadTaskList();
         yield return new WaitForSeconds(5.0f);
         GoToNextStep("Pinwheels_2");
@@ -240,7 +240,7 @@ public class DataManager : MonoBehaviour
         GoToPrevStep("Pinwheels_3");
         ReloadTaskList();
         yield return new WaitForSeconds(5.0f);
-        UpdateCurrTaskList("Pinwheels_2");
+        UpdateCurrRecipe("Pinwheels_2");
         ReloadTaskList();
         yield return new WaitForSeconds(5.0f);
         DeleteCurrRecipe("Pinwheels");

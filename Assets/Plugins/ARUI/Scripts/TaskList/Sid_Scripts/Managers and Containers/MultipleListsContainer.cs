@@ -49,7 +49,6 @@ public class MultipleListsContainer : Singleton<MultipleListsContainer>
                     if (delta > disableDelay)
                     {
                         StartCoroutine(FadeOut());
-                        StartCoroutine(FadeOut());
                     }
                     else
                     {
