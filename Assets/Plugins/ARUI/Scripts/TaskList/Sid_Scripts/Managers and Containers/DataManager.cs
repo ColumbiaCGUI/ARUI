@@ -12,6 +12,7 @@ public class DataManager : MonoBehaviour
 
     void Start()
     {
+        //Debugging purposes
         InitializeTaskOverview();
         StartCoroutine(ExampleScript());
     }
@@ -53,6 +54,7 @@ public class DataManager : MonoBehaviour
         return finalTaskList;
     }
 
+    #region Loading and deleting recipes
     //Go to the resources folder and load a new tasklist
     //json file. The name of the file should be in the form
     //(recipename).json
@@ -63,37 +65,7 @@ public class DataManager : MonoBehaviour
         LoadNewRecipeFromString(jsonTextFile.text);
     }
 
-    public void DeleteRecipe(string recipeName)
-    {
-        if (Recipes.ContainsKey(recipeName))
-        {
-            Recipes.Remove(recipeName);
-        }
-
-        if (Recipes.Count == 0)
-        {
-            Orb.Instance.SetTaskMessage("No pending tasks");
-            MultipleListsContainer.Instance.gameObject.SetActive(false);
-        }
-    }
-
-    public void DeleteCurrRecipe(string newCurr = "")
-    {
-        Recipes.Remove(CurrRecipe);
-
-        if (Recipes.Count == 0)
-        {
-            Orb.Instance.SetTaskMessage("No pending tasks");
-            MultipleListsContainer.Instance.gameObject.SetActive(false);
-        } else
-        {
-            if (Recipes.ContainsKey(newCurr))
-            {
-                UpdateCurrRecipe(newCurr);
-            }
-        }
-    }
-
+    //Take in a json of the class TaskList and add it as a recipe
     public void LoadNewRecipeFromString(string json)
     {
         TaskList currList = JsonUtility.FromJson<TaskList>(json);
@@ -117,6 +89,43 @@ public class DataManager : MonoBehaviour
         }
     }
 
+    //Delete recipe with given recipe name
+    //If it is the last recipe, then handle task overview and orb
+    public void DeleteRecipe(string recipeName)
+    {
+        if (Recipes.ContainsKey(recipeName))
+        {
+            Recipes.Remove(recipeName);
+        }
+
+        if (Recipes.Count == 0)
+        {
+            Orb.Instance.SetTaskMessage("No pending tasks");
+            MultipleListsContainer.Instance.gameObject.SetActive(false);
+        }
+    }
+
+    //Delete the current recipe and replace it with a new current recipe
+    //defined by newCurr. If that was the last recipe, then handle
+    //task overview and orb
+    public void DeleteCurrRecipe(string newCurr = "")
+    {
+        Recipes.Remove(CurrRecipe);
+
+        if (Recipes.Count == 0)
+        {
+            Orb.Instance.SetTaskMessage("No pending tasks");
+            MultipleListsContainer.Instance.gameObject.SetActive(false);
+        } else
+        {
+            if (Recipes.ContainsKey(newCurr))
+            {
+                UpdateCurrRecipe(newCurr);
+            }
+        }
+    }
+    
+    #endregion
     //After adding, removing or updating any of the recipe data
     //call this function to see changes reflected on task overview
     public void ReloadTaskList()
@@ -124,6 +133,7 @@ public class DataManager : MonoBehaviour
         MultipleListsContainer.Instance.UpdateAllSteps(Recipes, CurrRecipe);
     }
 
+    #region Changes to current recipe and recipe steps
     //Change which recipe shows up as the "current" one
     public void UpdateCurrRecipe(string recipename)
     {
@@ -178,12 +188,13 @@ public class DataManager : MonoBehaviour
     }
 
     //For the current recipe, have it go to the next step
-    public void GoToPrevtStepCurrRecipe()
+    public void GoToPrevStepCurrRecipe()
     {
         GoToPrevStep(CurrRecipe);
     }
 
     //For any recipe with key recipeName, have it go to the next step
+    //while also updating the current and previous step 
     public void GoToNextStep(string recipeName)
     {
         if (Recipes[recipeName].CurrStepIndex >= Recipes[recipeName].Steps.Count - 1 || Recipes[recipeName].CurrStepIndex == -1)
@@ -205,6 +216,7 @@ public class DataManager : MonoBehaviour
     }
 
     //For any recipe with key recipeName, have it go to the next step
+    //while also updating the current and next step 
     public void GoToPrevStep(string recipeName)
     {
         if (Recipes[recipeName].CurrStepIndex <= 0 || Recipes[recipeName].CurrStepIndex == -1)
@@ -224,7 +236,9 @@ public class DataManager : MonoBehaviour
             Recipes[recipeName].PrevStepIndex--;
         }
     }
+    #endregion
 
+    //Debugging purposes
     IEnumerator ExampleScript()
     {
         yield return new WaitForSeconds(0.5f);
