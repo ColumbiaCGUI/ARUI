@@ -19,11 +19,12 @@ public class Annotation : MonoBehaviour
     [SerializeField]
     private float canvasPosOffset = 0.01f;
     [SerializeField]
-    private float pointerResetTime = 1f;
+    private float pointerResetTime = 0.2f;
 
     private float elapsed;
 
-    private bool isGazing;
+    [SerializeField]
+    private bool isSelected;
     private bool isFadingOut;
     [SerializeField]
     private bool isVisible;
@@ -40,6 +41,8 @@ public class Annotation : MonoBehaviour
     private AnnotationCanvasControl canvasCtl;
 
     public bool isInDisc;
+
+    private Coroutine disableCoroutine;
 
     // ========================================================================
     // Start()
@@ -60,7 +63,7 @@ public class Annotation : MonoBehaviour
 
         pointer.Thickness = 0.0125f;
 
-        isGazing = false;
+        isSelected = false;
         isFadingOut = false;
         isVisible = false;
         isInit = true;
@@ -107,35 +110,42 @@ public class Annotation : MonoBehaviour
         EyeTarget currentHit = EyeGazeManager.Instance.CurrentHit;
         GameObject currentHitObject = EyeGazeManager.Instance.CurrentHitObj;
 
-        // If start looking at this object
-        if (!isGazing
-            && ((currentHit == EyeTarget.annotation && currentHitObject.transform.parent.parent.name == transform.parent.name)
-                || isInDisc))
+        bool bHitOnAnnotation = (currentHit == EyeTarget.annotation);
+        string hitObjectName = "";
+        if (bHitOnAnnotation)
         {
-            isGazing = true;
+            hitObjectName = currentHitObject.transform.parent.parent.name;
+        }
+
+        // If start looking at this object
+        if (!isSelected && ((bHitOnAnnotation && hitObjectName == transform.parent.name) || isInDisc))
+        {
+            isSelected = true;
+
+            if (disableCoroutine != null)
+                StopCoroutine(disableCoroutine);
+
+            if (isFadingOut)
+            {
+                StopCoroutine(fadeOutCoroutine);
+                isFadingOut = false;
+                canvasGroup.alpha = 1.0f;
+                pointer.Color = pointerColor;
+            }
+
             if (!isVisible)
             {
                 StartCoroutine(EnableAnnotation());
             }
         }
         // If moved eye away from current object
-        else if (isGazing
-                 && ((currentHit != EyeTarget.annotation || currentHitObject.transform.parent.parent.name != transform.parent.name)
-                     && !isInDisc))
+        else if (isSelected && ((currentHit != EyeTarget.annotation || currentHitObject.transform.parent.parent.name != transform.parent.name) && !isInDisc))
         {
-            isGazing = false;
-            StartCoroutine(DisableAnnotation());
-        }
-
-        // If look back when fading out
-        if (isFadingOut && isGazing) 
-        {
-            // Stop fading out
-            StopCoroutine(fadeOutCoroutine);
-            isFadingOut = false;
-            // Resume alpha
-            canvasGroup.alpha = 1.0f;
-            pointer.Color = pointerColor;
+            isSelected = false;
+            if (isVisible)
+            {
+                disableCoroutine = StartCoroutine(DisableAnnotation());
+            }
         }
 
         // Update collider position of canvas
@@ -167,11 +177,10 @@ public class Annotation : MonoBehaviour
 
         canvas.SetActive(true);
 
-        while (isGazing && elapsed < enableDelay)
+        while (isSelected && elapsed < enableDelay)
         {
             elapsed += Time.deltaTime;
 
-            /* ---- Annotation Pointer ---- */
             Vector3 targetPos, diffVec, diffDir;
             float diffSize;
 
@@ -254,7 +263,7 @@ public class Annotation : MonoBehaviour
             float capsuleHeight = (pointer.Start - pointer.End).magnitude;
             capsule.height = capsuleHeight;
 
-            if (elapsed > enableDelay && isGazing)
+            if (elapsed > enableDelay && isSelected)
                 success = true;
 
             yield return null;
@@ -266,6 +275,8 @@ public class Annotation : MonoBehaviour
             if (canvasCtl.bHasDescription) canvas.transform.Find("Description").gameObject.SetActive(true);
             if (canvasCtl.bHasImage) canvas.transform.Find("Image").gameObject.SetActive(true);
             if (canvasCtl.bHasVideo) canvas.transform.Find("Video").gameObject.SetActive(true);
+
+            if (!canvas.activeSelf) canvas.SetActive(true);
 
             isVisible = true;
             elapsed = 0;
