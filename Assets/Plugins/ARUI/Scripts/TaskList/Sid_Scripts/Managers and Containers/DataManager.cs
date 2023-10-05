@@ -18,6 +18,7 @@ public class DataManager : MonoBehaviour
     }
 
     //MOVE TO ARUI??
+    //OVERVIEW REFERENCE
     public void InitializeTaskOverview()
     {
         GameObject overviewObj = Instantiate(OverviewPrefab);
@@ -101,6 +102,7 @@ public class DataManager : MonoBehaviour
         if (Recipes.Count == 0)
         {
             Orb.Instance.SetTaskMessage("No pending tasks");
+            //OVERVIEW REFERENCE
             MultipleListsContainer.Instance.gameObject.SetActive(false);
         }
     }
@@ -115,6 +117,7 @@ public class DataManager : MonoBehaviour
         if (Recipes.Count == 0)
         {
             Orb.Instance.SetTaskMessage("No pending tasks");
+            //OVERVIEW REFERENCE
             MultipleListsContainer.Instance.gameObject.SetActive(false);
         } else
         {
@@ -130,6 +133,7 @@ public class DataManager : MonoBehaviour
     //call this function to see changes reflected on task overview
     public void ReloadTaskList()
     {
+        //OVERVIEW REFERENCE
         MultipleListsContainer.Instance.UpdateAllSteps(Recipes, CurrRecipe);
     }
 
