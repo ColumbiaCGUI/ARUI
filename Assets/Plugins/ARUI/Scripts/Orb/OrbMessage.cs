@@ -1,4 +1,6 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -17,21 +19,17 @@ public class OrbMessage : MonoBehaviour
 
     private MessageAnchor _currentAnchor = MessageAnchor.right;
 
-    //*** Flexible Textbox for Notification Message
-    private RectTransform _notificationMessageRect;
-    private TMPro.TextMeshProUGUI _textNotification;
-
     private Color32 _glowColor = Color.white;
     private float _maxglowAlpha = 0.3f;
     private Color _activeColorText = Color.white;
 
-    //Flags
-    private bool _isNotificationActive = false;
-    public bool IsNotificationActive
-    {
-        get => _isNotificationActive;
-        set { SetNotificationTextActive(value); }
-    }
+    //*** Prefabs for notifications
+    private Notification _currentNote;
+    private Notification _currentWarning;
+
+    public bool IsNoteActive => _currentNote.IsSet;
+    public bool IsWarningActive => _currentWarning.IsSet;
+
 
     private bool _userHasSeenNewTask = false;
     public bool UserHasSeenNewTask
@@ -66,6 +64,19 @@ public class OrbMessage : MonoBehaviour
 
     private TMPro.TextMeshProUGUI _progressText;
 
+    private TMPro.TextMeshProUGUI _prevText;
+    private TMPro.TextMeshProUGUI _nextText;
+
+    private DwellButton _taskListbutton;                     /// <reference to dwell btn above orb ('tasklist button')
+    public DwellButton TaskListToggle
+    {
+        get => _taskListbutton;
+    }
+    public List<BoxCollider> GetAllColliders
+    {
+        get => new List<BoxCollider> {_taskListbutton.Collider, _textContainer.MessageCollider};
+    } 
+
     private void Start()
     {
         _textContainer = transform.GetChild(1).gameObject.AddComponent<FlexibleTextContainer>();
@@ -76,13 +87,18 @@ public class OrbMessage : MonoBehaviour
         _progressText = allText[1].gameObject.GetComponent<TMPro.TextMeshProUGUI>();
         _progressText.text = "";
 
-        _initialmessageYOffset = _textContainer.transform.position.x;
+        _prevText = _textContainer.VGroup.GetChild(1).gameObject.GetComponentInChildren<TMPro.TextMeshProUGUI>();
+        _prevText.text = "";
+        _nextText = _textContainer.VGroup.GetChild(2).gameObject.GetComponentInChildren<TMPro.TextMeshProUGUI>();
+        _nextText.text = "";
 
-        //init notification message group
-        _notificationMessageRect = allText[2].gameObject.GetComponent<RectTransform>();
-        _textNotification = _notificationMessageRect.gameObject.GetComponent<TMPro.TextMeshProUGUI>();
-        _textNotification.text = "";
-        _notificationMessageRect.gameObject.SetActive(false);
+        _currentWarning = _textContainer.VGroup.GetChild(3).gameObject.AddComponent<Notification>();
+        _currentWarning.init(NotificationType.warning, "", _textContainer.TextRect.height);
+
+        _currentNote = _textContainer.VGroup.GetChild(4).gameObject.AddComponent<Notification>();
+        _currentNote.init(NotificationType.note, "", _textContainer.TextRect.height);
+
+        _initialmessageYOffset = _textContainer.transform.position.x;
 
         //message direction indicator
         _indicator = gameObject.GetComponentInChildren<Shapes.Polyline>().gameObject;
@@ -90,18 +106,33 @@ public class OrbMessage : MonoBehaviour
 
         _glowColor = _textContainer.GlowColor;
 
+
+        // Init tasklist button
+        GameObject taskListbtn = transform.GetChild(2).gameObject;
+        _taskListbutton = taskListbtn.AddComponent<DwellButton>();
+        _taskListbutton.gameObject.name += "FacetasklistButton";
+        _taskListbutton.InitializeButton(EyeTarget.orbtasklistButton, () => ToggleOrbTaskList(),
+            null, true, DwellButtonType.Select);
+
         SetIsActive(false, false);
     }
 
     private void Update()
     {
         // Update eye tracking flag
-        if (_isLookingAtMessage && EyeGazeManager.Instance.CurrentHit != EyeTarget.orbMessage)
+        if (_isLookingAtMessage && EyeGazeManager.Instance.CurrentHit != EyeTarget.orbMessage && EyeGazeManager.Instance.CurrentHit != EyeTarget.orbtasklistButton)
             _isLookingAtMessage = false;
-        else if (!_isLookingAtMessage && EyeGazeManager.Instance.CurrentHit == EyeTarget.orbMessage)
+        else if (!_isLookingAtMessage && (EyeGazeManager.Instance.CurrentHit == EyeTarget.orbMessage || EyeGazeManager.Instance.CurrentHit == EyeTarget.orbtasklistButton))
             _isLookingAtMessage = true;
 
-        _notificationMessageRect.sizeDelta = new Vector2(_textContainer.TextRect.width / 2, _notificationMessageRect.rect.height);
+        _currentNote.UpdateSize(_textContainer.TextRect.width / 2);
+        _currentWarning.UpdateSize(_textContainer.TextRect.width / 2);
+
+        _currentNote.UpdateYPos(_textContainer.TextRect.height, _prevText.gameObject.activeSelf);
+        _currentWarning.UpdateYPos(_textContainer.TextRect.height, _prevText.gameObject.activeSelf);
+
+        _prevText.gameObject.transform.SetLocalYPos(_textContainer.TextRect.height);
+        _nextText.gameObject.transform.SetLocalYPos(-_textContainer.TextRect.height);
 
         if (!(_isMessageVisible && Active) || _messageIsLerping) return;
 
@@ -114,6 +145,38 @@ public class OrbMessage : MonoBehaviour
     }
 
     #region Message and Notification Updates
+
+    public void AddNotification(NotificationType type, string message)
+    {
+        if (type.Equals(NotificationType.note))
+            _currentNote.SetMessage(message, ARUISettings.OrbNoteMaxCharCountPerLine);
+
+        else if (type.Equals(NotificationType.warning))
+            _currentWarning.SetMessage(message, ARUISettings.OrbMessageMaxCharCountPerLine);
+
+        SetOrbListActive(false);
+        _taskListbutton.IsDisabled = true;
+    }
+
+    public void RemoveNotification(NotificationType type)
+    {
+        if (type.Equals(NotificationType.note))
+            _currentNote.SetMessage("", ARUISettings.OrbMessageMaxCharCountPerLine);
+        else if (type.Equals(NotificationType.warning))
+            _currentWarning.SetMessage("", ARUISettings.OrbMessageMaxCharCountPerLine);
+
+        SetOrbListActive(!(IsNoteActive || IsWarningActive));
+        _taskListbutton.IsDisabled = (IsNoteActive || IsWarningActive);
+    }
+
+    public void RemoveAllNotifications()
+    {
+        _currentNote.SetMessage("", ARUISettings.OrbMessageMaxCharCountPerLine);
+        _currentWarning.SetMessage("", ARUISettings.OrbMessageMaxCharCountPerLine);
+
+        SetOrbListActive(true);
+        _taskListbutton.IsDisabled = false;
+    }
 
     /// <summary>
     /// Turn on or off message fading
@@ -299,10 +362,21 @@ public class OrbMessage : MonoBehaviour
 
             _textContainer.transform.localPosition = Vector2.Lerp(_textContainer.transform.localPosition, new Vector3(YOffset, 0, 0), step += Time.deltaTime);
             step += Time.deltaTime;
+
             yield return new WaitForEndOfFrame();
         }
 
+        if (isLeft)
+            _taskListbutton.transform.SetLocalXPos(-0.043f);
+        else
+            _taskListbutton.transform.SetLocalXPos(0.043f);
+
         _messageIsLerping = false;
+    }
+
+    private void ToggleOrbTaskList()
+    {
+        SetOrbListActive(!_prevText.gameObject.activeSelf);
     }
 
     #endregion
@@ -332,52 +406,46 @@ public class OrbMessage : MonoBehaviour
         if (newTask)
         {
             StartCoroutine(FadeNewTaskGlow());
-            if (_isNotificationActive)
-                SetNotificationMessage("");
+            RemoveAllNotifications();
         }
+
+        _taskListbutton.gameObject.SetActive(active);
     }
 
     /// <summary>
     /// Sets the orb task message to the given message and adds line break based on maxCharCountPerLine
     /// </summary>
     /// <param name="message"></param>
-    public void SetTaskMessage(string message)
+    public void SetTaskMessage(string message, string previous, string next)
     {
         _textContainer.Text = message;
         _progressText.text = TaskListManager.Instance.GetCurrentTaskID() + "/" + TaskListManager.Instance.GetTaskCount();
 
+        _prevText.text = "";
+        _nextText.text = "";
+        if (previous.Length > 0)
+            _prevText.text = "<b>DONE:</b> " + Utils.SplitTextIntoLines(previous, ARUISettings.OrbMessageMaxCharCountPerLine);
+
+        if (next.Length > 0)
+            _nextText.text = "<b>Upcoming:</b> " + Utils.SplitTextIntoLines(next, ARUISettings.OrbNoteMaxCharCountPerLine);
+
         UpdateAnchorInstant();
 
-        if (message.Contains("Done"))
-        {
-            _progressText.gameObject.SetActive(false);
-        }
-        else
-        {
-            _progressText.gameObject.SetActive(true);
-        }
+        _progressText.gameObject.SetActive(!message.Contains("Done"));
     }
 
-    /// <summary>
-    /// Sets the orb notification message to the given message and adds line break based on maxCharCountPerLine
-    /// </summary>
-    /// <param name="message"></param>
-    public void SetNotificationMessage(string message) => _textNotification.text = Utils.SplitTextIntoLines(message, ARUISettings.OrbMessageMaxCharCountPerLine);
-
-    /// <summary>
-    /// Update the visibility of the notification message
-    /// </summary>
-    /// <param name="isActive"></param>
-    private void SetNotificationTextActive(bool isActive)
+    private void SetOrbListActive(bool active)
     {
-        _notificationMessageRect.gameObject.SetActive(isActive);
-        _isNotificationActive = isActive;
+        _prevText.gameObject.SetActive(active);
+        _nextText.gameObject.SetActive(active);
 
-        if (!isActive)
-            _textNotification.text = "";
-
-        if (isActive)
-            _notificationMessageRect.transform.SetLocalYPos(_textContainer.TextRect.height / 2);
+        if (active)
+        {
+            _textContainer.MessageCollider.size = new Vector3(_textContainer.MessageCollider.size.x, 0.08f, _textContainer.MessageCollider.size.z);
+        } else
+        {
+            _textContainer.MessageCollider.size = new Vector3(_textContainer.MessageCollider.size.x, 0.05f, _textContainer.MessageCollider.size.z);
+        }
     }
 
     /// <summary>

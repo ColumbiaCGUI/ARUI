@@ -10,6 +10,7 @@ public class FlexibleTextContainer : MonoBehaviour
     //*** Flexible Textbox for taskmessage
     private RectTransform _HGroupTaskMessage;
     public Rect TextRect => _HGroupTaskMessage.rect;
+    public Transform VGroup => _HGroupTaskMessage.parent;
 
     //*** Collider of taskmessage
     private BoxCollider _taskMessageCollider;

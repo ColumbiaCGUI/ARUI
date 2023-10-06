@@ -62,7 +62,37 @@ public class ExampleScript : MonoBehaviour
     private void Start()
     {
         if (Automate)
-            StartCoroutine(RunTasksAtRuntime());
+            StartCoroutine(RunTasksAtRuntime2());
+    }
+
+    private IEnumerator RunTasksAtRuntime2()
+    {
+        yield return new WaitForSeconds(0.5f); //Wait a few frames, so everything is initialized
+
+        AngelARUI.Instance.SetTasks(_tasks0);
+
+        yield return new WaitForSeconds(1f);
+
+        AngelARUI.Instance.RegisterDetectedObject(transform.GetChild(0).gameObject, "test");
+
+        yield return new WaitForSeconds(3f);
+
+        currentTask++;
+        AngelARUI.Instance.SetCurrentTaskID(currentTask);
+
+        yield return new WaitForSeconds(2f);
+        AngelARUI.Instance.SetNotification(NotificationType.note, "This is a very very very very very very very very long warning");
+
+        yield return new WaitForSeconds(1f);
+
+        currentTask++;
+        AngelARUI.Instance.SetCurrentTaskID(currentTask);
+
+        yield return new WaitForSeconds(1f);
+
+        currentTask++;
+        AngelARUI.Instance.SetCurrentTaskID(currentTask);
+
     }
 
     private IEnumerator RunTasksAtRuntime()
@@ -110,9 +140,6 @@ public class ExampleScript : MonoBehaviour
 
         currentTask++;
         AngelARUI.Instance.SetCurrentTaskID(currentTask);
-
-        yield return new WaitForSeconds(3f);
-        AngelARUI.Instance.ShowSkipNotification(true);
 
         yield return new WaitForSeconds(5f);
         currentTask++;
@@ -211,13 +238,25 @@ public class ExampleScript : MonoBehaviour
         // Example how to trigger a skip notification. 
         if (Input.GetKeyUp(KeyCode.UpArrow))
         {
-            AngelARUI.Instance.ShowSkipNotification(true);
+            AngelARUI.Instance.SetNotification(NotificationType.note, "This is a very very very very very very very very very very very very very very very very very very long note");
         }
 
         // Example how to disable skip notification (is disable if system sets new task, or if system disables task manually
         if (Input.GetKeyUp(KeyCode.DownArrow))
         {
-            AngelARUI.Instance.ShowSkipNotification(false);
+            AngelARUI.Instance.RemoveNotification(NotificationType.note);
+        }
+
+        // Example how to trigger a skip notification. 
+        if (Input.GetKeyUp(KeyCode.LeftBracket))
+        {
+            AngelARUI.Instance.SetNotification(NotificationType.warning, "This is a very very very very very very very very very very very very very very very very very very long warning");
+        }
+
+        // Example how to disable skip notification (is disable if system sets new task, or if system disables task manually
+        if (Input.GetKeyUp(KeyCode.RightBracket))
+        {
+            AngelARUI.Instance.RemoveNotification(NotificationType.warning);
         }
 
         if (Input.GetKeyUp(KeyCode.V))

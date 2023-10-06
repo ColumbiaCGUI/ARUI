@@ -34,10 +34,21 @@ public class DwellButton : MonoBehaviour, IMixedRealityTouchHandler
     private DwellButtonType _type = DwellButtonType.Toggle;
     private bool _toggled = false;
     public bool Toggled { 
+        get => _toggled;
         set { 
             _toggled = value; 
             SetSelected(value);
         } 
+    }
+
+    private bool _isDisabled = false;
+    public bool IsDisabled
+    {
+        get => _isDisabled;
+        set { 
+            _isDisabled = value;
+            _btnmesh.gameObject.SetActive(!value);
+        }
     }
 
     //*** Btn Dwelling Feedback 
@@ -98,7 +109,7 @@ public class DwellButton : MonoBehaviour, IMixedRealityTouchHandler
     {
         bool currentLooking = EyeGazeManager.Instance.CurrentHit == _target;
 
-        if (currentLooking && !_isLookingAtBtn && !_isTouchingBtn)
+        if (currentLooking && !_isLookingAtBtn && !_isTouchingBtn && !_isDisabled)
         {
             _isLookingAtBtn = true;
             StartCoroutine(Dwelling());
@@ -125,7 +136,7 @@ public class DwellButton : MonoBehaviour, IMixedRealityTouchHandler
         float duration = 6.24f / ARUISettings.EyeDwellTime; //full circle in radians
 
         float elapsed = 0f;
-        while (!_isTouchingBtn && _isLookingAtBtn && elapsed < duration)
+        while (!_isTouchingBtn && _isLookingAtBtn && !_isDisabled && elapsed < duration)
         {
             if (CoreServices.InputSystem.EyeGazeProvider.GazeTarget == null)
                 break;
@@ -175,7 +186,7 @@ public class DwellButton : MonoBehaviour, IMixedRealityTouchHandler
     /// <param name="eventData"></param>
     public void OnTouchStarted(HandTrackingInputEventData eventData)
     {
-        if (!_touchable) return;
+        if (!_touchable || _isDisabled) return;
         _isTouchingBtn = true;
         _btnBGMat.color = ARUISettings.BtnActiveColor;
         _pushConfiromationDisc.enabled = true;
@@ -183,7 +194,7 @@ public class DwellButton : MonoBehaviour, IMixedRealityTouchHandler
 
     public void OnTouchCompleted(HandTrackingInputEventData eventData)
     {
-        if (!_touchable) return;
+        if (!_touchable || _isDisabled) return;
         _isTouchingBtn = false;
 
         _btnBGMat.color = ARUISettings.BtnBaseColor;
@@ -193,7 +204,7 @@ public class DwellButton : MonoBehaviour, IMixedRealityTouchHandler
 
     public void OnTouchUpdated(HandTrackingInputEventData eventData) 
     {
-        if (!_touchable) return;
+        if (!_touchable || _isDisabled) return;
         _btnmesh.transform.position = eventData.InputData;
 
         if (_btnmesh.transform.localPosition.z > _pushConfiromationDisc.transform.localPosition.z)

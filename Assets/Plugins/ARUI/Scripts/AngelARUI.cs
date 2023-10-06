@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using System.Collections;
 using System.Collections.Generic;
+using Shapes;
 
 /// <summary>
 /// Interface to the ARUI Components - a floating assistant in the shape as an orb and a task overview panel.
@@ -76,6 +77,10 @@ public class AngelARUI : Singleton<AngelARUI>
         eyeTarget.gameObject.name = "***ARUI-" + StringResources.eyeGazeManager_name;
         eyeTarget.AddComponent<EyeGazeManager>();
         EyeGazeManager.Instance.ShowDebugTarget(_showEyeGazeTarget);
+
+        GameObject handPoseManager = Instantiate(Resources.Load(StringResources.HandPoseManager_path)) as GameObject;
+        handPoseManager.gameObject.name = "***ARUI-" + StringResources.HandPoseManager_name;
+        yield return new WaitForEndOfFrame();
 
         //Instantiate the AI assistant - orb
         GameObject orb = Instantiate(Resources.Load(StringResources.Orb_path)) as GameObject;
@@ -153,6 +158,7 @@ public class AngelARUI : Singleton<AngelARUI>
     #endregion
 
     #region Notifications
+
     /// <summary>
     /// Set the callback function that is invoked if the user confirms the confirmation dialogue
     /// </summary>
@@ -179,20 +185,14 @@ public class AngelARUI : Singleton<AngelARUI>
     /// The message will disappear if "SetCurrentTaskID(..)" is called, or ShowSkipNotification(false)
     /// </summary>
     /// <param name="show">if true, the orb will show a skip notification, if false, the notification will disappear</param>
-    public void ShowSkipNotification(bool show)
+    public void SetNotification(NotificationType type, string message)
     {
         if (TaskListManager.Instance.GetTaskCount() <= 0 || TaskListManager.Instance.IsDone) return;
 
-        if (show)
-        {
-            if (SkipNotificationMessage == null || SkipNotificationMessage.Length == 0)
-                SkipNotificationMessage = "You are skipping the current task:";
-
-            Orb.Instance.SetNotificationMessage(SkipNotificationMessage);
-        }
-        else
-            Orb.Instance.SetNotificationMessage("");
+        Orb.Instance.AddNotification(type, message);
     }
+
+    public void RemoveNotification(NotificationType type) => Orb.Instance.RemoveNotification(type);
 
     #endregion
 
@@ -292,7 +292,13 @@ public class AngelARUI : Singleton<AngelARUI>
     }
     #endregion
 
-    #region Logging
+    #region Orb Behavior
+
+   // public void S
+
+    #endregion
+
+    #region Logging and Debugging
 
     /// <summary>
     /// Set if debug information is shown in the logger window
