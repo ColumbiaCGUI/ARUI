@@ -1,6 +1,7 @@
 ﻿using Microsoft.MixedReality.Toolkit;
 using Microsoft.MixedReality.Toolkit.Input;
 using System.Collections;
+using System.Diagnostics;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -23,6 +24,8 @@ public class DwellButton : MonoBehaviour, IMixedRealityTouchHandler
 
     private bool _isTouchingBtn = false;
     private bool _touchable = false;
+
+    private bool _uniqueObj = false;
 
     private EyeTarget _target;
     private UnityEvent _selectEvent;
@@ -72,8 +75,12 @@ public class DwellButton : MonoBehaviour, IMixedRealityTouchHandler
     }
 
     public void InitializeButton(EyeTarget target, UnityAction btnSelectEvent, UnityAction btnHalfSelect, 
-        bool touchable, DwellButtonType type)
+        bool touchable, DwellButtonType type, bool isUnique = false)
     {
+        _uniqueObj = isUnique;
+        //TODO: FIGURE OUT HOW TO GET RID OF THIS
+        _selectEvent = new UnityEvent();
+        _quarterSelectEvent = new UnityEvent();
         this._target = target;
         _selectEvent.AddListener(btnSelectEvent);
 
@@ -96,7 +103,19 @@ public class DwellButton : MonoBehaviour, IMixedRealityTouchHandler
 
     private void UpdateCurrentlyLooking()
     {
-        bool currentLooking = EyeGazeManager.Instance.CurrentHit == _target;
+        bool currentLooking = false;
+
+        if (_uniqueObj)
+        {
+            if (EyeGazeManager.Instance.CurrentHitObj != null)
+            {
+                currentLooking = EyeGazeManager.Instance.CurrentHitObj.GetInstanceID() == this.gameObject.GetInstanceID();
+            }
+        }
+        else
+        {
+            currentLooking = EyeGazeManager.Instance.CurrentHit == _target;
+        }
 
         if (currentLooking && !_isLookingAtBtn && !_isTouchingBtn)
         {

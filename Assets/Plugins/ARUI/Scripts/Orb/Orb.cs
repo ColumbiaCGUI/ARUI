@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using UnityEngine;
 
 /// <summary>
@@ -54,8 +55,10 @@ public class Orb : Singleton<Orb>
         GameObject taskListbtn = transform.GetChild(0).GetChild(2).gameObject;
         _taskListbutton = taskListbtn.AddComponent<DwellButton>();
         _taskListbutton.gameObject.name += "FacetasklistButton";
-        _taskListbutton.InitializeButton(EyeTarget.orbtasklistButton, () => TaskListManager.Instance.ToggleTasklist(), 
-            null, true, DwellButtonType.Toggle);
+         _taskListbutton.InitializeButton(EyeTarget.orbtasklistButton, () => TaskListManager.Instance.ToggleTasklist(), 
+             null, true, DwellButtonType.Toggle);
+/*        _taskListbutton.InitializeButton(EyeTarget.orbtasklistButton, () => MultipleListsContainer.Instance.ToggleOverview(), 
+            null, true, DwellButtonType.Toggle);*/
         taskListbtn.SetActive(false);
 
         BoxCollider taskListBtnCol = transform.GetChild(0).GetComponent<BoxCollider>();
@@ -90,8 +93,8 @@ public class Orb : Singleton<Orb>
     /// </summary>
     private void UpdateOrbVisibility()
     {
-        if (TaskListManager.Instance.GetTaskCount() != 0)
-        {
+        //if (TaskListManager.Instance.GetTaskCount() != 0)
+        //{
             if ((IsLookingAtOrb(false) && !_messageContainer.IsMessageVisible && !_messageContainer.IsMessageFading))
             { //Set the message visible!
                 _messageContainer.SetIsActive(true, false);
@@ -109,7 +112,7 @@ public class Orb : Singleton<Orb>
             { //Start Fading
                 _messageContainer.SetFadeOutMessage(true);
             }
-        } 
+        //} 
     } 
 
     /// <summary>
@@ -239,7 +242,6 @@ public class Orb : Singleton<Orb>
             _face.NotificationEnabled = true;
             AudioManager.Instance.PlayText(message);
         }
-
         _messageContainer.SetTaskMessage(message);
 
         if (!_allOrbColliders.Contains(_messageContainer.Collider))
