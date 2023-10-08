@@ -104,6 +104,13 @@ public class TaskListManager : Singleton<TaskListManager>
 
         _vmnc = gameObject.AddComponent<VMNonControllable>();
         _vmnc.enabled = false;
+
+        DataManager.Instance.AddDataSubscriber(() => HandleDataUpdateEvent());
+    }
+
+    public void HandleDataUpdateEvent()
+    {
+        
     }
 
     #region Generates tasklist at runtime
@@ -136,7 +143,6 @@ public class TaskListManager : Singleton<TaskListManager>
                     _taskToParent.Add(i, lastParent);
             }
 
-            Orb.Instance.ResetToggleBtn();
             StartCoroutine(GenerateTaskListElementsAsync(tasks));
 
             if (tasks.GetLength(0) > ARUISettings.TaskMaxNumTasksOnList)
@@ -196,7 +202,7 @@ public class TaskListManager : Singleton<TaskListManager>
 
         _taskListGenerated = true;
 
-        Orb.Instance.SetTaskListButtonActive(true);
+        //Orb.Instance.SetTaskListButtonActive(true);
         AngelARUI.Instance.LogDebugMessage("Finished generating task list", false);
     }
 
@@ -311,6 +317,8 @@ public class TaskListManager : Singleton<TaskListManager>
     /// <returns></returns>
     private IEnumerator SetCurrentTaskAsync(int currentTaskID, string orbMessage)
     {
+        int messageID = currentTaskID;
+
         while (!_taskListGenerated)
             yield return new WaitForEndOfFrame();
 
@@ -386,7 +394,19 @@ public class TaskListManager : Singleton<TaskListManager>
             _currentTasksListElements.Add(current);
         }
 
-        Orb.Instance.SetTaskMessage(orbMessage);
+        string previousMessage = "";
+        string nextMessage = "";
+
+        if (messageID < GetTaskCount() && messageID>=0)
+        {
+            if (messageID >= 1)
+                previousMessage = _tasks[messageID - 1, 1];
+
+            if (messageID + 1 < GetTaskCount())
+                nextMessage = _tasks[messageID + 1, 1];
+        }
+
+        Orb.Instance.SetTaskMessage(orbMessage, previousMessage, nextMessage);
         AudioManager.Instance.PlaySound(Orb.Instance.AllOrbColliders[0].transform.position, SoundType.taskDone);
     }
     #endregion

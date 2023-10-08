@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using System.Collections;
 using System.Collections.Generic;
+using Shapes;
 
 /// <summary>
 /// Interface to the ARUI Components - a floating assistant in the shape as an orb and a task overview panel.
@@ -17,7 +18,7 @@ public class AngelARUI : Singleton<AngelARUI>
     private bool _showARUIDebugMessages = true;       /// <If true, ARUI debug messages are shown in the unity console and scene Logger (if available)
     private bool _showEyeGazeTarget = false;          /// <If true, the eye gaze target is shown if the eye ray hits UI elements (white small cube), can be toggled on/off at runtime
 
-    [HideInInspector] 
+    [HideInInspector]
     public bool PrintVMDebug = false;
 
     ///****** Guidance Settings
@@ -68,6 +69,10 @@ public class AngelARUI : Singleton<AngelARUI>
         _arCamera.cullingMask = oldMask & ~(1 << (StringResources.LayerToLayerInt[StringResources.zBuffer_layer]));
 
         //Instantiate audio manager, for audio feedback
+        DataManager database = new GameObject("DataManager").AddComponent<DataManager>();
+        database.gameObject.name = "***ARUI-" + StringResources.dataManager_name;
+
+        //Instantiate audio manager, for audio feedback
         AudioManager am = new GameObject("AudioManager").AddComponent<AudioManager>();
         am.gameObject.name = "***ARUI-" + StringResources.audioManager_name;
 
@@ -76,6 +81,10 @@ public class AngelARUI : Singleton<AngelARUI>
         eyeTarget.gameObject.name = "***ARUI-" + StringResources.eyeGazeManager_name;
         eyeTarget.AddComponent<EyeGazeManager>();
         EyeGazeManager.Instance.ShowDebugTarget(_showEyeGazeTarget);
+
+        GameObject handPoseManager = Instantiate(Resources.Load(StringResources.HandPoseManager_path)) as GameObject;
+        handPoseManager.gameObject.name = "***ARUI-" + StringResources.HandPoseManager_name;
+        yield return new WaitForEndOfFrame();
 
         //Instantiate the AI assistant - orb
         GameObject orb = Instantiate(Resources.Load(StringResources.Orb_path)) as GameObject;
@@ -92,6 +101,10 @@ public class AngelARUI : Singleton<AngelARUI>
         taskList.gameObject.name = "***ARUI-" + StringResources.tasklist_name;
         taskList.AddComponent<TaskListManager>();
 
+        //Instantiate empty multi tasklist
+        GameObject overviewObj = Instantiate(Resources.Load(StringResources.Sid_Tasklist_path)) as GameObject;
+        Center_of_Objs.Instance.SnapToCentroid();
+
         //Load resources for UI elements
         _confirmationWindowPrefab = Resources.Load(StringResources.ConfNotification_path) as GameObject;
         _confirmationWindowPrefab.gameObject.name = "***ARUI-" + StringResources.confirmationWindow_name;
@@ -104,6 +117,17 @@ public class AngelARUI : Singleton<AngelARUI>
     }
 
     #region Task Guidance
+
+    public void InitManual(List<string> allTasks)
+    {
+        foreach (string task_json in allTasks)
+            DataManager.Instance.LoadNewRecipe(task_json);
+    }
+
+    public void SetCurrectActiveTask(string taskID)
+    {
+        DataManager.Instance.SetCurrentActiveTask(taskID);
+    }
 
     /// <summary>
     /// Set the task list and set the current task id to 0 (first in the given list)
@@ -122,7 +146,13 @@ public class AngelARUI : Singleton<AngelARUI>
     /// If taskID has subtasks, the orb shows the first subtask as the current task
     /// </summary>
     /// <param name="taskID">index of the current task that should be highlighted in the UI</param>
-    public void SetCurrentTaskID(int taskID) => TaskListManager.Instance.SetCurrentTask(taskID);
+    public void SetCurrentTaskID(string recipeID, int taskID)
+    {
+        if (recipeID =="")
+            TaskListManager.Instance.SetCurrentTask(taskID);
+        else
+            DataManager.Instance.SetCurrentStep(recipeID, taskID);
+    }
 
     /// <summary>
     /// Enable/Disable Tasklist
@@ -153,6 +183,7 @@ public class AngelARUI : Singleton<AngelARUI>
     #endregion
 
     #region Notifications
+
     /// <summary>
     /// Set the callback function that is invoked if the user confirms the confirmation dialogue
     /// </summary>
@@ -179,20 +210,14 @@ public class AngelARUI : Singleton<AngelARUI>
     /// The message will disappear if "SetCurrentTaskID(..)" is called, or ShowSkipNotification(false)
     /// </summary>
     /// <param name="show">if true, the orb will show a skip notification, if false, the notification will disappear</param>
-    public void ShowSkipNotification(bool show)
+    public void SetNotification(NotificationType type, string message)
     {
         if (TaskListManager.Instance.GetTaskCount() <= 0 || TaskListManager.Instance.IsDone) return;
 
-        if (show)
-        {
-            if (SkipNotificationMessage == null || SkipNotificationMessage.Length == 0)
-                SkipNotificationMessage = "You are skipping the current task:";
-
-            Orb.Instance.SetNotificationMessage(SkipNotificationMessage);
-        }
-        else
-            Orb.Instance.SetNotificationMessage("");
+        Orb.Instance.AddNotification(type, message);
     }
+
+    public void RemoveNotification(NotificationType type) => Orb.Instance.RemoveNotification(type);
 
     #endregion
 
@@ -292,7 +317,13 @@ public class AngelARUI : Singleton<AngelARUI>
     }
     #endregion
 
-    #region Logging
+    #region Orb Behavior
+
+   // public void S
+
+    #endregion
+
+    #region Logging and Debugging
 
     /// <summary>
     /// Set if debug information is shown in the logger window

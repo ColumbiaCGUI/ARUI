@@ -32,7 +32,7 @@ public class ListMenuMultipleLists : MonoBehaviour
     }
     private void FadeIn()
     {
-        ListContainer.GetComponent<MultipleListsContainer>().SetMenuActive(index);
+        MultiTaskList.Instance.SetMenuActive(index);
     }
 
     public void SetContainer(GameObject container)

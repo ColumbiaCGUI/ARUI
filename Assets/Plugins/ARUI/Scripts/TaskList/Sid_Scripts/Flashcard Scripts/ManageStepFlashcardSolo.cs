@@ -1,10 +1,6 @@
-using System.Collections;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
 using TMPro;
 using UnityEngine;
-using static System.Net.Mime.MediaTypeNames;
 
 public class ManageStepFlashcardSolo : MonoBehaviour
 {
@@ -33,11 +29,11 @@ public class ManageStepFlashcardSolo : MonoBehaviour
                 string currText = TaskText.text;
                 int index = currTextLower.IndexOf(item);
                 index -= offset;
-                UnityEngine.Debug.Log("Index of " + item + " is " + index);
+                //UnityEngine.Debug.Log("Index of " + item + " is " + index);
                 TMP_TextInfo textInfo = TaskText.textInfo;
                 TMP_CharacterInfo charInfo = textInfo.characterInfo[index];
                 Vector3 bottomLeft = charInfo.bottomRight;
-                UnityEngine.Debug.Log("Position of " + item +" is " + TaskText.transform.TransformPoint(bottomLeft).ToString());
+                //UnityEngine.Debug.Log("Position of " + item +" is " + TaskText.transform.TransformPoint(bottomLeft).ToString());
                 centerScript.SetLineStart(item, TaskText.transform.TransformPoint(bottomLeft));
                 increment += 2;
             }

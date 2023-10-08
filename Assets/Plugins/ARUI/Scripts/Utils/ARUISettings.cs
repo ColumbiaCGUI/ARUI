@@ -11,16 +11,17 @@ public static class ARUISettings
     public static readonly float OrbMaxDistToUser = 1.1f;    /// <in meters
 
     // Orb radial behavior - higher values means the element will stay further away from the center of view
-    public static readonly float OrbMinViewDegrees = 0f;        ///<The element will stay at least this far away from the center of view
+    public static readonly float OrbMinViewDegrees = 10f;        ///<The element will stay at least this far away from the center of view
     public static readonly float OrbMaxViewDegSticky = 21f;
     public static readonly float OrbMaxViewDegRegular = 13f;
-    public static readonly float OrbMaxViewDegCenter = 5f;
+    public static readonly float OrbMaxViewDegCenter = 10f;
 
     public static readonly float OrbMoveLerpRegular = 0.7f;
     public static readonly float OrbOutOfFOVThresV = 21;      /// <in radial deg
 
     public static readonly Color OrbMessageBGColor = new Color(0.06f, 0.06f, 0.06f, 0.5f);
     public static readonly int OrbMessageMaxCharCountPerLine = 70;
+    public static readonly int OrbNoteMaxCharCountPerLine = 50;
 
     //**** Task List
     public static readonly Color TaskFutureColor = Color.gray;

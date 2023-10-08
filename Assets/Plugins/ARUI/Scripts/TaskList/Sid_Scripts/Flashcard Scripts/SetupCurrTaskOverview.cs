@@ -28,14 +28,14 @@ public class SetupCurrTaskOverview : MonoBehaviour
             reqList = currStep.RequiredItems;
             currFlashcardSolo.InitializeFlashcard(currStep);
         }
-        if (centerScript != null)
-        {
-            centerScript.ClearObjs();
-            foreach (string str in reqList)
-            {
-                centerScript.AddObj(str);
-            }
-        }
+        //if (centerScript != null)
+        //{
+        //    centerScript.ClearObjs();
+        //    foreach (string str in reqList)
+        //    {
+        //        centerScript.AddObj(str);
+        //    }
+        //}
     }
 
     public void SetupPrevTask(Step prevStep)

@@ -290,7 +290,6 @@ GameObject:
   m_Component:
   - component: {fileID: 400656488}
   - component: {fileID: 400656487}
-  - component: {fileID: 400656489}
   m_Layer: 0
   m_Name: MixedRealitySceneContent
   m_TagString: Untagged
@@ -331,19 +330,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &400656489
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 400656486}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 31e713537c64fde4786cbcbf08215207, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  OverviewPrefab: {fileID: 1735085396694344570, guid: a1b3611682e4bd042b4b8696f7d4a258, type: 3}
 --- !u!1 &734522593 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: e1056ee40bd8b1242b65c0f335412757, type: 3}

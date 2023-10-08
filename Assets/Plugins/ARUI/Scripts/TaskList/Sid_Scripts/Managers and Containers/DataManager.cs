@@ -1,29 +1,22 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Events;
 
-public class DataManager : MonoBehaviour
+public class DataManager : Singleton<DataManager>
 {
-    Dictionary<string, TaskList> Recipes = new Dictionary<string, TaskList>();
-    string CurrRecipe = "";
-    public GameObject OverviewPrefab;
+    private Dictionary<string, TaskList> _manual = new Dictionary<string, TaskList>();
 
-    void Start()
-    {
-        //Debugging purposes
-        InitializeTaskOverview();
-        StartCoroutine(ExampleScript());
-    }
+    public Dictionary<string, TaskList> Manual => _manual;
 
-    //MOVE TO ARUI??
-    //OVERVIEW REFERENCE
-    public void InitializeTaskOverview()
-    {
-        GameObject overviewObj = Instantiate(OverviewPrefab);
-        Center_of_Objs.Instance.SnapToCentroid();
-    }
+    private string _currentTask = "";
+    public string CurrentTask => _currentTask;
+
+
+    private List<UnityEvent> subscribers = new List<UnityEvent>();
 
     //Converts the tasklist object with key recipename into a matrix of strings
     //The final matrix would be of size (number of steps and substeps x 2)
@@ -55,218 +48,138 @@ public class DataManager : MonoBehaviour
         return finalTaskList;
     }
 
-    #region Loading and deleting recipes
+    /// <summary>
+    /// After adding, removing or updating any of the recipe data
+    /// call this function to see changes reflected on task overview
+    /// </summary>
+    private void PublishToSubscribers()
+    {
+        foreach (var subscriber in subscribers)
+            subscriber.Invoke();
+    }
+
+    public void AddDataSubscriber(UnityAction subscriberEvent) 
+    { 
+        UnityEvent newDataUpdateEvent = new UnityEvent();
+        newDataUpdateEvent.AddListener(subscriberEvent);
+        subscribers.Add(newDataUpdateEvent); 
+    }
+
+    #region Adding and Deleting Tasks
+
     //Go to the resources folder and load a new tasklist
     //json file. The name of the file should be in the form
     //(recipename).json
     public void LoadNewRecipe(string recipename)
     {
         var jsonTextFile = Resources.Load<TextAsset>("Text/" + recipename);
-        UnityEngine.Debug.Log(jsonTextFile.text);
+        AngelARUI.Instance.LogDebugMessage("Loaded task from json: "+jsonTextFile.text, true);
         LoadNewRecipeFromString(jsonTextFile.text);
     }
 
     //Take in a json of the class TaskList and add it as a recipe
-    public void LoadNewRecipeFromString(string json)
+    private void LoadNewRecipeFromString(string json)
     {
         TaskList currList = JsonUtility.FromJson<TaskList>(json);
         //If there already is a recipe with the same name, still add it to the main list
         //but add a number to its name (for example the second instance of the "Pinwheels"
         //recipe would be stored as "Pinwheels_2")
-        if (!Recipes.ContainsKey(currList.Name))
+        if (!_manual.ContainsKey(currList.Name))
         {
-            Recipes.Add(currList.Name, currList);
+            _manual.Add(currList.Name, currList);
         }
         else
         {
             for (int i = 2; i <= 5; i++)
             {
-                if (!Recipes.ContainsKey(currList.Name + "_" + i.ToString()))
+                if (!_manual.ContainsKey(currList.Name + "_" + i.ToString()))
                 {
-                    Recipes.Add(currList.Name + "_" + i.ToString(), currList);
+                    _manual.Add(currList.Name + "_" + i.ToString(), currList);
                     break;
                 }
             }
         }
+
+        PublishToSubscribers();
     }
 
     //Delete recipe with given recipe name
     //If it is the last recipe, then handle task overview and orb
-    public void DeleteRecipe(string recipeName)
-    {
-        if (Recipes.ContainsKey(recipeName))
-        {
-            Recipes.Remove(recipeName);
-        }
+    //public void DeleteRecipe(string recipeName)
+    //{
+    //    if (_manual.ContainsKey(recipeName))
+    //    {
+    //        _manual.Remove(recipeName);
+    //    }
 
-        if (Recipes.Count == 0)
-        {
-            Orb.Instance.SetTaskMessage("No pending tasks");
-            //OVERVIEW REFERENCE
-            MultipleListsContainer.Instance.gameObject.SetActive(false);
-        }
-    }
+    //    if (_manual.Count == 0)
+    //    {
+    //        Orb.Instance.SetTaskMessage("No pending tasks", "", "");
+    //        //OVERVIEW REFERENCE
+    //        MultiTaskList.Instance.gameObject.SetActive(false);
+    //    }
+
+    //    PublishToSubscribers();
+    //}
 
     //Delete the current recipe and replace it with a new current recipe
     //defined by newCurr. If that was the last recipe, then handle
     //task overview and orb
-    public void DeleteCurrRecipe(string newCurr = "")
-    {
-        Recipes.Remove(CurrRecipe);
+    //public void DeleteCurrRecipe(string newCurr = "")
+    //{
+    //    Recipes.Remove(CurrRecipe);
 
-        if (Recipes.Count == 0)
-        {
-            Orb.Instance.SetTaskMessage("No pending tasks");
-            //OVERVIEW REFERENCE
-            MultipleListsContainer.Instance.gameObject.SetActive(false);
-        } else
-        {
-            if (Recipes.ContainsKey(newCurr))
-            {
-                UpdateCurrRecipe(newCurr);
-            }
-        }
-    }
-    
+    //    if (Recipes.Count == 0)
+    //    {
+    //        Orb.Instance.SetTaskMessage("No pending tasks", "", "");
+    //        //OVERVIEW REFERENCE
+    //        MultipleListsContainer.Instance.gameObject.SetActive(false);
+    //    } else
+    //    {
+    //        if (Recipes.ContainsKey(newCurr))
+    //        {
+    //            SetCurrentActiveTask(newCurr);
+    //        }
+    //    }
+    //}
+
     #endregion
-    //After adding, removing or updating any of the recipe data
-    //call this function to see changes reflected on task overview
-    public void ReloadTaskList()
-    {
-        //OVERVIEW REFERENCE
-        MultipleListsContainer.Instance.UpdateAllSteps(Recipes, CurrRecipe);
-    }
 
     #region Changes to current recipe and recipe steps
-    //Change which recipe shows up as the "current" one
-    public void UpdateCurrRecipe(string recipename)
+
+    /// <summary>
+    /// Change which recipe shows up as the "current" one
+    /// </summary>
+    /// <param name="recipename"></param>
+    public void SetCurrentActiveTask(string recipename)
     {
-        CurrRecipe = recipename;
-        TaskList CurrRecipeObj = Recipes[CurrRecipe];
-        int currStepIndex = Recipes[CurrRecipe].CurrStepIndex;
-        Orb.Instance.SetTaskMessage(CurrRecipeObj.Steps[currStepIndex].StepDesc);
+        _currentTask = recipename;
+        TaskList CurrRecipeObj = _manual[_currentTask];
+        int currStepIndex = _manual[_currentTask].CurrStepIndex;
+        Orb.Instance.SetTaskMessage(CurrRecipeObj.Steps[currStepIndex].StepDesc, CurrRecipeObj.Steps[currStepIndex].StepDesc, CurrRecipeObj.Steps[currStepIndex].StepDesc);
+
+        PublishToSubscribers();
     }
 
-    //Change the next step index that the current task is pointing to
-    public void UpdateCurrNextStepIndex(int index)
+    public void SetCurrentStep(string recipeID, int taskID)
     {
-        UpdateNextStepIndex(CurrRecipe, index);
-    }
-
-    //Change the next step index that the task with name "recipename" is pointing to
-    public void UpdateNextStepIndex(string recipename, int index)
-    {
-        Recipes[recipename].NextStepIndex = index;
-    }
-
-    //Change the previous step index that the current task is pointing to
-    public void UpdateCurrPrevStepIndex(int index)
-    {
-        UpdatePrevStepIndex(CurrRecipe, index);
-    }
-
-    //Change the previous step index that the task with name "recipename" is pointing to
-    public void UpdatePrevStepIndex(string recipename, int index)
-    {
-        Recipes[recipename].PrevStepIndex = index;
-    }
-
-    //For the current recipe, have it go to the next substep
-    public void GoToNextSubStepCurrRecipe()
-    {
-        GoToNextSubStep(CurrRecipe);
-    }
-
-    //For any recipe with key recipeName, have it go to the next substep
-    public void GoToNextSubStep(string recipeName)
-    {
-        TaskList CurrRecipe = Recipes[recipeName];
-        int currStepIndex = Recipes[recipeName].CurrStepIndex;
-        CurrRecipe.Steps[currStepIndex].CurrSubStepIndex++;
-    }
-
-    //For the current recipe, have it go to the next step
-    public void GoToNextStepCurrRecipe()
-    {
-        GoToNextStep(CurrRecipe);
-    }
-
-    //For the current recipe, have it go to the next step
-    public void GoToPrevStepCurrRecipe()
-    {
-        GoToPrevStep(CurrRecipe);
-    }
-
-    //For any recipe with key recipeName, have it go to the next step
-    //while also updating the current and previous step 
-    public void GoToNextStep(string recipeName)
-    {
-        if (Recipes[recipeName].CurrStepIndex >= Recipes[recipeName].Steps.Count - 1 || Recipes[recipeName].CurrStepIndex == -1)
-        {
-            Recipes[recipeName].CurrStepIndex = -1;
-        }
-        else if (Recipes[recipeName].CurrStepIndex == Recipes[recipeName].Steps.Count - 2)
-        {
-            Recipes[recipeName].CurrStepIndex++;
-            Recipes[recipeName].NextStepIndex = -1;
-            Recipes[recipeName].PrevStepIndex++;
-        }
+        if (taskID <= 0)
+            _manual[recipeID].PrevStepIndex = -1;
         else
+            _manual[recipeID].PrevStepIndex = taskID-1;
+
+        if (taskID >= _manual[recipeID].Steps.Count)
         {
-            Recipes[recipeName].CurrStepIndex++;
-            Recipes[recipeName].NextStepIndex++;
-            Recipes[recipeName].PrevStepIndex++;
+            _manual[recipeID].CurrStepIndex = _manual[recipeID].Steps.Count-1;
+            _manual[recipeID].NextStepIndex = _manual[recipeID].Steps.Count-1;
+        } else
+        {
+            _manual[recipeID].CurrStepIndex = taskID;
+            _manual[recipeID].NextStepIndex = taskID + 1;
         }
+
+        PublishToSubscribers();
     }
 
-    //For any recipe with key recipeName, have it go to the next step
-    //while also updating the current and next step 
-    public void GoToPrevStep(string recipeName)
-    {
-        if (Recipes[recipeName].CurrStepIndex <= 0 || Recipes[recipeName].CurrStepIndex == -1)
-        {
-            Recipes[recipeName].CurrStepIndex = -1;
-        }
-        else if (Recipes[recipeName].CurrStepIndex == 1)
-        {
-            Recipes[recipeName].CurrStepIndex--;
-            Recipes[recipeName].PrevStepIndex = -1;
-            Recipes[recipeName].NextStepIndex--;
-        }
-        else
-        {
-            Recipes[recipeName].CurrStepIndex--;
-            Recipes[recipeName].NextStepIndex--;
-            Recipes[recipeName].PrevStepIndex--;
-        }
-    }
     #endregion
-
-    //Debugging purposes
-    IEnumerator ExampleScript()
-    {
-        yield return new WaitForSeconds(0.5f);
-        LoadNewRecipe("Task1");
-        LoadNewRecipe("Task1");
-        LoadNewRecipe("Task1");
-        UpdateCurrRecipe("Pinwheels");
-        ReloadTaskList();
-        yield return new WaitForSeconds(5.0f);
-        GoToNextStep("Pinwheels_2");
-        ReloadTaskList();
-        yield return new WaitForSeconds(5.0f);
-        GoToPrevStep("Pinwheels_3");
-        ReloadTaskList();
-        yield return new WaitForSeconds(5.0f);
-        UpdateCurrRecipe("Pinwheels_2");
-        ReloadTaskList();
-        yield return new WaitForSeconds(5.0f);
-        DeleteCurrRecipe("Pinwheels");
-        ReloadTaskList();
-        yield return new WaitForSeconds(5.0f);
-        DeleteRecipe("Pinwheels_3");
-        ReloadTaskList();
-        yield return new WaitForSeconds(5.0f);
-        DeleteCurrRecipe();
-    }
 }

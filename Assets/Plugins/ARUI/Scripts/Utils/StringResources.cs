@@ -23,6 +23,10 @@ public static class StringResources
     public static string Taskprefab_path = "Prefabs/Task";
     public static string EyeTarget_path = "Prefabs/EyeTarget";
     public static string ConfNotification_path = "Prefabs/ConfirmationNotification";
+    public static string HandPoseManager_path = "Prefabs/HandPoseManager";
+    public static string Sid_Tasklist_path = "Prefabs/Sid_Tasklist/Multi_Menu_Pivot";
+    public static string Sid_TaskListComponent_path = "Prefabs/Sid_Tasklist/Flashcards/TaskListComponent";
+    public static string Sid_TaskOverview_Container_path = "Prefabs/Sid_Tasklist/Containers/Secondary_TaskOverview_Container";
 
     //Textures
     public static string zBufferTexture_path = "Textures/zBuffer";
@@ -39,8 +43,8 @@ public static class StringResources
     public static string tasklist_name = "TaskOverview";
     public static string orb_name = "OrbAssistant";
     public static string eyeGazeManager_name = "EyeGazeManager";
+    public static string dataManager_name = "DataManager";
     public static string audioManager_name = "AudioManager";
     public static string confirmationWindow_name = "ConfirmatioWindow";
-
-
+    public static string HandPoseManager_name = "HandPoseManager";
 }

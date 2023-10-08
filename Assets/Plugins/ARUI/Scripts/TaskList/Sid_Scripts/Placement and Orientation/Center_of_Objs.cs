@@ -10,7 +10,7 @@ public class Center_of_Objs : Singleton<Center_of_Objs>
     public List<GameObject> objs;
 
     public GameObject LinePrefab;
-    public GameObject ListPrefab;
+    private GameObject _listContainer;
 
     public float movementSpeed = 1.0f;
     //Offset from camera if no objects exist
@@ -43,6 +43,7 @@ public class Center_of_Objs : Singleton<Center_of_Objs>
     // Start is called before the first frame update
     void Start()
     {
+        _listContainer = transform.GetComponentInChildren<FollowCameraCanvas>().gameObject;
         //LastPosition = Camera.main.transform.position;
     }
     #endregion
@@ -73,18 +74,21 @@ public class Center_of_Objs : Singleton<Center_of_Objs>
     // Update is called once per frame
     void Update()
     {
-        this.GetComponent<MultipleListsContainer>().SetLineStart(ListPrefab.transform.position);
+        if (MultiTaskList.Instance == null)
+            return;
+
+        MultiTaskList.Instance.SetLineStart(_listContainer.transform.position);
         Vector3 centroid = new Vector3(0, 0, 0);
         foreach (KeyValuePair<string, GameObject> pair in objsDict)
         {
             centroid += pair.Value.transform.position;
         }
         centroid = centroid / objsDict.Count;
-        this.GetComponent<MultipleListsContainer>().SetLineEnd(centroid);
+        MultiTaskList.Instance.SetLineEnd(centroid);
         //If user is looking at task overview
         if (isLooking)
         {
-            int currIndex = this.GetComponent<MultipleListsContainer>().currIndex;
+            int currIndex = MultiTaskList.Instance.CurrentIndex;
             //If they are looking at the current recipe, show lines pointing to required items
             //CurrDelay = 0.0f;
             if (currIndex == 0)
@@ -196,25 +200,27 @@ public class Center_of_Objs : Singleton<Center_of_Objs>
         }
         linesDict.Clear();
     }
-    //Add new gameobject as a required task object
-    public void AddObj(string key)
-    {
-        //TODO: Replace with script for searching for object
-        GameObject obj = GameObject.Find(key);
-        if (obj != null)
-        {
-            objsDict.Add(key, obj);
-            objs.Add(obj);
-            GameObject pointerObj = Instantiate(LinePrefab);
-            pointerObj.name = key;
-            linesDict.Add(key, pointerObj);
-            Line pointer = pointerObj.GetComponent<Line>();
-            pointer.Start = transform.position;
-            pointer.End = obj.transform.position;
-            //SnapToCentroid();
-            DeactivateLines();
-        }
-    }
+
+    ////Add new gameobject as a required task object
+    //public void AddObj(string key)
+    //{
+    //    //TODO: Replace with script for searching for object
+    //    GameObject obj = GameObject.Find(key);
+    //    if (obj != null)
+    //    {
+    //        objsDict.Add(key, obj);
+    //        objs.Add(obj);
+    //        GameObject pointerObj = Instantiate(LinePrefab);
+    //        pointerObj.name = key;
+    //        linesDict.Add(key, pointerObj);
+    //        Line pointer = pointerObj.GetComponent<Line>();
+    //        pointer.Start = transform.position;
+    //        pointer.End = obj.transform.position;
+    //        //SnapToCentroid();
+    //        DeactivateLines();
+    //    }
+    //}
+
     //Set all lines inactive (once user is not looking at current task
     public void DeactivateLines()
     {
@@ -243,15 +249,16 @@ public class Center_of_Objs : Singleton<Center_of_Objs>
         {
             Line pointer = linesDict[key].GetComponent<Line>();
             pointer.Start = StartPos;
-        } else
-        {
-            AddObj(key);
-            if(linesDict.ContainsKey(key))
-            {
-                Line pointer = linesDict[key].GetComponent<Line>();
-                pointer.Start = StartPos;
-            }
-        }
+        } 
+        //else
+        //{
+        //    AddObj(key);
+        //    if(linesDict.ContainsKey(key))
+        //    {
+        //        Line pointer = linesDict[key].GetComponent<Line>();
+        //        pointer.Start = StartPos;
+        //    }
+        //}
     }
     //If the user is looking at a task overview object
     //then set isLooking to true

@@ -354,6 +354,16 @@ public static class Utils
         return -1;
     }
 
+    public static Vector3 GetWorldIntersectPoint(this Vector3 pos)
+    {
+        int layerMask = 1 << StringResources.LayerToInt(StringResources.spatialAwareness_layer);
+
+        RaycastHit hit;
+        if (Physics.Raycast(pos, Vector3.down, out hit, Mathf.Infinity, layerMask))
+            return hit.point;
+        return Vector3.zero;
+    }
+
     public static void SetXPos(this Transform t, float value)
     {
         Vector3 v = t.position;

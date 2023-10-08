@@ -1,41 +1,47 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using static TMPro.SpriteAssetUtilities.TexturePacker_JsonArray;
 using Shapes;
 
-public class MultipleListsContainer : Singleton<MultipleListsContainer>
+public class MultiTaskList : Singleton<MultiTaskList>
 {
-    public List<GameObject> itemsMenus;
+    private List<GameObject> _allTasklists = new List<GameObject>();
+    private Line _overviewHandle;
+    private GameObject _followCameraContainer;
+    private GameObject _taskOverviewContainer;
+    private GameObject _mainTaskContainer;
 
-    public GameObject Main_TaskOverview_Container;
-
-    public GameObject TaskOverview_Container;
-
-    public Line OverviewLine;
-
-    public GameObject MenusContainer;
-
-    int numSecondaryTasks = 0;
+    private int _numSecondaryTasks = 0;
 
     //List of containers for each of the current lists
-    public List<TaskOverviewContainerRepo> containers;
+    private List<TaskOverviewContainerRepo> _containers = new List<TaskOverviewContainerRepo>();
 
-    //Prefab for additional tasklists
-    public GameObject SecondaryListPrefab;
-
-    public Transform currOverviewParent;
-
-    public int currIndex = 0;
+    private int _currIndex = 0;
+    public int CurrentIndex => _currIndex;
 
     [SerializeField]
-    bool isMenu = false;
-
+    private bool isMenu = false;
 
     private float delta;
 
     [SerializeField]
     private float disableDelay = 1.0f;
+
+    public void Start()
+    {
+        DataManager.Instance.AddDataSubscriber(() => HandleDataUpdateEvent());
+
+        _overviewHandle = transform.GetChild(0).gameObject.GetComponent<Line>();
+        _followCameraContainer = transform.GetChild(1).gameObject;
+
+        _taskOverviewContainer = _followCameraContainer.transform.GetChild(0).gameObject;
+        //_mainTaskContainer = _taskOverviewContainer.transform.GetChild(0).gameObject;
+    }
+
+    public void HandleDataUpdateEvent()
+    {
+        MultiTaskList.Instance.UpdateAllSteps(DataManager.Instance.Manual, DataManager.Instance.CurrentTask);
+    }
 
     void Update()
     {
@@ -59,44 +65,46 @@ public class MultipleListsContainer : Singleton<MultipleListsContainer>
             }
         }
     }
+
     #region Managing the main task line 
     public void SetLineEnd(Vector3 EndCords)
     {
-        Vector3 finalCords = OverviewLine.transform.InverseTransformPoint(EndCords);
+        Vector3 finalCords = _overviewHandle.transform.InverseTransformPoint(EndCords);
         //OverviewLine.End = new Vector3(OverviewLine.End.x, finalCords.y, OverviewLine.End.z);
-        OverviewLine.End = finalCords;
+        _overviewHandle.End = finalCords;
     }
 
     public void SetLineStart(Vector3 EndCords)
     {
-        Vector3 finalCords = OverviewLine.transform.InverseTransformPoint(EndCords);
+        Vector3 finalCords = _overviewHandle.transform.InverseTransformPoint(EndCords);
         //OverviewLine.End = new Vector3(OverviewLine.End.x, finalCords.y, OverviewLine.End.z);
-        OverviewLine.Start = finalCords;
+        _overviewHandle.Start = finalCords;
     }
     #endregion
 
     #region Setting inidvidual recipe menus active/inative
+
     public void SetMenuActive(int index)
     {
         this.GetComponent<Center_of_Objs>().SetIsLooking(true);
-        currIndex = index;
-        for(int i = 0; i < itemsMenus.Count; i++)
+        _currIndex = index;
+        for(int i = 0; i < _allTasklists.Count; i++)
         {
             if(i == index)
             {
-                itemsMenus[i].SetActive(true);
+                _allTasklists[i].SetActive(true);
             } else
             {
-                CanvasGroup canvasGroup = itemsMenus[i].GetComponent<CanvasGroup>();
+                CanvasGroup canvasGroup = _allTasklists[i].GetComponent<CanvasGroup>();
                 canvasGroup.alpha = 1.0f;
-                itemsMenus[i].SetActive(false);
+                _allTasklists[i].SetActive(false);
             }
         }
 
     }
     private IEnumerator FadeOut()
     {
-        GameObject canvas = itemsMenus[currIndex];
+        GameObject canvas = _allTasklists[_currIndex];
         CanvasGroup canvasGroup = canvas.GetComponent<CanvasGroup>();
         float counter = 0f;
         float duration = 1.0f;
@@ -150,8 +158,8 @@ public class MultipleListsContainer : Singleton<MultipleListsContainer>
         {
             if (pair.Key == currTask)
             {
-                containers[0].taskNameText.SetText(pair.Key);
-                SetupCurrTaskOverview currSetup = containers[0].setupInstance;
+                _containers[0].taskNameText.SetText(pair.Key);
+                SetupCurrTaskOverview currSetup = _containers[0].setupInstance;
                 if (pair.Value.CurrStepIndex != -1)
                 {
                     currSetup.SetupCurrTask(pair.Value.Steps[pair.Value.CurrStepIndex], this.GetComponent<Center_of_Objs>());
@@ -174,12 +182,12 @@ public class MultipleListsContainer : Singleton<MultipleListsContainer>
             else
             {
                 GameObject currOverview = AddNewTaskOverview();
-                containers.Add(currOverview.GetComponent<TaskOverviewContainerRepo>());
-                TaskOverviewContainerRepo curr = containers[containers.Count - 1];
+                _containers.Add(currOverview.GetComponent<TaskOverviewContainerRepo>());
+                TaskOverviewContainerRepo curr = _containers[_containers.Count - 1];
                 curr.multiListInstance.ListContainer = this.gameObject;
                 curr.multiListInstance.index = index;
                 curr.taskNameText.SetText(pair.Key);
-                itemsMenus.Add(curr.taskUI);
+                _allTasklists.Add(curr.taskUI);
                 SetupCurrTaskOverview currSetup = curr.setupInstance;
                 if (pair.Value.CurrStepIndex != -1)
                 {
@@ -206,28 +214,27 @@ public class MultipleListsContainer : Singleton<MultipleListsContainer>
 
     public void ResetAllTaskOverviews()
     {
-        TaskOverviewContainerRepo firstCont = containers[0];
-        GameObject firstObj = itemsMenus[0];
-        for(int i = 1; i < containers.Count; i++)
+        if (_containers.Count == 0) return;
+        
+        TaskOverviewContainerRepo firstCont = _containers[0];
+        for(int i = 1; i < _containers.Count; i++)
         {
-            Destroy(containers[i].gameObject);
-            OverviewLine.Start = new Vector3(OverviewLine.Start.x, OverviewLine.Start.y + 0.015f, OverviewLine.Start.z);
-            MenusContainer.transform.localPosition = new Vector3(MenusContainer.transform.localPosition.x, MenusContainer.transform.localPosition.y - 0.025f, MenusContainer.transform.localPosition.z);
-            numSecondaryTasks--;
+            Destroy(_containers[i].gameObject);
+            _overviewHandle.Start = new Vector3(_overviewHandle.Start.x, _overviewHandle.Start.y + 0.015f, _overviewHandle.Start.z);
+            _followCameraContainer.transform.localPosition = new Vector3(_followCameraContainer.transform.localPosition.x, _followCameraContainer.transform.localPosition.y - 0.025f, _followCameraContainer.transform.localPosition.z);
+            _numSecondaryTasks--;
         }
-        itemsMenus.Clear();
-        itemsMenus.Add(firstObj);
-        containers.Clear();
-        containers.Add(firstCont);
+        _containers.Clear();
+        _containers.Add(firstCont);
     }
 
     public GameObject AddNewTaskOverview()
     {
-        numSecondaryTasks++;
-        GameObject newOverview = Instantiate(SecondaryListPrefab, TaskOverview_Container.transform);
-        newOverview.transform.localPosition = new Vector3(Main_TaskOverview_Container.transform.localPosition.x, Main_TaskOverview_Container.transform.localPosition.y - (0.07f * numSecondaryTasks), Main_TaskOverview_Container.transform.localPosition.z);
-        OverviewLine.Start = new Vector3(OverviewLine.Start.x, OverviewLine.Start.y - 0.015f, OverviewLine.Start.z);
-        MenusContainer.transform.localPosition = new Vector3(MenusContainer.transform.localPosition.x, MenusContainer.transform.localPosition.y + 0.025f, MenusContainer.transform.localPosition.z);
+        _numSecondaryTasks++;
+        GameObject newOverview = Instantiate(Resources.Load(StringResources.Sid_TaskOverview_Container_path) as GameObject, _taskOverviewContainer.transform) ;
+        newOverview.transform.localPosition = new Vector3(_taskOverviewContainer.transform.localPosition.x, _taskOverviewContainer.transform.localPosition.y - (0.07f * _numSecondaryTasks), _taskOverviewContainer.transform.localPosition.z);
+        _overviewHandle.Start = new Vector3(_overviewHandle.Start.x, _overviewHandle.Start.y - 0.015f, _overviewHandle.Start.z);
+        _followCameraContainer.transform.localPosition = new Vector3(_followCameraContainer.transform.localPosition.x, _followCameraContainer.transform.localPosition.y + 0.025f, _followCameraContainer.transform.localPosition.z);
         return newOverview;
     }
     #endregion
@@ -235,15 +242,15 @@ public class MultipleListsContainer : Singleton<MultipleListsContainer>
     #region Setting task overview active and inactive
     public void ToggleOverview()
     {
-        if (!MenusContainer.activeSelf)
+        if (!_followCameraContainer.activeSelf)
         {
-            OverviewLine.gameObject.SetActive(true);
-            MenusContainer.SetActive(true);
+            _overviewHandle.gameObject.SetActive(true);
+            _followCameraContainer.SetActive(true);
             Center_of_Objs.Instance.SnapToCentroid();
         } else
         {
-            OverviewLine.gameObject.SetActive(false);
-            MenusContainer.SetActive(false);
+            _overviewHandle.gameObject.SetActive(false);
+            _followCameraContainer.SetActive(false);
         }
     }
     #endregion

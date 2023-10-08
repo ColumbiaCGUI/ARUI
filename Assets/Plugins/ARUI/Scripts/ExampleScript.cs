@@ -62,7 +62,33 @@ public class ExampleScript : MonoBehaviour
     private void Start()
     {
         if (Automate)
-            StartCoroutine(RunTasksAtRuntime());
+            StartCoroutine(RunTasksAtRuntime2());
+    }
+
+    private IEnumerator RunTasksAtRuntime2()
+    {
+        yield return new WaitForSeconds(0.5f); //Wait a few frames, so everything is initialized
+
+        AngelARUI.Instance.InitManual(new List<string> { "Task1", "Task2", "Task3" });
+
+        yield return new WaitForSeconds(1f);
+
+        AngelARUI.Instance.SetCurrectActiveTask("Pinwheels");
+
+        yield return new WaitForSeconds(1f);
+
+        AngelARUI.Instance.SetCurrectActiveTask("Coffee");
+
+        yield return new WaitForSeconds(3f);
+
+        currentTask++;
+        AngelARUI.Instance.SetCurrentTaskID("Coffee", 3);
+
+        yield return new WaitForSeconds(3f);
+
+        currentTask++;
+        AngelARUI.Instance.SetCurrentTaskID("Pinwheels", 3);
+
     }
 
     private IEnumerator RunTasksAtRuntime()
@@ -82,41 +108,38 @@ public class ExampleScript : MonoBehaviour
         AngelARUI.Instance.SetTasks(_tasks2);
 
         currentTask++;
-        AngelARUI.Instance.SetCurrentTaskID(currentTask);
+        AngelARUI.Instance.SetCurrentTaskID("", currentTask);
 
         yield return new WaitForSeconds(1f);
 
         yield return new WaitForSeconds(4f);
         currentTask++;
-        AngelARUI.Instance.SetCurrentTaskID(currentTask);
+        AngelARUI.Instance.SetCurrentTaskID("", currentTask);
 
         AngelARUI.Instance.MuteAudio(true);
 
         yield return new WaitForSeconds(2f);
         currentTask--;
-        AngelARUI.Instance.SetCurrentTaskID(currentTask);
+        AngelARUI.Instance.SetCurrentTaskID("", currentTask);
 
         yield return new WaitForSeconds(3f);
         currentTask++;
-        AngelARUI.Instance.SetCurrentTaskID(currentTask);
+        AngelARUI.Instance.SetCurrentTaskID("", currentTask);
 
         yield return new WaitForSeconds(1f);
         currentTask++;
-        AngelARUI.Instance.SetCurrentTaskID(currentTask);
+        AngelARUI.Instance.SetCurrentTaskID("", currentTask);
 
         AngelARUI.Instance.MuteAudio(false);
 
         yield return new WaitForSeconds(1f);
 
         currentTask++;
-        AngelARUI.Instance.SetCurrentTaskID(currentTask);
-
-        yield return new WaitForSeconds(3f);
-        AngelARUI.Instance.ShowSkipNotification(true);
+        AngelARUI.Instance.SetCurrentTaskID("", currentTask);
 
         yield return new WaitForSeconds(5f);
         currentTask++;
-        AngelARUI.Instance.SetCurrentTaskID(currentTask);
+        AngelARUI.Instance.SetCurrentTaskID("", currentTask);
 
         yield return new WaitForSeconds(2f);
 
@@ -125,7 +148,7 @@ public class ExampleScript : MonoBehaviour
         string user_intent = "Go to the next task";
 
         //Set event that should be triggered if user confirms
-        AngelARUI.Instance.SetUserIntentCallback(() => { AngelARUI.Instance.SetCurrentTaskID(next); });
+        AngelARUI.Instance.SetUserIntentCallback(() => { AngelARUI.Instance.SetCurrentTaskID("", next); });
 
         //Show dialogue to user
         AngelARUI.Instance.TryGetUserFeedbackOnUserIntent(user_intent);
@@ -139,7 +162,7 @@ public class ExampleScript : MonoBehaviour
         user_intent = "Go to the previous task";
 
         //Set event that should be triggered if user confirms
-        AngelARUI.Instance.SetUserIntentCallback(() => { AngelARUI.Instance.SetCurrentTaskID(next); });
+        AngelARUI.Instance.SetUserIntentCallback(() => { AngelARUI.Instance.SetCurrentTaskID("", next); });
 
         //Show dialogue to user
         AngelARUI.Instance.TryGetUserFeedbackOnUserIntent(user_intent);
@@ -158,7 +181,7 @@ public class ExampleScript : MonoBehaviour
         {
             currentTask = 0;
             AngelARUI.Instance.SetTasks(_tasks2);
-            AngelARUI.Instance.SetCurrentTaskID(currentTask);
+            AngelARUI.Instance.SetCurrentTaskID("",currentTask);
         }
 
         // Example how to use the NLI confirmation dialogue
@@ -169,7 +192,7 @@ public class ExampleScript : MonoBehaviour
             string user_intent = "Go to the next task";
 
             //2) Set event that should be triggered if user confirms
-            AngelARUI.Instance.SetUserIntentCallback(() => { AngelARUI.Instance.SetCurrentTaskID(next); });
+            AngelARUI.Instance.SetUserIntentCallback(() => { AngelARUI.Instance.SetCurrentTaskID("",next); });
 
             //4) Show dialogue to user
             AngelARUI.Instance.TryGetUserFeedbackOnUserIntent(user_intent);
@@ -200,24 +223,36 @@ public class ExampleScript : MonoBehaviour
         if (Input.GetKeyUp(KeyCode.RightArrow))
         {
             currentTask++;
-            AngelARUI.Instance.SetCurrentTaskID(currentTask);
+            AngelARUI.Instance.SetCurrentTaskID("", currentTask);
         }
         else if (Input.GetKeyUp(KeyCode.LeftArrow))
         {
             currentTask--;
-            AngelARUI.Instance.SetCurrentTaskID(currentTask);
+            AngelARUI.Instance.SetCurrentTaskID("", currentTask);
         }
 
         // Example how to trigger a skip notification. 
         if (Input.GetKeyUp(KeyCode.UpArrow))
         {
-            AngelARUI.Instance.ShowSkipNotification(true);
+            AngelARUI.Instance.SetNotification(NotificationType.note, "This is a very very very very very very very very very very very very very very very very very very long note");
         }
 
         // Example how to disable skip notification (is disable if system sets new task, or if system disables task manually
         if (Input.GetKeyUp(KeyCode.DownArrow))
         {
-            AngelARUI.Instance.ShowSkipNotification(false);
+            AngelARUI.Instance.RemoveNotification(NotificationType.note);
+        }
+
+        // Example how to trigger a skip notification. 
+        if (Input.GetKeyUp(KeyCode.LeftBracket))
+        {
+            AngelARUI.Instance.SetNotification(NotificationType.warning, "This is a very very very very very very very very very very very very very very very very very very long warning");
+        }
+
+        // Example how to disable skip notification (is disable if system sets new task, or if system disables task manually
+        if (Input.GetKeyUp(KeyCode.RightBracket))
+        {
+            AngelARUI.Instance.RemoveNotification(NotificationType.warning);
         }
 
         if (Input.GetKeyUp(KeyCode.V))
