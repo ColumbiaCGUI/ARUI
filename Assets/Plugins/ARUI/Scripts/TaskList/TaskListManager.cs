@@ -105,13 +105,8 @@ public class TaskListManager : Singleton<TaskListManager>
         _vmnc = gameObject.AddComponent<VMNonControllable>();
         _vmnc.enabled = false;
 
-        DataManager.Instance.AddDataSubscriber(() => HandleDataUpdateEvent());
     }
 
-    public void HandleDataUpdateEvent()
-    {
-        
-    }
 
     #region Generates tasklist at runtime
 

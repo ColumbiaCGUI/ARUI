@@ -47,6 +47,8 @@ public class Orb : Singleton<Orb>
 
     private OrbHandle _orbHandle;
 
+    private OrbTaskList _multiple;
+
     /// <summary>
     /// Get all orb references from prefab
     /// </summary>
@@ -71,7 +73,30 @@ public class Orb : Singleton<Orb>
 
         // Collect all orb colliders
         _allOrbColliders = new List<BoxCollider>();
+
+        GameObject multiple = transform.GetChild(0).GetChild(3).gameObject;
+        _multiple = multiple.AddComponent<OrbTaskList>();
+
+        DataManager.Instance.RegisterDataSubscriber(() => HandleAddedTaskEvent(), SusbcriberType.AddTask);
+        DataManager.Instance.RegisterDataSubscriber(() => HandleUpdateActiveTaskEvent(), SusbcriberType.UpdateTask);
+        DataManager.Instance.RegisterDataSubscriber(() => HandleUpdateActiveStepEvent(), SusbcriberType.UpdateStep);
     }
+
+    private void HandleAddedTaskEvent()
+    {
+        _multiple.AddTask(DataManager.Instance.Manual);
+    }
+
+    private void HandleUpdateActiveTaskEvent()
+    {
+        _multiple.UpdateActiveTask(DataManager.Instance.Manual, DataManager.Instance.CurrentTask);
+    }
+
+    private void HandleUpdateActiveStepEvent()
+    {
+        _multiple.UpdateActiveStep(DataManager.Instance.Manual, DataManager.Instance.CurrentTask);
+    }
+
 
     /// <summary>
     /// Update visibility of orb based on eye evets and task manager.

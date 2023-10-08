@@ -79,15 +79,31 @@ public class ExampleScript : MonoBehaviour
 
         AngelARUI.Instance.SetCurrectActiveTask("Coffee");
 
-        yield return new WaitForSeconds(3f);
+        yield return new WaitForSeconds(1f);
 
-        currentTask++;
-        AngelARUI.Instance.SetCurrentTaskID("Coffee", 3);
+        AngelARUI.Instance.SetCurrentTaskID("Coffee", 2);
 
-        yield return new WaitForSeconds(3f);
+        for (int u = 1;u<12;u++)
+        {
+            yield return new WaitForSeconds(1f);
+            AngelARUI.Instance.SetCurrentTaskID("Coffee", 2+u);
+        }
 
-        currentTask++;
-        AngelARUI.Instance.SetCurrentTaskID("Pinwheels", 3);
+        yield return new WaitForSeconds(1f);
+
+        AngelARUI.Instance.SetCurrentTaskID("Pinwheels", 4);
+
+        yield return new WaitForSeconds(1f);
+
+        AngelARUI.Instance.SetCurrectActiveTask("Pinwheels");
+
+        //currentTask++;
+        //AngelARUI.Instance.SetCurrentTaskID("Coffee", 3);
+
+        //yield return new WaitForSeconds(3f);
+
+        //currentTask++;
+        //AngelARUI.Instance.SetCurrentTaskID("Pinwheels", 3);
 
     }
 

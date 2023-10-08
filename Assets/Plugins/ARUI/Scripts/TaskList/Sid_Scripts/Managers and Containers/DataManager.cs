@@ -6,6 +6,11 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
 
+public enum SusbcriberType
+{
+    AddTask, RemoveTask, UpdateStep, UpdateTask
+}
+
 public class DataManager : Singleton<DataManager>
 {
     private Dictionary<string, TaskList> _manual = new Dictionary<string, TaskList>();
@@ -15,13 +20,19 @@ public class DataManager : Singleton<DataManager>
     private string _currentTask = "";
     public string CurrentTask => _currentTask;
 
+    private List<UnityEvent> AddTaskSubscribers = new List<UnityEvent>();
+    private List<UnityEvent> RemoveTaskSubscribers = new List<UnityEvent>();
+    private List<UnityEvent> UpdateStepSubscribers = new List<UnityEvent>();
+    private List<UnityEvent> UpdateActiveTaskSubscribers = new List<UnityEvent>();
 
-    private List<UnityEvent> subscribers = new List<UnityEvent>();
-
-    //Converts the tasklist object with key recipename into a matrix of strings
-    //The final matrix would be of size (number of steps and substeps x 2)
-    //Each row element would be of the form [step description, 0] for main steps
-    //and [step description, 1] for sub steps
+    /// <summary>
+    /// Converts the tasklist object with key recipename into a matrix of strings
+    /// The final matrix would be of size (number of steps and substeps x 2)
+    /// Each row element would be of the form [step description, 0] for main steps
+    /// and [step description, 1] for sub steps
+    /// </summary>
+    /// <param name="recipename"></param>
+    /// <returns></returns>
     public string[,] ConvertToStringMatrix(string recipename)
     {
         var jsonTextFile = Resources.Load<TextAsset>("Text/" + recipename);
@@ -52,17 +63,50 @@ public class DataManager : Singleton<DataManager>
     /// After adding, removing or updating any of the recipe data
     /// call this function to see changes reflected on task overview
     /// </summary>
-    private void PublishToSubscribers()
+    private void PublishToSubscribers(SusbcriberType type)
     {
-        foreach (var subscriber in subscribers)
-            subscriber.Invoke();
+        if (type.Equals(SusbcriberType.AddTask))
+        {
+            foreach (var subscriber in AddTaskSubscribers)
+                subscriber.Invoke();
+        }
+        else if (type.Equals(SusbcriberType.RemoveTask))
+        {
+            foreach (var subscriber in RemoveTaskSubscribers)
+                subscriber.Invoke();
+        }
+        else if (type.Equals(SusbcriberType.UpdateTask))
+        {
+            foreach (var subscriber in UpdateActiveTaskSubscribers)
+                subscriber.Invoke();
+        }
+        else
+        {
+            foreach (var subscriber in UpdateStepSubscribers)
+                subscriber.Invoke();
+        }
     }
 
-    public void AddDataSubscriber(UnityAction subscriberEvent) 
+    /// <summary>
+    /// TODO
+    /// </summary>
+    /// <param name="subscriberEvent"></param>
+    public void RegisterDataSubscriber(UnityAction subscriberEvent, SusbcriberType type) 
     { 
         UnityEvent newDataUpdateEvent = new UnityEvent();
         newDataUpdateEvent.AddListener(subscriberEvent);
-        subscribers.Add(newDataUpdateEvent); 
+
+        if (type.Equals(SusbcriberType.AddTask))
+            AddTaskSubscribers.Add(newDataUpdateEvent);
+
+        else if (type.Equals(SusbcriberType.RemoveTask))
+            RemoveTaskSubscribers.Add(newDataUpdateEvent);
+
+        else if (type.Equals(SusbcriberType.UpdateTask))
+            UpdateActiveTaskSubscribers.Add(newDataUpdateEvent);
+
+        else
+            UpdateStepSubscribers.Add(newDataUpdateEvent);
     }
 
     #region Adding and Deleting Tasks
@@ -100,7 +144,12 @@ public class DataManager : Singleton<DataManager>
             }
         }
 
-        PublishToSubscribers();
+        if (_currentTask.Equals(""))
+        {
+            _currentTask = currList.Name;
+        }
+
+        PublishToSubscribers(SusbcriberType.AddTask);
     }
 
     //Delete recipe with given recipe name
@@ -145,7 +194,7 @@ public class DataManager : Singleton<DataManager>
 
     #endregion
 
-    #region Changes to current recipe and recipe steps
+    #region Set current active task or step
 
     /// <summary>
     /// Change which recipe shows up as the "current" one
@@ -156,12 +205,12 @@ public class DataManager : Singleton<DataManager>
         _currentTask = recipename;
         TaskList CurrRecipeObj = _manual[_currentTask];
         int currStepIndex = _manual[_currentTask].CurrStepIndex;
-        Orb.Instance.SetTaskMessage(CurrRecipeObj.Steps[currStepIndex].StepDesc, CurrRecipeObj.Steps[currStepIndex].StepDesc, CurrRecipeObj.Steps[currStepIndex].StepDesc);
+        //Orb.Instance.SetTaskMessage(CurrRecipeObj.Steps[currStepIndex].StepDesc, CurrRecipeObj.Steps[currStepIndex].StepDesc, CurrRecipeObj.Steps[currStepIndex].StepDesc);
 
-        PublishToSubscribers();
+        PublishToSubscribers(SusbcriberType.UpdateTask);
     }
 
-    public void SetCurrentStep(string recipeID, int taskID)
+    public void SetCurrentActiveStep(string recipeID, int taskID)
     {
         if (taskID <= 0)
             _manual[recipeID].PrevStepIndex = -1;
@@ -178,7 +227,7 @@ public class DataManager : Singleton<DataManager>
             _manual[recipeID].NextStepIndex = taskID + 1;
         }
 
-        PublishToSubscribers();
+        PublishToSubscribers(SusbcriberType.UpdateStep);
     }
 
     #endregion

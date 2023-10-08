@@ -102,8 +102,8 @@ public class AngelARUI : Singleton<AngelARUI>
         taskList.AddComponent<TaskListManager>();
 
         //Instantiate empty multi tasklist
-        GameObject overviewObj = Instantiate(Resources.Load(StringResources.Sid_Tasklist_path)) as GameObject;
-        Center_of_Objs.Instance.SnapToCentroid();
+        //GameObject overviewObj = Instantiate(Resources.Load(StringResources.Sid_Tasklist_path)) as GameObject;
+        //Center_of_Objs.Instance.SnapToCentroid();
 
         //Load resources for UI elements
         _confirmationWindowPrefab = Resources.Load(StringResources.ConfNotification_path) as GameObject;
@@ -151,7 +151,7 @@ public class AngelARUI : Singleton<AngelARUI>
         if (recipeID =="")
             TaskListManager.Instance.SetCurrentTask(taskID);
         else
-            DataManager.Instance.SetCurrentStep(recipeID, taskID);
+            DataManager.Instance.SetCurrentActiveStep(recipeID, taskID);
     }
 
     /// <summary>

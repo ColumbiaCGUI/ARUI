@@ -29,7 +29,7 @@ public class MultiTaskList : Singleton<MultiTaskList>
 
     public void Start()
     {
-        DataManager.Instance.AddDataSubscriber(() => HandleDataUpdateEvent());
+        //DataManager.Instance.AddDataSubscriber(() => HandleDataUpdateEvent());
 
         _overviewHandle = transform.GetChild(0).gameObject.GetComponent<Line>();
         _followCameraContainer = transform.GetChild(1).gameObject;
@@ -57,9 +57,7 @@ public class MultiTaskList : Singleton<MultiTaskList>
                         StartCoroutine(FadeOut());
                     }
                     else
-                    {
                         delta += Time.deltaTime;
-                    }
 
                 }
             }
@@ -181,6 +179,8 @@ public class MultiTaskList : Singleton<MultiTaskList>
             }
             else
             {
+                if (_allTasklists.Contains(_containers[_containers.Count - 1].gameObject))
+                    return;
                 GameObject currOverview = AddNewTaskOverview();
                 _containers.Add(currOverview.GetComponent<TaskOverviewContainerRepo>());
                 TaskOverviewContainerRepo curr = _containers[_containers.Count - 1];
