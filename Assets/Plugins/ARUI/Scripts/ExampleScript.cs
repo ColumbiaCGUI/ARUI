@@ -67,35 +67,46 @@ public class ExampleScript : MonoBehaviour
 
     private IEnumerator RunTasksAtRuntime2()
     {
-        yield return new WaitForSeconds(0.5f); //Wait a few frames, so everything is initialized
+        yield return new WaitForSeconds(3f); //Wait a few frames, so everything is initialized
 
-        AngelARUI.Instance.InitManual(new List<string> { "Task1", "Task2", "Task3" });
+        AngelARUI.Instance.InitManual(new List<string> { "Pinwheels", "Coffee", "Oatmeal" });
+        AngelARUI.Instance.SetSelectedTasks(new List<string> { "Pinwheels" });
 
-        yield return new WaitForSeconds(1f);
-
-        AngelARUI.Instance.SetCurrectActiveTask("Pinwheels");
-
-        yield return new WaitForSeconds(1f);
-
-        AngelARUI.Instance.SetCurrectActiveTask("Coffee");
+        for (int u = -3; u < 12; u++)
+        {
+            yield return new WaitForSeconds(1f);
+            AngelARUI.Instance.SetCurrentTaskID("Pinwheels", 2 + u);
+        }
 
         yield return new WaitForSeconds(1f);
 
         AngelARUI.Instance.SetCurrentTaskID("Coffee", 2);
 
-        for (int u = 1;u<12;u++)
-        {
-            yield return new WaitForSeconds(1f);
-            AngelARUI.Instance.SetCurrentTaskID("Coffee", 2+u);
-        }
+        //yield return new WaitForSeconds(1f);
 
-        yield return new WaitForSeconds(1f);
+        //AngelARUI.Instance.SetCurrectActiveTask("Pinwheels");
 
-        AngelARUI.Instance.SetCurrentTaskID("Pinwheels", 4);
+        //yield return new WaitForSeconds(1f);
 
-        yield return new WaitForSeconds(1f);
+        //AngelARUI.Instance.SetCurrectActiveTask("Coffee");
 
-        AngelARUI.Instance.SetCurrectActiveTask("Pinwheels");
+        //yield return new WaitForSeconds(1f);
+
+        //AngelARUI.Instance.SetCurrentTaskID("Coffee", 2);
+
+        //for (int u = 1;u<12;u++)
+        //{
+        //    yield return new WaitForSeconds(1f);
+        //    AngelARUI.Instance.SetCurrentTaskID("Coffee", 2+u);
+        //}
+
+        //yield return new WaitForSeconds(1f);
+
+        //AngelARUI.Instance.SetCurrentTaskID("Pinwheels", 4);
+
+        //yield return new WaitForSeconds(1f);
+
+        //AngelARUI.Instance.SetCurrectActiveTask("Pinwheels");
 
         //currentTask++;
         //AngelARUI.Instance.SetCurrentTaskID("Coffee", 3);
@@ -111,9 +122,9 @@ public class ExampleScript : MonoBehaviour
     {
         yield return new WaitForSeconds(0.5f); //Wait a few frames, so everything is initialized
 
-        AngelARUI.Instance.SetTasklistEyeEventsActive(false);
+        AngelARUI.Instance.SetEyeDwellingAllowed(false);
 
-        AngelARUI.Instance.SetTasks(_tasks0);
+        //AngelARUI.Instance.SetTasks(_tasks0);
 
         yield return new WaitForSeconds(1f);
 
@@ -121,7 +132,7 @@ public class ExampleScript : MonoBehaviour
 
         yield return new WaitForSeconds(3f);
 
-        AngelARUI.Instance.SetTasks(_tasks2);
+        //AngelARUI.Instance.SetTasks(_tasks2);
 
         currentTask++;
         AngelARUI.Instance.SetCurrentTaskID("", currentTask);
@@ -193,12 +204,12 @@ public class ExampleScript : MonoBehaviour
     public void Update()
     {
         //Example how to set the recipe(task list in the ARUI) -example data see on top
-        if (Input.GetKeyUp(KeyCode.O))
-        {
-            currentTask = 0;
-            AngelARUI.Instance.SetTasks(_tasks2);
-            AngelARUI.Instance.SetCurrentTaskID("",currentTask);
-        }
+        //if (Input.GetKeyUp(KeyCode.O))
+        //{
+        //    currentTask = 0;
+        //    AngelARUI.Instance.SetTasks(_tasks2);
+        //    AngelARUI.Instance.SetCurrentTaskID("",currentTask);
+        //}
 
         // Example how to use the NLI confirmation dialogue
         if (Input.GetKeyUp(KeyCode.P))
@@ -227,12 +238,12 @@ public class ExampleScript : MonoBehaviour
 
         if (Input.GetKeyUp(KeyCode.Y))
         {
-            AngelARUI.Instance.SetTasklistEyeEventsActive(false);
+            AngelARUI.Instance.SetEyeDwellingAllowed(false);
         }
 
         if (Input.GetKeyUp(KeyCode.U))
         {
-            AngelARUI.Instance.SetTasklistEyeEventsActive(true);
+            AngelARUI.Instance.SetEyeDwellingAllowed(true);
         }
 
         // Example how to step forward/backward in tasklist. 

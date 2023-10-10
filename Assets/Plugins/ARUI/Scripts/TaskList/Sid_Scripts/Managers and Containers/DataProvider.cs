@@ -11,11 +11,25 @@ public enum SusbcriberType
     AddTask, RemoveTask, UpdateStep, UpdateTask
 }
 
-public class DataManager : Singleton<DataManager>
+public class DataProvider : Singleton<DataProvider>
 {
-    private Dictionary<string, TaskList> _manual = new Dictionary<string, TaskList>();
+    private Dictionary<string, TaskList> _currentSelectedTasks = new Dictionary<string, TaskList>();
+    public Dictionary<string, TaskList> CurrentSelectedTasks => _currentSelectedTasks;
+    public void SetSelectedTasks(List<string> tasks)
+    {
+        Dictionary<string, TaskList> tmp = new Dictionary<string, TaskList>();
+        foreach (string key in tasks)
+        {
+            if (_manual.Keys.Contains(key))
+                tmp.Add(key, _manual[key]);
+        }
+            
+        _currentSelectedTasks = tmp;
 
-    public Dictionary<string, TaskList> Manual => _manual;
+        PublishToSubscribers(SusbcriberType.AddTask);
+    }
+
+    private Dictionary<string, TaskList> _manual = new Dictionary<string, TaskList>();
 
     private string _currentTask = "";
     public string CurrentTask => _currentTask;
@@ -69,18 +83,15 @@ public class DataManager : Singleton<DataManager>
         {
             foreach (var subscriber in AddTaskSubscribers)
                 subscriber.Invoke();
-        }
-        else if (type.Equals(SusbcriberType.RemoveTask))
+        } else if (type.Equals(SusbcriberType.RemoveTask))
         {
             foreach (var subscriber in RemoveTaskSubscribers)
                 subscriber.Invoke();
-        }
-        else if (type.Equals(SusbcriberType.UpdateTask))
+        } else if (type.Equals(SusbcriberType.UpdateTask))
         {
             foreach (var subscriber in UpdateActiveTaskSubscribers)
                 subscriber.Invoke();
-        }
-        else
+        } else
         {
             foreach (var subscriber in UpdateStepSubscribers)
                 subscriber.Invoke();
@@ -111,46 +122,49 @@ public class DataManager : Singleton<DataManager>
 
     #region Adding and Deleting Tasks
 
-    //Go to the resources folder and load a new tasklist
-    //json file. The name of the file should be in the form
-    //(recipename).json
-    public void LoadNewRecipe(string recipename)
+    /// <summary>
+    /// //Go to the resources folder and load a new tasklist
+    /// json file. The name of the file should be in the form
+    /// (recipename).json and we will look in 'Resoureces/Text'
+    /// </summary>
+    /// <param name="filenamesWithoutExtension"></param>
+    public void InitManual(List<string> filenamesWithoutExtension)
     {
-        var jsonTextFile = Resources.Load<TextAsset>("Text/" + recipename);
-        AngelARUI.Instance.LogDebugMessage("Loaded task from json: "+jsonTextFile.text, true);
-        LoadNewRecipeFromString(jsonTextFile.text);
+        foreach (string filename in filenamesWithoutExtension)
+        {
+            var jsonTextFile = Resources.Load<TextAsset>("Text/" + filename);
+            AngelARUI.Instance.LogDebugMessage("Loaded task from json: " + jsonTextFile.text, true);
+            LoadTaskFromString(jsonTextFile.text);
+        }
     }
 
-    //Take in a json of the class TaskList and add it as a recipe
-    private void LoadNewRecipeFromString(string json)
+    /// <summary>
+    /// Take in a json of the class TaskList and add it as a recipe
+    /// </summary>
+    /// <param name="json"></param>
+    private void LoadTaskFromString(string json)
     {
         TaskList currList = JsonUtility.FromJson<TaskList>(json);
-        //If there already is a recipe with the same name, still add it to the main list
-        //but add a number to its name (for example the second instance of the "Pinwheels"
-        //recipe would be stored as "Pinwheels_2")
         if (!_manual.ContainsKey(currList.Name))
         {
             _manual.Add(currList.Name, currList);
-        }
-        else
-        {
-            for (int i = 2; i <= 5; i++)
-            {
-                if (!_manual.ContainsKey(currList.Name + "_" + i.ToString()))
-                {
-                    _manual.Add(currList.Name + "_" + i.ToString(), currList);
-                    break;
-                }
-            }
+            //TODO: only add tasks selected by the user
+            _currentSelectedTasks.Add(currList.Name, currList);
         }
 
         if (_currentTask.Equals(""))
-        {
             _currentTask = currList.Name;
-        }
-
-        PublishToSubscribers(SusbcriberType.AddTask);
     }
+
+    /// <summary>
+    /// TODO
+    /// </summary>
+    public void SetAllTasksDone()
+    {
+        throw new NotImplementedException();
+    }
+
+
 
     //Delete recipe with given recipe name
     //If it is the last recipe, then handle task overview and orb
@@ -199,10 +213,12 @@ public class DataManager : Singleton<DataManager>
     /// <summary>
     /// Change which recipe shows up as the "current" one
     /// </summary>
-    /// <param name="recipename"></param>
-    public void SetCurrentActiveTask(string recipename)
+    /// <param name="recipeID"></param>
+    public void SetCurrentActiveTask(string recipeID)
     {
-        _currentTask = recipename;
+        if (!_manual.ContainsKey(recipeID)) return;
+
+        _currentTask = recipeID;
         TaskList CurrRecipeObj = _manual[_currentTask];
         int currStepIndex = _manual[_currentTask].CurrStepIndex;
         //Orb.Instance.SetTaskMessage(CurrRecipeObj.Steps[currStepIndex].StepDesc, CurrRecipeObj.Steps[currStepIndex].StepDesc, CurrRecipeObj.Steps[currStepIndex].StepDesc);
@@ -210,19 +226,24 @@ public class DataManager : Singleton<DataManager>
         PublishToSubscribers(SusbcriberType.UpdateTask);
     }
 
+    /// <summary>
+    /// TODO
+    /// </summary>
+    /// <param name="recipeID"></param>
+    /// <param name="taskID"></param>
     public void SetCurrentActiveStep(string recipeID, int taskID)
     {
-        if (taskID <= 0)
-            _manual[recipeID].PrevStepIndex = -1;
-        else
-            _manual[recipeID].PrevStepIndex = taskID-1;
+        if (!_manual.ContainsKey(recipeID)) return;
 
-        if (taskID >= _manual[recipeID].Steps.Count)
+        if (taskID <= 0)
         {
-            _manual[recipeID].CurrStepIndex = _manual[recipeID].Steps.Count-1;
-            _manual[recipeID].NextStepIndex = _manual[recipeID].Steps.Count-1;
+            _manual[recipeID].PrevStepIndex = -1;
+            _manual[recipeID].CurrStepIndex = 0;
+            _manual[recipeID].NextStepIndex = 1;
+
         } else
         {
+            _manual[recipeID].PrevStepIndex = taskID-1;
             _manual[recipeID].CurrStepIndex = taskID;
             _manual[recipeID].NextStepIndex = taskID + 1;
         }

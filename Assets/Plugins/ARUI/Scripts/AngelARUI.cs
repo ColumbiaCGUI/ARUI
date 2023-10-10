@@ -3,6 +3,7 @@ using UnityEngine.Events;
 using System.Collections;
 using System.Collections.Generic;
 using Shapes;
+using System;
 
 /// <summary>
 /// Interface to the ARUI Components - a floating assistant in the shape as an orb and a task overview panel.
@@ -69,7 +70,7 @@ public class AngelARUI : Singleton<AngelARUI>
         _arCamera.cullingMask = oldMask & ~(1 << (StringResources.LayerToLayerInt[StringResources.zBuffer_layer]));
 
         //Instantiate audio manager, for audio feedback
-        DataManager database = new GameObject("DataManager").AddComponent<DataManager>();
+        DataProvider database = new GameObject("DataManager").AddComponent<DataProvider>();
         database.gameObject.name = "***ARUI-" + StringResources.dataManager_name;
 
         //Instantiate audio manager, for audio feedback
@@ -97,9 +98,9 @@ public class AngelARUI : Singleton<AngelARUI>
             StartCoroutine(TryStartVM());
 
         //Instantiate empty tasklist
-        GameObject taskList = Instantiate(Resources.Load(StringResources.TaskList_path)) as GameObject;
-        taskList.gameObject.name = "***ARUI-" + StringResources.tasklist_name;
-        taskList.AddComponent<TaskListManager>();
+        //GameObject taskList = Instantiate(Resources.Load(StringResources.TaskList_path)) as GameObject;
+        //taskList.gameObject.name = "***ARUI-" + StringResources.tasklist_name;
+        //taskList.AddComponent<TaskListManager>();
 
         //Instantiate empty multi tasklist
         //GameObject overviewObj = Instantiate(Resources.Load(StringResources.Sid_Tasklist_path)) as GameObject;
@@ -116,63 +117,37 @@ public class AngelARUI : Singleton<AngelARUI>
         zBufferCam.gameObject.AddComponent<ZBufferCamera>();
     }
 
+    public void SetSelectedTasks(List<string> list) => DataProvider.Instance.SetSelectedTasks(list);
+
     #region Task Guidance
 
-    public void InitManual(List<string> allTasks)
-    {
-        foreach (string task_json in allTasks)
-            DataManager.Instance.LoadNewRecipe(task_json);
-    }
-
-    public void SetCurrectActiveTask(string taskID)
-    {
-        DataManager.Instance.SetCurrentActiveTask(taskID);
-    }
-
     /// <summary>
-    /// Set the task list and set the current task id to 0 (first in the given list)
+    /// TODO
     /// </summary>
-    /// <param name="tasks">2D array tasks</param>
-    public void SetTasks(string[,] tasks)
-    {
-        TaskListManager.Instance.SetTasklist(tasks);
-        TaskListManager.Instance.SetCurrentTask(0);
-    }
+    /// <param name="allTasks"></param>
+    public void InitManual(List<string> allTasks) => DataProvider.Instance.InitManual(allTasks);
 
     /// <summary>
     /// Set the current task the user has to do.
     /// If taskID is >= 0 and < the number of tasks, the orb won't react.
     /// If taskID is the same as the current one, the ARUI won't react.
     /// If taskID has subtasks, the orb shows the first subtask as the current task
+    /// TODO
     /// </summary>
     /// <param name="taskID">index of the current task that should be highlighted in the UI</param>
-    public void SetCurrentTaskID(string recipeID, int taskID)
-    {
-        if (recipeID =="")
-            TaskListManager.Instance.SetCurrentTask(taskID);
-        else
-            DataManager.Instance.SetCurrentActiveStep(recipeID, taskID);
-    }
-
-    /// <summary>
-    /// Enable/Disable Tasklist
-    /// </summary>
-    public void SetTaskListActive(bool isActive) => TaskListManager.Instance.SetTaskListActive(isActive);
+    public void SetCurrentTaskID(string recipeID, int taskID) => DataProvider.Instance.SetCurrentActiveStep(recipeID, taskID);
 
     /// <summary>
     /// Set all tasks in the tasklist as done. The orb will show a "All Done" message
     /// </summary>
-    public void SetAllTasksDone() => TaskListManager.Instance.SetAllTasksDone();
+    public void SetAllTasksDone(string key) => DataProvider.Instance.SetAllTasksDone();
 
     /// <summary>
-    /// Toggles the task list. If on, the task list is positioned in front of the user's current gaze.
+    /// TODO
     /// </summary>
-    public void ToggleTasklist() => TaskListManager.Instance.ToggleTasklist();
-
-    /// <summary>
-    /// S
-    /// </summary>
-    public void SetTasklistEyeEventsActive(bool active) => TaskListManager.Instance.SetEyeEventsActive(active);
+    public void SetEyeDwellingAllowed(bool active) {
+        ARUISettings.EyeDwellAllowed = active;
+    }
 
     /// <summary>
     /// Mute voice feedback for task guidance. ONLY influences task guidance.
@@ -212,7 +187,7 @@ public class AngelARUI : Singleton<AngelARUI>
     /// <param name="show">if true, the orb will show a skip notification, if false, the notification will disappear</param>
     public void SetNotification(NotificationType type, string message)
     {
-        if (TaskListManager.Instance.GetTaskCount() <= 0 || TaskListManager.Instance.IsDone) return;
+        if (DataProvider.Instance.CurrentSelectedTasks.Count==0) return;
 
         Orb.Instance.AddNotification(type, message);
     }

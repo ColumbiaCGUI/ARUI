@@ -19,8 +19,6 @@ public static class StringResources
     //Prefabs
     public static string POIHalo_path = "Prefabs/Halo3D";
     public static string Orb_path = "Prefabs/Orb";
-    public static string TaskList_path = "Prefabs/TasklistContainer";
-    public static string Taskprefab_path = "Prefabs/Task";
     public static string EyeTarget_path = "Prefabs/EyeTarget";
     public static string ConfNotification_path = "Prefabs/ConfirmationNotification";
     public static string HandPoseManager_path = "Prefabs/HandPoseManager";

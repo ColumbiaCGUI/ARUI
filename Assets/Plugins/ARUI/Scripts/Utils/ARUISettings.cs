@@ -36,7 +36,8 @@ public static class ARUISettings
     //**** Confirmation Dialogue
     public static readonly float DialogueTimeInSeconds = 8f;  /// <How much time the user has to decide (excluding the time the use is loking at the ok button
 
-    //**** Dwell Button 
+    //**** Dwell Button
+    public static bool EyeDwellAllowed = true;
     public static readonly float EyeDwellTime = 6f;      /// <How long the user has to look at the button to trigger the event
     public static readonly Color BtnBaseColor = new Color(0.5377358f, 0.5377358f, 0.5377358f, 0.24f);
     public static readonly Color BtnActiveColor = new Color(0.7f, 0.7f, 0.8f, 0.4f);

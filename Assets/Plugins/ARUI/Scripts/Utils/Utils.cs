@@ -87,6 +87,22 @@ public static class Utils
         return corners;
     }
 
+    /// <summary>
+    /// TODO
+    /// </summary>
+    /// <param name="taskName"></param>
+    /// <returns></returns>
+    public static int ArrayContainsKey(string[] array, string taskName)
+    {
+        for (int i = 0; i<array.Length; i++)
+        {
+            if (array[i].Equals(taskName))
+                return i;
+        }
+
+        return -1;
+    }
+
 #if UNITY_EDITOR
     /// <summary>
     /// Adds the layer.

@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-public class FlexibleTextContainer : MonoBehaviour
+public class FlexibleTextContainerSingle : MonoBehaviour
 {
     private TMPro.TextMeshProUGUI _textComponent;
 

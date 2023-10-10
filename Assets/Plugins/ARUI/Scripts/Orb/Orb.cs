@@ -1,7 +1,6 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.Linq;
 using UnityEngine;
 
 public enum MovementBehavior
@@ -31,8 +30,8 @@ public class Orb : Singleton<Orb>
     }
 
     private OrbGrabbable _grabbable;                         /// <reference to grabbing behavior
-    private OrbMessage _messageContainer;                     /// <reference to orb message container (part of prefab)
-    public OrbMessage Message => _messageContainer;
+    private OrbMessageContainer _messageContainer;                     /// <reference to orb message container (part of prefab)
+    public OrbMessageContainer Message => _messageContainer;
 
     private List<BoxCollider> _allOrbColliders;              /// <reference to all collider - will be merged for view management.
     public List<BoxCollider> AllOrbColliders => _allOrbColliders;
@@ -47,8 +46,6 @@ public class Orb : Singleton<Orb>
 
     private OrbHandle _orbHandle;
 
-    private OrbTaskList _multiple;
-
     /// <summary>
     /// Get all orb references from prefab
     /// </summary>
@@ -59,7 +56,7 @@ public class Orb : Singleton<Orb>
         
         // Get message object in orb prefab
         GameObject messageObj = transform.GetChild(0).GetChild(1).gameObject;
-        _messageContainer = messageObj.AddComponent<OrbMessage>();
+        _messageContainer = messageObj.AddComponent<OrbMessageContainer>();
 
         // Get handle object in orb prefab
         GameObject handleObj = transform.GetChild(0).GetChild(2).gameObject;
@@ -74,28 +71,21 @@ public class Orb : Singleton<Orb>
         // Collect all orb colliders
         _allOrbColliders = new List<BoxCollider>();
 
-        GameObject multiple = transform.GetChild(0).GetChild(3).gameObject;
-        _multiple = multiple.AddComponent<OrbTaskList>();
-
-        DataManager.Instance.RegisterDataSubscriber(() => HandleAddedTaskEvent(), SusbcriberType.AddTask);
-        DataManager.Instance.RegisterDataSubscriber(() => HandleUpdateActiveTaskEvent(), SusbcriberType.UpdateTask);
-        DataManager.Instance.RegisterDataSubscriber(() => HandleUpdateActiveStepEvent(), SusbcriberType.UpdateStep);
+        DataProvider.Instance.RegisterDataSubscriber(() => HandleUpdateTaskListEvent(), SusbcriberType.AddTask);
+        DataProvider.Instance.RegisterDataSubscriber(() => HandleUpdateActiveTaskEvent(), SusbcriberType.UpdateTask);
+        DataProvider.Instance.RegisterDataSubscriber(() => HandleUpdateActiveStepEvent(), SusbcriberType.UpdateStep);
     }
 
-    private void HandleAddedTaskEvent()
-    {
-        _multiple.AddTask(DataManager.Instance.Manual);
-    }
+    private void HandleUpdateTaskListEvent() => _messageContainer.HandleUpdateTaskListEvent(DataProvider.Instance.CurrentSelectedTasks);
 
     private void HandleUpdateActiveTaskEvent()
     {
-        _multiple.UpdateActiveTask(DataManager.Instance.Manual, DataManager.Instance.CurrentTask);
+        //if (DataProvider.Instance.CurrentSelectedTasks.Count != 1)
+        //    _multiple.UpdateActiveTask(DataProvider.Instance.CurrentSelectedTasks, DataProvider.Instance.CurrentTask);
+
     }
 
-    private void HandleUpdateActiveStepEvent()
-    {
-        _multiple.UpdateActiveStep(DataManager.Instance.Manual, DataManager.Instance.CurrentTask);
-    }
+    private void HandleUpdateActiveStepEvent() => SetTaskMessage(DataProvider.Instance.CurrentSelectedTasks[DataProvider.Instance.CurrentTask]);
 
 
     /// <summary>
@@ -109,7 +99,7 @@ public class Orb : Singleton<Orb>
         else if (!_isLookingAtOrb && EyeGazeManager.Instance.CurrentHit == EyeTarget.orbFace)
             SetIsLookingAtFace(true);
 
-        if (_messageContainer.UserHasSeenNewTask || _isLookingAtOrb || _messageContainer.IsLookingAtMessage)
+        if (_messageContainer.UserHasSeenNewStep || _isLookingAtOrb || _messageContainer.IsLookingAtMessage)
             _face.MessageNotificationEnabled = false;
 
         _orbHandle.IsActive = (_orbBehavior == MovementBehavior.Fixed);
@@ -246,30 +236,36 @@ public class Orb : Singleton<Orb>
 
     public void AddNotification(NotificationType type, string message)
     {
-        _messageContainer.AddNotification(type, message);
-        _face.UpdateNotification(_messageContainer.IsWarningActive, _messageContainer.IsNoteActive);
+        _messageContainer.AddNotification(type, message, _face);
 
         AudioManager.Instance.PlaySound(_face.transform.position, SoundType.warning);
     }
 
-    internal void RemoveNotification(NotificationType type)
+    
+    public void RemoveNotification(NotificationType type)
     {
-        _messageContainer.RemoveNotification(type);
-        _face.UpdateNotification(_messageContainer.IsWarningActive, _messageContainer.IsNoteActive);
+        _messageContainer.RemoveNotification(type, _face);
+        
     }
 
     /// <summary>
     /// Set the task messages the orb communicates, if 'message' is less than 2 char, the message is deactivated
     /// </summary>
     /// <param name="message"></param>
-    public void SetTaskMessage(string message, string previous, string next)
+    private void SetTaskMessage(TaskList currentSelectedTask)
     {
         _messageContainer.RemoveAllNotifications();
         _face.UpdateNotification(false,false);
 
-        AudioManager.Instance.PlayText(message);
+        string currentMessage = _messageContainer.SetTaskMessage(currentSelectedTask);
 
-        _messageContainer.SetTaskMessage(message, previous, next);
+        if (currentMessage.Length>0)
+        {
+            AudioManager.Instance.PlayText(currentMessage);
+        } else
+        {
+            AudioManager.Instance.PlaySound(AllOrbColliders[0].transform.position, SoundType.taskDone);
+        }
 
         if (_allOrbColliders.Count == 0)
         {
@@ -277,8 +273,6 @@ public class Orb : Singleton<Orb>
             _allOrbColliders.AddRange(_messageContainer.GetAllColliders);
         }
     }
-
-    public void ResetToggleBtn() => _messageContainer.TaskListToggle.Toggled = false;
 
     #endregion
 
@@ -316,7 +310,7 @@ public class Orb : Singleton<Orb>
     public bool IsLookingAtOrb(bool any)
     {
         if (any)
-            return _isLookingAtOrb || _messageContainer.IsLookingAtMessage || _messageContainer.TaskListToggle.IsInteractingWithBtn;
+            return _isLookingAtOrb || _messageContainer.IsLookingAtMessage || _messageContainer.IsInteractingWithBtn;
         else
             return _isLookingAtOrb || _messageContainer.IsLookingAtMessage;
     }
