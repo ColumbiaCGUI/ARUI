@@ -259,13 +259,10 @@ public class Orb : Singleton<Orb>
 
         string currentMessage = _messageContainer.SetTaskMessage(currentSelectedTask);
 
-        if (currentMessage.Length>0)
-        {
+        if (!currentMessage.Contains("Done"))
             AudioManager.Instance.PlayText(currentMessage);
-        } else
-        {
+        else
             AudioManager.Instance.PlaySound(AllOrbColliders[0].transform.position, SoundType.taskDone);
-        }
 
         if (_allOrbColliders.Count == 0)
         {

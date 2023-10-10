@@ -72,15 +72,17 @@ public class ExampleScript : MonoBehaviour
         AngelARUI.Instance.InitManual(new List<string> { "Pinwheels", "Coffee", "Oatmeal" });
         AngelARUI.Instance.SetSelectedTasks(new List<string> { "Pinwheels" });
 
-        for (int u = -3; u < 12; u++)
+        for (int u = -1; u < 3; u++)
         {
             yield return new WaitForSeconds(1f);
-            AngelARUI.Instance.SetCurrentTaskID("Pinwheels", 2 + u);
+            AngelARUI.Instance.SetCurrentTaskID("Pinwheels", u);
+
+            currentTask = u;
         }
 
         yield return new WaitForSeconds(1f);
 
-        AngelARUI.Instance.SetCurrentTaskID("Coffee", 2);
+        AngelARUI.Instance.SetNotification(NotificationType.warning, "Hello, this is a wanrning");
 
         //yield return new WaitForSeconds(1f);
 
@@ -250,12 +252,12 @@ public class ExampleScript : MonoBehaviour
         if (Input.GetKeyUp(KeyCode.RightArrow))
         {
             currentTask++;
-            AngelARUI.Instance.SetCurrentTaskID("", currentTask);
+            AngelARUI.Instance.SetCurrentTaskID("Pinwheels", currentTask);
         }
         else if (Input.GetKeyUp(KeyCode.LeftArrow))
         {
             currentTask--;
-            AngelARUI.Instance.SetCurrentTaskID("", currentTask);
+            AngelARUI.Instance.SetCurrentTaskID("Pinwheels", currentTask);
         }
 
         // Example how to trigger a skip notification. 

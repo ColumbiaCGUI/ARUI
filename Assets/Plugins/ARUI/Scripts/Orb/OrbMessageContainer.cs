@@ -28,7 +28,7 @@ public class OrbMessageContainer : MonoBehaviour
         _singleMessage = single.AddComponent<OrbSingle>();
 
         // Get message object in orb prefab
-        GameObject multiple = transform.GetChild(0).gameObject;
+        GameObject multiple = transform.GetChild(1).gameObject;
         _multipleMessage = multiple.AddComponent<OrbMultiple>();
     }
 
@@ -58,7 +58,7 @@ public class OrbMessageContainer : MonoBehaviour
         _currentActiveMessage.UpdateTaskList(currentSelectedTasks);
     }
 
-    public void SetIsActive(bool v1, bool v2) => _currentActiveMessage.SetIsActive(v1, v2);
+    public void SetIsActive(bool active, bool isNewTask) => _currentActiveMessage.SetIsActive(active, isNewTask);
 
     public void AddNotification(NotificationType type, string message, OrbFace face)
     {

@@ -62,7 +62,7 @@ public abstract class OrbMessage : MonoBehaviour
         set { _messageIsLerping = value; }
     }
 
-    private void Update()
+    public void Update()
     {
         // Update eye tracking flag
         if (_isLookingAtMessage && EyeGazeManager.Instance.CurrentHit != EyeTarget.orbMessage && EyeGazeManager.Instance.CurrentHit != EyeTarget.orbtasklistButton)
@@ -73,7 +73,6 @@ public abstract class OrbMessage : MonoBehaviour
 
     public abstract void AddNotification(NotificationType type, string message, OrbFace face);
     public abstract void RemoveNotification(NotificationType type, OrbFace face);
-
 
     public abstract bool IsInteractingWithBtn();
     public abstract void SetIsActive(bool active, bool newTask);

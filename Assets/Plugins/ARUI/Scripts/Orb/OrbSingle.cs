@@ -42,11 +42,13 @@ public class OrbSingle : OrbMessage
         return new List<BoxCollider> { _taskListbutton.Collider, _textContainer.MessageCollider };
     }
 
+    public override bool IsInteractingWithBtn() => TaskListToggle != null && TaskListToggle.IsInteractingWithBtn;
+
     private void Start()
     {
         messageType = OrbMessageType.single;
 
-        _textContainer = transform.GetChild(1).gameObject.AddComponent<FlexibleTextContainerSingle>();
+        _textContainer = transform.GetChild(0).gameObject.AddComponent<FlexibleTextContainerSingle>();
         _textContainer.gameObject.name += "_orb";
 
         TMPro.TextMeshProUGUI[] allText = _textContainer.AllTextMeshComponents;
@@ -83,8 +85,9 @@ public class OrbSingle : OrbMessage
         SetIsActive(false, false);
     }
 
-    private void Update()
+    private new void Update()
     {
+        base.Update();
         _currentNote.UpdateSize(_textContainer.TextRect.width / 2);
         _currentWarning.UpdateSize(_textContainer.TextRect.width / 2);
 
@@ -451,8 +454,6 @@ public class OrbSingle : OrbMessage
     }
 
     public override void UpdateTaskList(Dictionary<string, TaskList> currentSelectedTasks) { }
-
-    public override bool IsInteractingWithBtn() => TaskListToggle!= null && TaskListToggle.IsInteractingWithBtn;
 
 
     #endregion
