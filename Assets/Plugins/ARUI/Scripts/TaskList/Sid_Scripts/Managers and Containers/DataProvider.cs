@@ -8,7 +8,7 @@ using UnityEngine.Events;
 
 public enum SusbcriberType
 {
-    AddTask, RemoveTask, UpdateStep, UpdateTask
+    UpdateTask, UpdateStep, UpdateActiveTask
 }
 
 public class DataProvider : Singleton<DataProvider>
@@ -26,7 +26,7 @@ public class DataProvider : Singleton<DataProvider>
             
         _currentSelectedTasks = tmp;
 
-        PublishToSubscribers(SusbcriberType.AddTask);
+        PublishToSubscribers(SusbcriberType.UpdateTask);
     }
 
     private Dictionary<string, TaskList> _manual = new Dictionary<string, TaskList>();
@@ -34,22 +34,21 @@ public class DataProvider : Singleton<DataProvider>
     private string _currentTask = "";
     public string CurrentTask => _currentTask;
 
-    private List<UnityEvent> AddTaskSubscribers = new List<UnityEvent>();
-    private List<UnityEvent> RemoveTaskSubscribers = new List<UnityEvent>();
-    private List<UnityEvent> UpdateStepSubscribers = new List<UnityEvent>();
+    private List<UnityEvent> UpdateTasksSubscribers = new List<UnityEvent>(); /// <Events are triggered if task list changed (add or removal)
+    private List<UnityEvent> UpdateStepSubscribers = new List<UnityEvent>();  /// <Events are triggered if step changed at any task list
     private List<UnityEvent> UpdateActiveTaskSubscribers = new List<UnityEvent>();
 
     /// <summary>
-    /// Converts the tasklist object with key recipename into a matrix of strings
+    /// Converts the tasklist object with key taskname into a matrix of strings
     /// The final matrix would be of size (number of steps and substeps x 2)
     /// Each row element would be of the form [step description, 0] for main steps
     /// and [step description, 1] for sub steps
     /// </summary>
-    /// <param name="recipename"></param>
+    /// <param name="taskname"></param>
     /// <returns></returns>
-    public string[,] ConvertToStringMatrix(string recipename)
+    public string[,] ConvertToStringMatrix(string taskname)
     {
-        var jsonTextFile = Resources.Load<TextAsset>("Text/" + recipename);
+        var jsonTextFile = Resources.Load<TextAsset>("Text/" + taskname);
         TaskList currList = JsonUtility.FromJson<TaskList>(jsonTextFile.text);
         int currLength = currList.Steps.Count;
         foreach (var step in currList.Steps)
@@ -79,15 +78,11 @@ public class DataProvider : Singleton<DataProvider>
     /// </summary>
     private void PublishToSubscribers(SusbcriberType type)
     {
-        if (type.Equals(SusbcriberType.AddTask))
+        if (type.Equals(SusbcriberType.UpdateTask))
         {
-            foreach (var subscriber in AddTaskSubscribers)
+            foreach (var subscriber in UpdateTasksSubscribers)
                 subscriber.Invoke();
-        } else if (type.Equals(SusbcriberType.RemoveTask))
-        {
-            foreach (var subscriber in RemoveTaskSubscribers)
-                subscriber.Invoke();
-        } else if (type.Equals(SusbcriberType.UpdateTask))
+        } else if (type.Equals(SusbcriberType.UpdateActiveTask))
         {
             foreach (var subscriber in UpdateActiveTaskSubscribers)
                 subscriber.Invoke();
@@ -107,11 +102,8 @@ public class DataProvider : Singleton<DataProvider>
         UnityEvent newDataUpdateEvent = new UnityEvent();
         newDataUpdateEvent.AddListener(subscriberEvent);
 
-        if (type.Equals(SusbcriberType.AddTask))
-            AddTaskSubscribers.Add(newDataUpdateEvent);
-
-        else if (type.Equals(SusbcriberType.RemoveTask))
-            RemoveTaskSubscribers.Add(newDataUpdateEvent);
+        if (type.Equals(SusbcriberType.UpdateTask))
+            UpdateTasksSubscribers.Add(newDataUpdateEvent);
 
         else if (type.Equals(SusbcriberType.UpdateTask))
             UpdateActiveTaskSubscribers.Add(newDataUpdateEvent);
@@ -139,7 +131,7 @@ public class DataProvider : Singleton<DataProvider>
     }
 
     /// <summary>
-    /// Take in a json of the class TaskList and add it as a recipe
+    /// Take in a json of the class TaskList and add it as a task
     /// </summary>
     /// <param name="json"></param>
     private void LoadTaskFromString(string json)
@@ -157,95 +149,53 @@ public class DataProvider : Singleton<DataProvider>
     }
 
     /// <summary>
-    /// TODO
+    /// TODO: Delete task from the currently Selected task (not the manual)
     /// </summary>
-    public void SetAllTasksDone()
+    /// <param name="taskname"></param>
+    public void DeleteRecipe(string taskname)
     {
-        throw new NotImplementedException();
+
     }
-
-
-
-    //Delete recipe with given recipe name
-    //If it is the last recipe, then handle task overview and orb
-    //public void DeleteRecipe(string recipeName)
-    //{
-    //    if (_manual.ContainsKey(recipeName))
-    //    {
-    //        _manual.Remove(recipeName);
-    //    }
-
-    //    if (_manual.Count == 0)
-    //    {
-    //        Orb.Instance.SetTaskMessage("No pending tasks", "", "");
-    //        //OVERVIEW REFERENCE
-    //        MultiTaskList.Instance.gameObject.SetActive(false);
-    //    }
-
-    //    PublishToSubscribers();
-    //}
-
-    //Delete the current recipe and replace it with a new current recipe
-    //defined by newCurr. If that was the last recipe, then handle
-    //task overview and orb
-    //public void DeleteCurrRecipe(string newCurr = "")
-    //{
-    //    Recipes.Remove(CurrRecipe);
-
-    //    if (Recipes.Count == 0)
-    //    {
-    //        Orb.Instance.SetTaskMessage("No pending tasks", "", "");
-    //        //OVERVIEW REFERENCE
-    //        MultipleListsContainer.Instance.gameObject.SetActive(false);
-    //    } else
-    //    {
-    //        if (Recipes.ContainsKey(newCurr))
-    //        {
-    //            SetCurrentActiveTask(newCurr);
-    //        }
-    //    }
-    //}
 
     #endregion
 
     #region Set current active task or step
 
     /// <summary>
-    /// Change which recipe shows up as the "current" one
+    /// Change which taskID shows up as the "current" one
     /// </summary>
-    /// <param name="recipeID"></param>
-    public void SetCurrentActiveTask(string recipeID)
+    /// <param name="taskID"></param>
+    public void SetCurrentActiveTask(string taskID)
     {
-        if (!_manual.ContainsKey(recipeID)) return;
+        if (!_manual.ContainsKey(taskID)) return;
 
-        _currentTask = recipeID;
-        TaskList CurrRecipeObj = _manual[_currentTask];
+        _currentTask = taskID;
+        TaskList currentTaskObj = _manual[_currentTask];
         int currStepIndex = _manual[_currentTask].CurrStepIndex;
-        //Orb.Instance.SetTaskMessage(CurrRecipeObj.Steps[currStepIndex].StepDesc, CurrRecipeObj.Steps[currStepIndex].StepDesc, CurrRecipeObj.Steps[currStepIndex].StepDesc);
 
-        PublishToSubscribers(SusbcriberType.UpdateTask);
+        PublishToSubscribers(SusbcriberType.UpdateActiveTask);
     }
 
     /// <summary>
     /// TODO
     /// </summary>
-    /// <param name="recipeID"></param>
     /// <param name="taskID"></param>
-    public void SetCurrentActiveStep(string recipeID, int taskID)
+    /// <param name="stepIndex"></param>
+    public void SetCurrentActiveStep(string taskID, int stepIndex)
     {
-        if (!_manual.ContainsKey(recipeID)) return;
+        if (!_manual.ContainsKey(taskID)) return;
 
-        if (taskID <= 0)
+        if (stepIndex <= 0)
         {
-            _manual[recipeID].PrevStepIndex = -1;
-            _manual[recipeID].CurrStepIndex = 0;
-            _manual[recipeID].NextStepIndex = 1;
+            _manual[taskID].PrevStepIndex = -1;
+            _manual[taskID].CurrStepIndex = 0;
+            _manual[taskID].NextStepIndex = 1;
 
         } else
         {
-            _manual[recipeID].PrevStepIndex = taskID-1;
-            _manual[recipeID].CurrStepIndex = taskID;
-            _manual[recipeID].NextStepIndex = taskID + 1;
+            _manual[taskID].PrevStepIndex = stepIndex - 1;
+            _manual[taskID].CurrStepIndex = stepIndex;
+            _manual[taskID].NextStepIndex = stepIndex + 1;
         }
 
         PublishToSubscribers(SusbcriberType.UpdateStep);

@@ -44,6 +44,15 @@ public class OrbSingle : OrbMessage
 
     public override bool IsInteractingWithBtn() => TaskListToggle != null && TaskListToggle.IsInteractingWithBtn;
 
+    private bool _enalbed = false;
+    public override void SetEnabled(bool enabled)
+    {
+        _enalbed = enabled;
+        _textContainer.gameObject.SetActive(enabled);
+        _taskListbutton.gameObject.SetActive(enabled);
+        _indicator.gameObject.SetActive(enabled);
+    }
+
     private void Start()
     {
         messageType = OrbMessageType.single;
@@ -292,24 +301,6 @@ public class OrbSingle : OrbMessage
             _indicator.transform.localPosition = new Vector3(-_initialIndicatorPos.x, 0, 0);
             _indicator.transform.localRotation = Quaternion.Euler(0, 180, 0);
         }
-    }
-
-    /// <summary>
-    /// Check if message box should be anchored right
-    /// </summary>
-    /// <param name="offsetPaddingInPixel"></param>
-    /// <returns></returns>
-    private bool ChangeMessageBoxToRight(float offsetPaddingInPixel)
-    {
-        return (AngelARUI.Instance.ARCamera.WorldToScreenPoint(transform.position).x < ((AngelARUI.Instance.ARCamera.pixelWidth * 0.5f) - offsetPaddingInPixel));
-    }
-
-    /// <summary>
-    /// Check if message box should be anchored left
-    /// </summary>
-    private bool ChangeMessageBoxToLeft(float offsetPaddingInPixel)
-    {
-        return (AngelARUI.Instance.ARCamera.WorldToScreenPoint(transform.position).x > ((AngelARUI.Instance.ARCamera.pixelWidth * 0.5f) + offsetPaddingInPixel));
     }
 
     /// <summary>

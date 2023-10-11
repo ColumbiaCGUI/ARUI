@@ -135,19 +135,26 @@ public class AngelARUI : Singleton<AngelARUI>
     /// TODO
     /// </summary>
     /// <param name="taskID">index of the current task that should be highlighted in the UI</param>
-    public void SetCurrentTaskID(string recipeID, int taskID) => DataProvider.Instance.SetCurrentActiveStep(recipeID, taskID);
+    public void AdvanceToStep(string recipeID, int taskID) => DataProvider.Instance.SetCurrentActiveStep(recipeID, taskID);
 
     /// <summary>
-    /// Set all tasks in the tasklist as done. The orb will show a "All Done" message
+    /// TODO 
     /// </summary>
-    public void SetAllTasksDone(string key) => DataProvider.Instance.SetAllTasksDone();
+    /// <param name="taskID"></param>
+    public void SetCurrentDetectedTask(string taskID) => DataProvider.Instance.SetCurrentActiveTask(taskID);
+
+    /// <summary>
+    /// TODO: Set all tasks in the tasklist as done. (or a specific task?)
+    /// </summary>
+    public void SetAllTasksDone(string key)
+    {
+
+    }
 
     /// <summary>
     /// TODO
     /// </summary>
-    public void SetEyeDwellingAllowed(bool active) {
-        ARUISettings.EyeDwellAllowed = active;
-    }
+    public void SetEyeDwellingAllowed(bool active) => ARUISettings.EyeDwellAllowed = active;
 
     /// <summary>
     /// Mute voice feedback for task guidance. ONLY influences task guidance.

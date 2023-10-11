@@ -35,7 +35,7 @@ public class OrbMessageContainer : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        _multipleMessage.gameObject.SetActive(false);
+        _multipleMessage.SetEnabled(false);
         _currentActiveMessage = _singleMessage;
     }
 
@@ -43,14 +43,14 @@ public class OrbMessageContainer : MonoBehaviour
     {
         if (currentSelectedTasks.Keys.Count==1)
         {
-            _singleMessage.gameObject.SetActive(true);
-            _multipleMessage.gameObject.SetActive(false);
+            _singleMessage.SetEnabled(true);
+            _multipleMessage.SetEnabled(false);
 
             _currentActiveMessage = _singleMessage;
         } else
         {
-            _singleMessage.gameObject.SetActive(false);
-            _multipleMessage.gameObject.SetActive(true);
+            _singleMessage.SetEnabled(false);
+            _multipleMessage.SetEnabled(true);
 
             _currentActiveMessage = _multipleMessage;
         }

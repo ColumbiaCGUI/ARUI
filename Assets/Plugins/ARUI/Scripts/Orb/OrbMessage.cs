@@ -71,6 +71,26 @@ public abstract class OrbMessage : MonoBehaviour
             _isLookingAtMessage = true;
     }
 
+    /// <summary>
+    /// Check if message box should be anchored right
+    /// </summary>
+    /// <param name="offsetPaddingInPixel"></param>
+    /// <returns></returns>
+    protected bool ChangeMessageBoxToRight(float offsetPaddingInPixel)
+    {
+        return (AngelARUI.Instance.ARCamera.WorldToScreenPoint(transform.position).x < ((AngelARUI.Instance.ARCamera.pixelWidth * 0.5f) - offsetPaddingInPixel));
+    }
+
+    /// <summary>
+    /// Check if message box should be anchored left
+    /// </summary>
+    protected bool ChangeMessageBoxToLeft(float offsetPaddingInPixel)
+    {
+        return (AngelARUI.Instance.ARCamera.WorldToScreenPoint(transform.position).x > ((AngelARUI.Instance.ARCamera.pixelWidth * 0.5f) + offsetPaddingInPixel));
+    }
+
+    public abstract void SetEnabled(bool enabled);
+
     public abstract void AddNotification(NotificationType type, string message, OrbFace face);
     public abstract void RemoveNotification(NotificationType type, OrbFace face);
 

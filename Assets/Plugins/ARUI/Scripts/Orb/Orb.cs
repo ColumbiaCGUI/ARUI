@@ -71,8 +71,8 @@ public class Orb : Singleton<Orb>
         // Collect all orb colliders
         _allOrbColliders = new List<BoxCollider>();
 
-        DataProvider.Instance.RegisterDataSubscriber(() => HandleUpdateTaskListEvent(), SusbcriberType.AddTask);
-        DataProvider.Instance.RegisterDataSubscriber(() => HandleUpdateActiveTaskEvent(), SusbcriberType.UpdateTask);
+        DataProvider.Instance.RegisterDataSubscriber(() => HandleUpdateTaskListEvent(), SusbcriberType.UpdateTask);
+        DataProvider.Instance.RegisterDataSubscriber(() => HandleUpdateActiveTaskEvent(), SusbcriberType.UpdateActiveTask);
         DataProvider.Instance.RegisterDataSubscriber(() => HandleUpdateActiveStepEvent(), SusbcriberType.UpdateStep);
     }
 
