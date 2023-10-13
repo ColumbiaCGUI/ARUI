@@ -93,6 +93,11 @@ public class AngelARUI : Singleton<AngelARUI>
         orb.transform.parent = transform;
         orb.AddComponent<Orb>();
 
+        //Instantiate the Task Overview
+        GameObject TaskOverview = Instantiate(Resources.Load(StringResources.Sid_Tasklist_path)) as GameObject;
+        TaskOverview.gameObject.name = "***ARUI-" + StringResources.tasklist_name;
+        TaskOverview.GetComponent<Center_of_Objs>().SnapToCentroid();
+
         //Start View Management, if enabled
         if (_useViewManagement)
             StartCoroutine(TryStartVM());

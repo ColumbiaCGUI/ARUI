@@ -81,15 +81,21 @@ public class DataProvider : Singleton<DataProvider>
         if (type.Equals(SusbcriberType.UpdateTask))
         {
             foreach (var subscriber in UpdateTasksSubscribers)
+            {
                 subscriber.Invoke();
+            }
         } else if (type.Equals(SusbcriberType.UpdateActiveTask))
         {
             foreach (var subscriber in UpdateActiveTaskSubscribers)
+            {
                 subscriber.Invoke();
+            }
         } else
         {
             foreach (var subscriber in UpdateStepSubscribers)
+            {
                 subscriber.Invoke();
+            }
         }
     }
 
@@ -105,7 +111,7 @@ public class DataProvider : Singleton<DataProvider>
         if (type.Equals(SusbcriberType.UpdateTask))
             UpdateTasksSubscribers.Add(newDataUpdateEvent);
 
-        else if (type.Equals(SusbcriberType.UpdateTask))
+        else if (type.Equals(SusbcriberType.UpdateActiveTask))
             UpdateActiveTaskSubscribers.Add(newDataUpdateEvent);
 
         else
@@ -177,7 +183,8 @@ public class DataProvider : Singleton<DataProvider>
     }
 
     /// <summary>
-    /// TODO
+    /// Sets the active step of a given task id.
+    /// If step index is out of bounds, adjust to first or last step
     /// </summary>
     /// <param name="taskID"></param>
     /// <param name="stepIndex"></param>
@@ -191,7 +198,14 @@ public class DataProvider : Singleton<DataProvider>
             _manual[taskID].CurrStepIndex = 0;
             _manual[taskID].NextStepIndex = 1;
 
-        } else
+        } else if (stepIndex >= _manual[taskID].Steps.Count - 1)
+        {
+            _manual[taskID].PrevStepIndex = _manual[taskID].Steps.Count - 2;
+            _manual[taskID].CurrStepIndex = _manual[taskID].Steps.Count - 1;
+            _manual[taskID].NextStepIndex = -1;
+
+        }
+        else
         {
             _manual[taskID].PrevStepIndex = stepIndex - 1;
             _manual[taskID].CurrStepIndex = stepIndex;

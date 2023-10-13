@@ -29,13 +29,22 @@ public class MultiTaskList : Singleton<MultiTaskList>
 
     public void Start()
     {
-        //DataManager.Instance.AddDataSubscriber(() => HandleDataUpdateEvent());
-
+        //Set up child objects
         _overviewHandle = transform.GetChild(0).gameObject.GetComponent<Line>();
         _followCameraContainer = transform.GetChild(1).gameObject;
 
         _taskOverviewContainer = _followCameraContainer.transform.GetChild(0).gameObject;
-        //_mainTaskContainer = _taskOverviewContainer.transform.GetChild(0).gameObject;
+        //Add in main task container
+        _mainTaskContainer = Instantiate(Resources.Load(StringResources.Sid_MainTaskOverview_Container_path), _taskOverviewContainer.transform) as GameObject;
+        _containers.Add(_mainTaskContainer.GetComponent<TaskOverviewContainerRepo>());
+        TaskOverviewContainerRepo curr = _containers[0];
+        _allTasklists.Add(curr.taskUI);
+        curr.multiListInstance.ListContainer = this.gameObject;
+        curr.multiListInstance.index = 0;
+        //Register subscribers
+        DataProvider.Instance.RegisterDataSubscriber(() => HandleDataUpdateEvent(), SusbcriberType.UpdateTask);
+        DataProvider.Instance.RegisterDataSubscriber(() => HandleDataUpdateEvent(), SusbcriberType.UpdateActiveTask);
+        DataProvider.Instance.RegisterDataSubscriber(() => HandleDataUpdateEvent(), SusbcriberType.UpdateStep);
     }
 
     public void HandleDataUpdateEvent()
@@ -102,47 +111,53 @@ public class MultiTaskList : Singleton<MultiTaskList>
     }
     private IEnumerator FadeOut()
     {
-        GameObject canvas = _allTasklists[_currIndex];
-        CanvasGroup canvasGroup = canvas.GetComponent<CanvasGroup>();
-        float counter = 0f;
-        float duration = 1.0f;
-        float startAlpha = 1.0f;
-        float targetAlpha = 0.0f;
-        bool broken = false;
-        while (counter < duration)
+        GameObject canvas = null;
+        if (_currIndex < _allTasklists.Count)
         {
-            if (EyeGazeManager.Instance.CurrentHit == EyeTarget.listmenuButton_tasks)
+            canvas = _allTasklists[_currIndex];
+            CanvasGroup canvasGroup = canvas.GetComponent<CanvasGroup>();
+            float counter = 0f;
+            float duration = 1.0f;
+            float startAlpha = 1.0f;
+            float targetAlpha = 0.0f;
+            bool broken = false;
+            while (counter < duration)
             {
-                broken = true;
-                break;
-            }
-            counter += Time.deltaTime;
-            if (canvasGroup != null)
-            {
-                canvasGroup.alpha = Mathf.Lerp(startAlpha, targetAlpha, counter / duration);
-            }
+                if (EyeGazeManager.Instance.CurrentHit == EyeTarget.listmenuButton_tasks)
+                {
+                    broken = true;
+                    break;
+                }
+                counter += Time.deltaTime;
+                if (canvasGroup != null)
+                {
+                    canvasGroup.alpha = Mathf.Lerp(startAlpha, targetAlpha, counter / duration);
+                }
 
-            yield return null;
-        }
-        if (!broken)
-        {
-            if (canvas != null)
-            {
-                canvas.SetActive(false);
+                yield return null;
             }
-            this.GetComponent<Center_of_Objs>().SetIsLooking(false);
-            if (canvasGroup != null)
+            if (!broken)
             {
+                if (canvas != null)
+                {
+                    canvas.SetActive(false);
+                }
+                this.GetComponent<Center_of_Objs>().SetIsLooking(false);
+                if (canvasGroup != null)
+                {
+                    canvasGroup.alpha = 1.0f;
+                }
+                this.GetComponent<Center_of_Objs>().DeactivateLines();
+            }
+            else
+            {
+                delta = 0.0f;
                 canvasGroup.alpha = 1.0f;
+                canvas.SetActive(true);
             }
-            this.GetComponent<Center_of_Objs>().DeactivateLines();
         }
         else
-        {
-            delta = 0.0f;
-            canvasGroup.alpha = 1.0f;
-            canvas.SetActive(true);
-        }
+            yield return null;
 
     }
     #endregion
@@ -184,10 +199,10 @@ public class MultiTaskList : Singleton<MultiTaskList>
                 GameObject currOverview = AddNewTaskOverview();
                 _containers.Add(currOverview.GetComponent<TaskOverviewContainerRepo>());
                 TaskOverviewContainerRepo curr = _containers[_containers.Count - 1];
+                _allTasklists.Add(curr.taskUI);
                 curr.multiListInstance.ListContainer = this.gameObject;
                 curr.multiListInstance.index = index;
                 curr.taskNameText.SetText(pair.Key);
-                _allTasklists.Add(curr.taskUI);
                 SetupCurrTaskOverview currSetup = curr.setupInstance;
                 if (pair.Value.CurrStepIndex != -1)
                 {
@@ -217,13 +232,14 @@ public class MultiTaskList : Singleton<MultiTaskList>
         if (_containers.Count == 0) return;
         
         TaskOverviewContainerRepo firstCont = _containers[0];
-        for(int i = 1; i < _containers.Count; i++)
-        {
+        int count = _containers.Count;
+        for (int i = 1; i < count; i++) {
+            _allTasklists.RemoveAt(_allTasklists.Count - 1);
             Destroy(_containers[i].gameObject);
             _overviewHandle.Start = new Vector3(_overviewHandle.Start.x, _overviewHandle.Start.y + 0.015f, _overviewHandle.Start.z);
             _followCameraContainer.transform.localPosition = new Vector3(_followCameraContainer.transform.localPosition.x, _followCameraContainer.transform.localPosition.y - 0.025f, _followCameraContainer.transform.localPosition.z);
             _numSecondaryTasks--;
-        }
+        } 
         _containers.Clear();
         _containers.Add(firstCont);
     }
@@ -232,7 +248,7 @@ public class MultiTaskList : Singleton<MultiTaskList>
     {
         _numSecondaryTasks++;
         GameObject newOverview = Instantiate(Resources.Load(StringResources.Sid_TaskOverview_Container_path) as GameObject, _taskOverviewContainer.transform) ;
-        newOverview.transform.localPosition = new Vector3(_taskOverviewContainer.transform.localPosition.x, _taskOverviewContainer.transform.localPosition.y - (0.07f * _numSecondaryTasks), _taskOverviewContainer.transform.localPosition.z);
+        newOverview.transform.localPosition = new Vector3(_mainTaskContainer.transform.localPosition.x, _mainTaskContainer.transform.localPosition.y - (0.07f * _numSecondaryTasks), _mainTaskContainer.transform.localPosition.z);
         _overviewHandle.Start = new Vector3(_overviewHandle.Start.x, _overviewHandle.Start.y - 0.015f, _overviewHandle.Start.z);
         _followCameraContainer.transform.localPosition = new Vector3(_followCameraContainer.transform.localPosition.x, _followCameraContainer.transform.localPosition.y + 0.025f, _followCameraContainer.transform.localPosition.z);
         return newOverview;
