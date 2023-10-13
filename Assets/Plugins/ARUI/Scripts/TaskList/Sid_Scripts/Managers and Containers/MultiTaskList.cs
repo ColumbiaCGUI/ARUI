@@ -45,6 +45,8 @@ public class MultiTaskList : Singleton<MultiTaskList>
         DataProvider.Instance.RegisterDataSubscriber(() => HandleDataUpdateEvent(), SusbcriberType.UpdateTask);
         DataProvider.Instance.RegisterDataSubscriber(() => HandleDataUpdateEvent(), SusbcriberType.UpdateActiveTask);
         DataProvider.Instance.RegisterDataSubscriber(() => HandleDataUpdateEvent(), SusbcriberType.UpdateStep);
+        //Set inactive by default
+        ToggleOverview(false);
     }
 
     public void HandleDataUpdateEvent()
@@ -167,6 +169,13 @@ public class MultiTaskList : Singleton<MultiTaskList>
     {
         ResetAllTaskOverviews();
         int index = 1;
+        if(tasks.Count > 0)
+        {
+            ToggleOverview(true);
+        } else
+        {
+            ToggleOverview(false);
+        }
         foreach(KeyValuePair<string, TaskList> pair in tasks)
         {
             if (pair.Key == currTask)
@@ -264,6 +273,19 @@ public class MultiTaskList : Singleton<MultiTaskList>
             _followCameraContainer.SetActive(true);
             Center_of_Objs.Instance.SnapToCentroid();
         } else
+        {
+            _overviewHandle.gameObject.SetActive(false);
+            _followCameraContainer.SetActive(false);
+        }
+    }
+    public void ToggleOverview(bool active)
+    {
+        if (active)
+        {
+            _overviewHandle.gameObject.SetActive(true);
+            _followCameraContainer.SetActive(true);
+        }
+        else
         {
             _overviewHandle.gameObject.SetActive(false);
             _followCameraContainer.SetActive(false);
