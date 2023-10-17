@@ -76,13 +76,20 @@ public class MultiTaskList : Singleton<MultiTaskList>
     }
 
     #region Managing the main task line 
+    /// <summary>
+    /// Set the end coordinates of the main task line
+    /// </summary>
+    /// <param name="EndCords"></param>
     public void SetLineEnd(Vector3 EndCords)
     {
         Vector3 finalCords = _overviewHandle.transform.InverseTransformPoint(EndCords);
         //OverviewLine.End = new Vector3(OverviewLine.End.x, finalCords.y, OverviewLine.End.z);
         _overviewHandle.End = finalCords;
     }
-
+    /// <summary>
+    /// Set the start coordinates of the main task line
+    /// </summary>
+    /// <param name="EndCords"></param>
     public void SetLineStart(Vector3 EndCords)
     {
         Vector3 finalCords = _overviewHandle.transform.InverseTransformPoint(EndCords);
@@ -92,10 +99,15 @@ public class MultiTaskList : Singleton<MultiTaskList>
     #endregion
 
     #region Setting inidvidual recipe menus active/inative
-
+    /// <summary>
+    /// Sets the overview menu defined by index active
+    /// An index of 0 represents the main task while
+    /// other indeces are secondary tasks
+    /// </summary>
+    /// <param name="index"></param>
     public void SetMenuActive(int index)
     {
-        this.GetComponent<Center_of_Objs>().SetIsLooking(true);
+        this.GetComponent<TasklistPositionManager>().SetIsLooking(true);
         _currIndex = index;
         for(int i = 0; i < _allTasklists.Count; i++)
         {
@@ -111,60 +123,15 @@ public class MultiTaskList : Singleton<MultiTaskList>
         }
 
     }
-    private IEnumerator FadeOut()
-    {
-        GameObject canvas = null;
-        if (_currIndex < _allTasklists.Count)
-        {
-            canvas = _allTasklists[_currIndex];
-            CanvasGroup canvasGroup = canvas.GetComponent<CanvasGroup>();
-            float counter = 0f;
-            float duration = 1.0f;
-            float startAlpha = 1.0f;
-            float targetAlpha = 0.0f;
-            bool broken = false;
-            while (counter < duration)
-            {
-                if (EyeGazeManager.Instance.CurrentHit == EyeTarget.listmenuButton_tasks)
-                {
-                    broken = true;
-                    break;
-                }
-                counter += Time.deltaTime;
-                if (canvasGroup != null)
-                {
-                    canvasGroup.alpha = Mathf.Lerp(startAlpha, targetAlpha, counter / duration);
-                }
-
-                yield return null;
-            }
-            if (!broken)
-            {
-                if (canvas != null)
-                {
-                    canvas.SetActive(false);
-                }
-                this.GetComponent<Center_of_Objs>().SetIsLooking(false);
-                if (canvasGroup != null)
-                {
-                    canvasGroup.alpha = 1.0f;
-                }
-                this.GetComponent<Center_of_Objs>().DeactivateLines();
-            }
-            else
-            {
-                delta = 0.0f;
-                canvasGroup.alpha = 1.0f;
-                canvas.SetActive(true);
-            }
-        }
-        else
-            yield return null;
-
-    }
     #endregion
 
     #region Managing task overview steps and recipes
+    /// <summary>
+    /// Takes in all the current tasks stored, key of the current task 
+    /// and updates the task overview based on data provided
+    /// </summary>
+    /// <param name="tasks"></param>
+    /// <param name="currTask"></param>
     public void UpdateAllSteps(Dictionary<string, TaskList> tasks, string currTask)
     {
         ResetAllTaskOverviews();
@@ -184,7 +151,7 @@ public class MultiTaskList : Singleton<MultiTaskList>
                 SetupCurrTaskOverview currSetup = _containers[0].setupInstance;
                 if (pair.Value.CurrStepIndex != -1)
                 {
-                    currSetup.SetupCurrTask(pair.Value.Steps[pair.Value.CurrStepIndex], this.GetComponent<Center_of_Objs>());
+                    currSetup.SetupCurrTask(pair.Value.Steps[pair.Value.CurrStepIndex], this.GetComponent<TasklistPositionManager>());
                 }
                 if (pair.Value.NextStepIndex != -1)
                 {
@@ -235,7 +202,10 @@ public class MultiTaskList : Singleton<MultiTaskList>
             }
         }
     }
-
+    /// <summary>
+    /// Removes all secondary tasks in the overview
+    /// so that it can be updated
+    /// </summary>
     public void ResetAllTaskOverviews()
     {
         if (_containers.Count == 0) return;
@@ -252,7 +222,10 @@ public class MultiTaskList : Singleton<MultiTaskList>
         _containers.Clear();
         _containers.Add(firstCont);
     }
-
+    /// <summary>
+    /// Adds a secondary task to the task overview
+    /// </summary>
+    /// <returns></returns>
     public GameObject AddNewTaskOverview()
     {
         _numSecondaryTasks++;
@@ -265,19 +238,27 @@ public class MultiTaskList : Singleton<MultiTaskList>
     #endregion
 
     #region Setting task overview active and inactive
+    /// <summary>
+    /// Set the overview (containing all task data) active or inactive
+    /// based on current state of _followCameraContainer
+    /// </summary>
     public void ToggleOverview()
     {
         if (!_followCameraContainer.activeSelf)
         {
             _overviewHandle.gameObject.SetActive(true);
             _followCameraContainer.SetActive(true);
-            Center_of_Objs.Instance.SnapToCentroid();
+            TasklistPositionManager.Instance.SnapToCentroid();
         } else
         {
             _overviewHandle.gameObject.SetActive(false);
             _followCameraContainer.SetActive(false);
         }
     }
+    /// <summary>
+    /// Set the overview (containing all task data) active 
+    /// or inactive
+    /// </summary>
     public void ToggleOverview(bool active)
     {
         if (active)
@@ -290,6 +271,64 @@ public class MultiTaskList : Singleton<MultiTaskList>
             _overviewHandle.gameObject.SetActive(false);
             _followCameraContainer.SetActive(false);
         }
+    }
+
+    /// <summary>
+    /// Fades out entire task overview 
+    /// once user does not look at it for a certain
+    /// period of time
+    /// </summary>
+    /// <returns></returns>
+    private IEnumerator FadeOut()
+    {
+        GameObject canvas = null;
+        if (_currIndex < _allTasklists.Count)
+        {
+            canvas = _allTasklists[_currIndex];
+            CanvasGroup canvasGroup = canvas.GetComponent<CanvasGroup>();
+            float counter = 0f;
+            float duration = 1.0f;
+            float startAlpha = 1.0f;
+            float targetAlpha = 0.0f;
+            bool broken = false;
+            while (counter < duration)
+            {
+                if (EyeGazeManager.Instance.CurrentHit == EyeTarget.listmenuButton_tasks)
+                {
+                    broken = true;
+                    break;
+                }
+                counter += Time.deltaTime;
+                if (canvasGroup != null)
+                {
+                    canvasGroup.alpha = Mathf.Lerp(startAlpha, targetAlpha, counter / duration);
+                }
+
+                yield return null;
+            }
+            if (!broken)
+            {
+                if (canvas != null)
+                {
+                    canvas.SetActive(false);
+                }
+                this.GetComponent<TasklistPositionManager>().SetIsLooking(false);
+                if (canvasGroup != null)
+                {
+                    canvasGroup.alpha = 1.0f;
+                }
+                this.GetComponent<TasklistPositionManager>().DeactivateLines();
+            }
+            else
+            {
+                delta = 0.0f;
+                canvasGroup.alpha = 1.0f;
+                canvas.SetActive(true);
+            }
+        }
+        else
+            yield return null;
+
     }
     #endregion
 }

@@ -12,7 +12,7 @@ public class SetupCurrTaskOverview : MonoBehaviour
     public ManageStepFlashcardSolo nextFlashcard;
     public GameObject topPlaceholder;
     public GameObject bottomPlaceholder;
-    public void SetupCurrTask(Step currStep, Center_of_Objs centerScript = null)
+    public void SetupCurrTask(Step currStep, TasklistPositionManager centerScript = null)
     {
         List<string> reqList;
         if (currStep.SubSteps.Count > 0)
