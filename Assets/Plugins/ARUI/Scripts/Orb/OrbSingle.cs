@@ -53,7 +53,10 @@ public class OrbSingle : OrbMessage
         _indicator.gameObject.SetActive(enabled);
     }
 
-    private void Start()
+    /// <summary>
+    /// Init component, get reference to gameobjects from children
+    /// </summary>
+    public override void InitializeComponents()
     {
         messageType = OrbMessageType.single;
 

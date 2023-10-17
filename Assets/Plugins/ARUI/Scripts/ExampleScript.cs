@@ -22,7 +22,7 @@ public class ExampleScript : MonoBehaviour
         yield return new WaitForSeconds(1f);
 
         AngelARUI.Instance.InitManual(new List<string> { "Pinwheels", "Coffee", "Oatmeal" });
-        AngelARUI.Instance.SetSelectedTasks(new List<string> { "Pinwheels","Coffee" });
+        AngelARUI.Instance.SetSelectedTasks(new List<string> { "Pinwheels"});
 
         for (int u = -1; u < 3; u++)
         {
@@ -31,6 +31,7 @@ public class ExampleScript : MonoBehaviour
 
             _currentTask = u;
         }
+
 
         yield return new WaitForSeconds(1f);
 

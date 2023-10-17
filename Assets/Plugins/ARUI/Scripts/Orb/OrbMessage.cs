@@ -94,6 +94,8 @@ public abstract class OrbMessage : MonoBehaviour
     public abstract void AddNotification(NotificationType type, string message, OrbFace face);
     public abstract void RemoveNotification(NotificationType type, OrbFace face);
 
+    public abstract void InitializeComponents();
+
     public abstract bool IsInteractingWithBtn();
     public abstract void SetIsActive(bool active, bool newTask);
     public abstract List<BoxCollider> GetAllColliders();

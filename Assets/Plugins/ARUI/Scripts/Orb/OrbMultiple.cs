@@ -6,29 +6,14 @@ using System.Collections;
 
 public class OrbMultiple : OrbMessage
 {
-    private List<Shapes.Disc> allPies = new List<Shapes.Disc>();
-    private List<Shapes.Disc> allProgress = new List<Shapes.Disc>();
-    private List<TextMeshProUGUI> allCurrentStepText = new List<TextMeshProUGUI>();
-    private List<TextMeshProUGUI> allCurrentStepTextProgress = new List<TextMeshProUGUI>();
+    private List<OrbPie> _allPies = new List<OrbPie>();
 
-    private string[] tasknameToIndex = new string[5] { "", "", "", "", "" };
+    private OrbPie _nextAvailablePie;
+    private int _nextAvailablePieIndex = 0;
 
-    private float _minRadius = 0.0175f;
-    private float _minThick = 0.005f;
-    private float _maxRadius = 0.027f;
-    private float _maxThick = 0.02f;
-    private float _maxRadiusActive = 0.032f;
-    private float _maxThickActive = 0.03f;
+    private Dictionary<string, OrbPie> taskNameToOrbPie;
 
-    private float _startDegRight = 23;
-    private float _startDegLeft = 180;
-
-    private string _currentActiveTask = "";
-
-    public void Awake()
-    {
-        messageType = OrbMessageType.multiple;
-    }
+    private OrbPie _currentActivePie = null;
 
     private bool _enalbed = false;
     public override void SetEnabled(bool enabled)
@@ -36,36 +21,23 @@ public class OrbMultiple : OrbMessage
         _enalbed = enabled;
         transform.GetChild(0).gameObject.SetActive(enabled);
     }
-   
 
     /// <summary>
     /// Init component, get reference to gameobjects from children
     /// </summary>
-    void Start()
+    public override void InitializeComponents()
     {
+        messageType = OrbMessageType.multiple;
+
         for (int i = 0; i < 5; i++)
-            allPies.Add(transform.GetChild(0).GetChild(0).GetChild(0).GetChild(i).GetComponent<Shapes.Disc>());
-
-        float deg = _startDegRight;
-        foreach (Shapes.Disc ob in allPies)
         {
-            ob.gameObject.SetActive(false);
-            Shapes.Disc progressDisc = ob.transform.GetChild(0).GetComponent<Shapes.Disc>();
-            allProgress.Add(progressDisc);
-            progressDisc.Radius = 0;
-            progressDisc.Thickness = 0;
-
-            TextMeshProUGUI tm = ob.transform.GetChild(1).GetChild(0).GetComponent<TextMeshProUGUI>();
-            allCurrentStepText.Add(tm);
-            allCurrentStepTextProgress.Add(progressDisc.transform.GetChild(0).GetComponent<TextMeshProUGUI>());
-
-            ob.AngRadiansEnd = (deg) * Mathf.Deg2Rad;
-            ob.AngRadiansStart = (deg - 21) * Mathf.Deg2Rad;
-            progressDisc.AngRadiansEnd = (deg) * Mathf.Deg2Rad;
-            progressDisc.AngRadiansStart = (deg - 5) * Mathf.Deg2Rad;
-            deg += -23;
-
+            GameObject ob = transform.GetChild(0).GetChild(0).GetChild(0).GetChild(i).gameObject;
+            OrbPie current = ob.AddComponent<OrbPie>();
+            _allPies.Add(current);
         }
+
+        _nextAvailablePie = _allPies[_nextAvailablePieIndex];
+        taskNameToOrbPie = new Dictionary<string, OrbPie>();
     }
 
     public override void UpdateTaskList(Dictionary<string, TaskList> currentSelectedTasks)
@@ -75,32 +47,28 @@ public class OrbMultiple : OrbMessage
         int i = 0;
         foreach (string taskName in currentSelectedTasks.Keys)
         {
-            int index = Utils.ArrayContainsKey(tasknameToIndex, taskName);
-            if (index < 0)
+            if (!taskNameToOrbPie.ContainsKey(taskName))
             {
-                tasknameToIndex[i] = taskName;
-                allPies[i].gameObject.SetActive(true);
-                allPies[i].gameObject.name = currentSelectedTasks[taskName].Name;
+                taskNameToOrbPie.Add(taskName, _nextAvailablePie);
+                _nextAvailablePie.TaskName = taskName;
+                _nextAvailablePie.gameObject.name = currentSelectedTasks[taskName].Name;
 
-                TextMeshProUGUI tm = allPies[i].transform.GetChild(1).GetChild(0).GetComponent<TextMeshProUGUI>();
-                tm.text = currentSelectedTasks[taskName].Name + " : " +
-                    currentSelectedTasks[taskName].Steps[currentSelectedTasks[taskName].CurrStepIndex].StepDesc;
+                _nextAvailablePie.SetTaskMessage(currentSelectedTasks[taskName].Name + " : " +
+                    currentSelectedTasks[taskName].Steps[currentSelectedTasks[taskName].CurrStepIndex].StepDesc);
+
+                if (_currentActivePie == null)
+                    _currentActivePie = _nextAvailablePie;
+
+                _nextAvailablePieIndex++;
+                _nextAvailablePie = _allPies[_nextAvailablePieIndex];
             }
-
-            if (_currentActiveTask.Equals(""))
-                _currentActiveTask = taskName;
 
             i++;
         }
 
-        for (int j = 0; j < tasknameToIndex.Length; j++)
-        {
-            if (tasknameToIndex[j].Equals(""))
-                allPies[j].gameObject.SetActive(false);
+        foreach (OrbPie pie in _allPies)
+            pie.SetActive(taskNameToOrbPie.ContainsValue(pie));
 
-            else
-                allPies[j].gameObject.SetActive(true);
-        }
     }
 
     private new void Update()
@@ -125,21 +93,10 @@ public class OrbMultiple : OrbMessage
 
     public void UpdateActiveTask(Dictionary<string, TaskList> manual, string activeTaskID)
     {
-        for (int i = 0; i < 5; i++)
-        {
-            if (allPies[i].gameObject.name.Equals(activeTaskID))
-            {
-                allPies[i].Radius = 0.032f;
-                allPies[i].Thickness = 0.03f;
-            }
-            else
-            {
-                allPies[i].Radius = 0.027f;
-                allPies[i].Thickness = 0.02f;
-            }
-        }
+        foreach (OrbPie pie in _allPies)
+            pie.UpdateSlice(activeTaskID);
 
-        _currentActiveTask = activeTaskID;
+        _currentActivePie = taskNameToOrbPie[activeTaskID];
         SetTaskMessage(manual[activeTaskID]);
     }
 
@@ -149,28 +106,28 @@ public class OrbMultiple : OrbMessage
 
     public void UpdateAnchorInstant(MessageAnchor anchor)
     {
-        Debug.Log("Update anchor: " + anchor);
-        float deg = _startDegRight;
-        if (anchor.Equals(MessageAnchor.left))
-        {
-            deg = _startDegLeft;
-        }
+        //Debug.Log("Update anchor: " + anchor);
+        //float deg = _startDegRight;
+        //if (anchor.Equals(MessageAnchor.left))
+        //{
+        //    deg = _startDegLeft;
+        //}
 
-        CurrentAnchor = anchor;
+        //CurrentAnchor = anchor;
 
-        foreach (Shapes.Disc ob in allPies)
-        {
-            ob.AngRadiansEnd = (deg) * Mathf.Deg2Rad;
-            ob.AngRadiansStart = (deg - 21) * Mathf.Deg2Rad;
-            deg += -23;
-        }
+        //foreach (Shapes.Disc ob in _allPies)
+        //{
+        //    ob.AngRadiansEnd = (deg) * Mathf.Deg2Rad;
+        //    ob.AngRadiansStart = (deg - 21) * Mathf.Deg2Rad;
+        //    deg += -23;
+        //}
 
-        foreach (Shapes.Disc ob in allProgress)
-        {
-            ob.AngRadiansEnd = (deg) * Mathf.Deg2Rad;
-            ob.AngRadiansStart = (deg - 5) * Mathf.Deg2Rad;
-            deg += -23;
-        }
+        //foreach (Shapes.Disc ob in allProgress)
+        //{
+        //    ob.AngRadiansEnd = (deg) * Mathf.Deg2Rad;
+        //    ob.AngRadiansStart = (deg - 5) * Mathf.Deg2Rad;
+        //    deg += -23;
+        //}
     }
 
     /// <summary>
@@ -222,9 +179,9 @@ public class OrbMultiple : OrbMessage
     {
         //throw new System.NotImplementedException();
         var pieColliders = new List<BoxCollider>();
-        foreach (Shapes.Disc pie in allPies)
+        foreach (OrbPie pie in _allPies)
         {
-            pieColliders.Add(pie.GetComponentInChildren<BoxCollider>());
+            pieColliders.AddRange(pie.GetComponentsInChildren<BoxCollider>());
         }
 
         return pieColliders;
@@ -232,38 +189,10 @@ public class OrbMultiple : OrbMessage
 
     public override string SetTaskMessage(TaskList currentTask)
     {
-        int index = Utils.ArrayContainsKey(tasknameToIndex, currentTask.Name);
-        TextMeshProUGUI tm = allPies[index].transform.GetChild(1).GetChild(0).GetComponent<TextMeshProUGUI>();
-        tm.text = currentTask.Steps[currentTask.CurrStepIndex].StepDesc;
-        
+        taskNameToOrbPie[currentTask.Name].SetTaskMessage(currentTask.Steps[currentTask.CurrStepIndex].StepDesc);
+
         float ratio = (float)currentTask.CurrStepIndex / (float)(currentTask.Steps.Count - 1);
-
-        if (ratio == 0)
-        {
-            allProgress[index].Radius = 0;
-            allProgress[index].Thickness = 0;
-        }
-        else
-        {
-            if (allPies[index].gameObject.name.Equals(_currentActiveTask))
-            {
-                allProgress[index].Radius = _minRadius + (ratio * (_maxRadiusActive - _minRadius));
-                allProgress[index].Thickness = _minThick + (ratio * (_maxThickActive - _minThick));
-            }
-            else
-            {
-                allProgress[index].Radius = _minRadius + (ratio * (_maxRadius - _minRadius));
-                allProgress[index].Thickness = _minThick + (ratio * (_maxThick - _minThick));
-            }
-        }
-
-        foreach (var pie in allPies)
-        {
-            if (pie.gameObject.gameObject.name.Equals(_currentActiveTask))
-                allCurrentStepText[index].gameObject.SetActive(true);
-            else
-                allCurrentStepText[index].gameObject.SetActive(false);
-        }
+        taskNameToOrbPie[currentTask.Name].UpdateProgressbar(ratio, currentTask.Name);
 
         return "";
     }

@@ -26,10 +26,12 @@ public class OrbMessageContainer : MonoBehaviour
         // Get message object in orb prefab
         GameObject single = transform.GetChild(0).gameObject;
         _singleMessage = single.AddComponent<OrbSingle>();
+        _singleMessage.InitializeComponents();
 
         // Get message object in orb prefab
         GameObject multiple = transform.GetChild(1).gameObject;
         _multipleMessage = multiple.AddComponent<OrbMultiple>();
+        _multipleMessage.InitializeComponents();
     }
 
     // Start is called before the first frame update
