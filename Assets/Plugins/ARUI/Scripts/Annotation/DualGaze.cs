@@ -7,6 +7,7 @@ using UnityEngine;
 
 public class DualGaze : MonoBehaviour
 {
+    GameObject currentHitObject;
     GameObject lastHitObject;
     Vector3 lastGazeDirection;
 
@@ -19,6 +20,8 @@ public class DualGaze : MonoBehaviour
 
     private bool annoShown;
 
+    private Coroutine resetButtonCoroutine;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -30,7 +33,7 @@ public class DualGaze : MonoBehaviour
     {
         if (!EyeGazeManager.Instance) return;
 
-        GameObject currentHitObject = EyeGazeManager.Instance.CurrentHitObj;
+        currentHitObject = EyeGazeManager.Instance.CurrentHitObj;
         RaycastHit hitInfo = EyeGazeManager.Instance.publicHitInfo;
         IMixedRealityEyeGazeProvider provider = EyeGazeManager.Instance.eyeGazeProvider;
 
@@ -45,44 +48,50 @@ public class DualGaze : MonoBehaviour
 
             float[] delta = { absX, absY, absZ };
             float deltaMax = delta.Max();
+
+            Vector3 buttonPos;
+
             if (deltaMax == absX)
             {
-                if (directionDiff.x > 0) 
+                if (directionDiff.x > 0)
                 {
-                    button.position = new Vector3(transform.position.x - (transform.lossyScale.x / 2 + button.lossyScale.x), transform.position.y, transform.position.z);
+                    buttonPos = new Vector3(transform.position.x - (transform.lossyScale.x / 2 + button.lossyScale.x), transform.position.y, transform.position.z);
                 }
-                else 
-                { 
-                    button.position = new Vector3(transform.position.x + (transform.lossyScale.x / 2 + button.lossyScale.x), transform.position.y, transform.position.z);
+                else
+                {
+                    buttonPos = new Vector3(transform.position.x + (transform.lossyScale.x / 2 + button.lossyScale.x), transform.position.y, transform.position.z);
                 }
             }
             else if (deltaMax == absY)
             {
-                if (directionDiff.x > 0) 
-                { 
-                    button.position = new Vector3(transform.position.x, transform.position.y - (transform.lossyScale.y / 2 + button.lossyScale.y), transform.position.z);
+                if (directionDiff.x > 0)
+                {
+                    buttonPos = new Vector3(transform.position.x, transform.position.y - (transform.lossyScale.y / 2 + button.lossyScale.y), transform.position.z);
                 }
-                else 
-                { 
-                    button.position = new Vector3(transform.position.x, transform.position.y + (transform.lossyScale.y / 2 + button.lossyScale.y), transform.position.z);
+                else
+                {
+                    buttonPos = new Vector3(transform.position.x, transform.position.y + (transform.lossyScale.y / 2 + button.lossyScale.y), transform.position.z);
                 }
             }
             else
             {
-                if (directionDiff.z > 0) 
-                { 
-                    button.position = new Vector3(transform.position.x, transform.position.y, transform.position.z - (transform.lossyScale.z / 2 + button.lossyScale.z));
+                if (directionDiff.z > 0)
+                {
+                    buttonPos = new Vector3(transform.position.x, transform.position.y, transform.position.z - (transform.lossyScale.z / 2 + button.lossyScale.z));
                 }
-                else 
-                { 
-                    button.position = new Vector3(transform.position.x, transform.position.y, transform.position.z + (transform.lossyScale.z / 2 + button.lossyScale.z));
+                else
+                {
+                    buttonPos = new Vector3(transform.position.x, transform.position.y, transform.position.z + (transform.lossyScale.z / 2 + button.lossyScale.z));
                 }
             }
+
+            StartCoroutine(annoDelay(buttonPos));
         }
 
         if (currentHitObject == button.gameObject)
         {
             button.transform.localPosition = Vector3.zero;
+            StopCoroutine(resetButtonCoroutine);
             anno.SetActive(true);
             annoShown = true;
             StartCoroutine(CloseAnno());
@@ -97,5 +106,21 @@ public class DualGaze : MonoBehaviour
         yield return new WaitForSeconds(disableTimer);
         anno.SetActive(false);
         annoShown = false;
+    }
+
+    IEnumerator annoDelay(Vector3 buttonPos)
+    {
+        yield return new WaitForSeconds(0.3f);
+        if (currentHitObject == gameObject)
+        {
+            button.transform.position = buttonPos;
+            resetButtonCoroutine = StartCoroutine(resetButton());
+        }
+    }
+
+    IEnumerator resetButton()
+    {
+        yield return new WaitForSeconds(2);
+        button.transform.position = Vector3.zero;
     }
 }
