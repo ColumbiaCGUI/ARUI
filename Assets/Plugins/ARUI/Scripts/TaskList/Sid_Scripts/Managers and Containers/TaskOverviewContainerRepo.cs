@@ -8,7 +8,7 @@ public class TaskOverviewContainerRepo : MonoBehaviour
 {
     //This is for the rectnable to make the task list visible 
     //when user gazes at it
-    public ListMenuMultipleLists multiListInstance;
+    public CurrentListActivator multiListInstance;
     //This handles setting up all the flashcards
     public SetupCurrTaskOverview setupInstance;
     //TMP object containing the name of the tasklist
