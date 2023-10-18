@@ -32,11 +32,13 @@ public class EyeGazeManager : Singleton<EyeGazeManager>
     public Vector3 gazePosition;
     public float sizeRatio;
 
+    public RaycastHit publicHitInfo;
+
     // ========================================================================
     // private
     // ========================================================================
     // ** Debug eye gaze target cube
-    private IMixedRealityEyeGazeProvider eyeGazeProvider;
+    public IMixedRealityEyeGazeProvider eyeGazeProvider;
 
     private MeshRenderer _eyeGazeTargetCube;
     private bool _showRayDebugCube = false;
@@ -89,6 +91,7 @@ public class EyeGazeManager : Singleton<EyeGazeManager>
 
             Ray rayToCenter = new Ray(eyeGazeProvider.GazeOrigin, eyeGazeProvider.GazeDirection);
             Physics.Raycast(rayToCenter, out RaycastHit hitInfo, 100f, rayLayerMask);
+            publicHitInfo = hitInfo;
 
             // Update GameObject to the current eye gaze position at a given distance
             if (hitInfo.collider != null)
