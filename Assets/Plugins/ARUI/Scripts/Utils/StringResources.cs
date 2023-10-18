@@ -22,7 +22,7 @@ public static class StringResources
     public static string EyeTarget_path = "Prefabs/EyeTarget";
     public static string ConfNotification_path = "Prefabs/ConfirmationNotification";
     public static string HandPoseManager_path = "Prefabs/HandPoseManager";
-    public static string Sid_Tasklist_path = "Prefabs/Sid_Tasklist/Multi_Menu_Pivot";
+    public static string Sid_Tasklist_path = "Prefabs/Sid_Tasklist/Task_Overview";
     public static string Sid_TaskListComponent_path = "Prefabs/Sid_Tasklist/Flashcards/TaskListComponent";
     public static string Sid_TaskOverview_Container_path = "Prefabs/Sid_Tasklist/Containers/Secondary_TaskOverview_Container";
     public static string Sid_MainTaskOverview_Container_path = "Prefabs/Sid_Tasklist/Containers/Main_TaskOverview_Container";
