@@ -4,7 +4,7 @@ using UnityEngine;
 using Shapes;
 using System.Diagnostics;
 
-public class Center_of_Objs : Singleton<Center_of_Objs>
+public class TasklistPositionManager : Singleton<TasklistPositionManager>
 {
     // Debug only
     public List<GameObject> objs;
@@ -181,7 +181,10 @@ public class Center_of_Objs : Singleton<Center_of_Objs>
     }
 
 
-    //Remove a specific object (based on key given)
+    /// <summary>
+    /// Remove a specific object (based on key given)
+    /// </summary>
+    /// <param name="key"></param>
     public void RemoveObj(string key)
     {
         objs.Remove(objsDict[key]);
@@ -189,7 +192,9 @@ public class Center_of_Objs : Singleton<Center_of_Objs>
         Destroy(linesDict[key]);
         linesDict.Remove(key);
     }
-    //Clear all required objects
+    /// <summary>
+    /// Clear all required objects
+    /// </summary>
     public void ClearObjs()
     {
         objsDict.Clear();
@@ -229,7 +234,11 @@ public class Center_of_Objs : Singleton<Center_of_Objs>
             pair.Value.SetActive(false);
         }
     }
-    //Update all the lines that point to task objects 
+    /// <summary>
+    /// Update all the lines that point to task objects 
+    /// </summary>
+    /// <param name="key"></param>
+    /// <param name="obj"></param>
     public void UpdateLines(string key, GameObject obj)
     {
         if (key != "MainCam")
@@ -241,7 +250,11 @@ public class Center_of_Objs : Singleton<Center_of_Objs>
         }
     }
     
-    //Set the start location of the line pointing at required objects
+    /// <summary>
+    /// Set the start location of the line pointing at required objects
+    /// </summary>
+    /// <param name="key"></param>
+    /// <param name="StartPos"></param>
     public void SetLineStart(string key, Vector3 StartPos)
     {
         //Check if key exists in dictionary first!!
@@ -260,8 +273,10 @@ public class Center_of_Objs : Singleton<Center_of_Objs>
         //    }
         //}
     }
-    //If the user is looking at a task overview object
-    //then set isLooking to true
+    /// <summary>
+    /// If the user is looking at a task overview object then set isLooking to true
+    /// </summary>
+    /// <param name="val"></param>
     public void SetIsLooking(bool val)
     {
         isLooking = val;

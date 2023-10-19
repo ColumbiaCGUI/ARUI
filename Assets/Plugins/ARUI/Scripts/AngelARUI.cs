@@ -93,6 +93,11 @@ public class AngelARUI : Singleton<AngelARUI>
         orb.transform.parent = transform;
         orb.AddComponent<Orb>();
 
+        //Instantiate the Task Overview
+        GameObject TaskOverview = Instantiate(Resources.Load(StringResources.Sid_Tasklist_path)) as GameObject;
+        TaskOverview.gameObject.name = "***ARUI-" + StringResources.tasklist_name;
+        TaskOverview.GetComponent<TasklistPositionManager>().SnapToCentroid();
+
         //Start View Management, if enabled
         if (_useViewManagement)
             StartCoroutine(TryStartVM());
@@ -104,7 +109,7 @@ public class AngelARUI : Singleton<AngelARUI>
 
         //Instantiate empty multi tasklist
         //GameObject overviewObj = Instantiate(Resources.Load(StringResources.Sid_Tasklist_path)) as GameObject;
-        //Center_of_Objs.Instance.SnapToCentroid();
+        //TasklistPositionManager.Instance.SnapToCentroid();
 
         //Load resources for UI elements
         _confirmationWindowPrefab = Resources.Load(StringResources.ConfNotification_path) as GameObject;

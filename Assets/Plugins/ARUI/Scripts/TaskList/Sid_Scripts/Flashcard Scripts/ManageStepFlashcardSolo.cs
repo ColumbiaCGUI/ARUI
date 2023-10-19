@@ -5,7 +5,7 @@ using UnityEngine;
 public class ManageStepFlashcardSolo : MonoBehaviour
 {
     public TMP_Text TaskText;
-    public Center_of_Objs centerScript;
+    public TasklistPositionManager centerScript;
     public Step currStep;
 
     public void InitializeFlashcard(Step newStep)

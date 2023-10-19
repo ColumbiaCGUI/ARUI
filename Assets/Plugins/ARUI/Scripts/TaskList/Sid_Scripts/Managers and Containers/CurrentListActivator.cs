@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.XR.OpenXR.Features.Interactions;
 
 //Script attached to rectangle to activate respctive task list
-public class ListMenuMultipleLists : MonoBehaviour
+public class CurrentListActivator : MonoBehaviour
 {
     public int index;
     public GameObject ListContainer;
