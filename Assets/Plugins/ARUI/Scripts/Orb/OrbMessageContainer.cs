@@ -3,85 +3,401 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+public enum MessageAnchor
+{
+    left = 1, //message is left from the orb
+    right = 2, //message is right from the orb
+}
+
 public class OrbMessageContainer : MonoBehaviour
 {
-    private OrbMessage _currentActiveMessage;
+    private List<OrbPie> _allPies = new List<OrbPie>();
+    private OrbPie _nextAvailablePie;
+    private int _nextAvailablePieIndex = 0;
+    private Dictionary<string, OrbPie> taskNameToOrbPie;
 
-    private OrbSingle _singleMessage;
-    private OrbMultiple _multipleMessage;
+    private OrbPie _currentActivePie = null;
 
-    public bool IsLookingAtMessage => _currentActiveMessage.IsLookingAtMessage;
+    //** Layout
+    private MessageAnchor _currentAnchor = MessageAnchor.right;
 
-    public bool UserHasSeenNewStep => _currentActiveMessage.UserHasSeenNewStep;
-
-    public bool IsMessageVisible => _currentActiveMessage.IsMessageVisible;
-    public bool IsMessageFading => _currentActiveMessage.IsMessageFading;
-
-    public IEnumerable<BoxCollider> GetAllColliders => _currentActiveMessage.GetAllColliders();
-
-    public bool IsInteractingWithBtn => _currentActiveMessage.IsInteractingWithBtn();
-
-    private void Awake()
+    //** States
+    private bool _isLookingAtMessage = false;
+    public bool IsLookingAtMessage
     {
-        // Get message object in orb prefab
-        GameObject single = transform.GetChild(0).gameObject;
-        _singleMessage = single.AddComponent<OrbSingle>();
-        _singleMessage.InitializeComponents();
-
-        // Get message object in orb prefab
-        GameObject multiple = transform.GetChild(1).gameObject;
-        _multipleMessage = multiple.AddComponent<OrbMultiple>();
-        _multipleMessage.InitializeComponents();
+        get { return _isLookingAtMessage; }
     }
 
-    // Start is called before the first frame update
-    void Start()
+    private bool _isMessageContainerActive = false;
+    public bool IsMessageContainerActive
     {
-        _multipleMessage.SetEnabled(false);
-        _currentActiveMessage = _singleMessage;
+        get { return _isMessageContainerActive; }
+        set
+        {
+            _isMessageContainerActive = value;
+
+            foreach (OrbPie op in _allPies)
+            {
+                op.SetTaskActive(value);
+                if (value)
+                {
+                    op.Text.BackgroundColor = ARUISettings.OrbMessageBGColor;
+                    op.SetTextAlpha(1f);
+                }
+            }
+                
+            if (value)
+            {
+                UpdateAnchorInstant(_currentAnchor);
+            } else
+            {
+                _isMessageFading = false;
+            }
+
+            _taskListbutton.gameObject.SetActive(value);
+        }
+    }
+
+    private bool _isMessageFading = false;
+    public bool IsMessageFading
+    {
+        get { return _isMessageFading; }
+        set { _isMessageFading = value; }
+    }
+
+    private bool _messageIsLerping = false;
+    protected bool IsMessageLerping
+    {
+        get { return _messageIsLerping; }
+        set { _messageIsLerping = value; }
+    }
+
+    private DwellButton _taskListbutton;                     /// <reference to dwell btn above orb ('tasklist button')
+    public DwellButton TaskListToggle
+    {
+        get => _taskListbutton;
+    }
+    
+    public bool IsInteractingWithBtn => TaskListToggle != null && TaskListToggle.IsInteractingWithBtn;
+
+
+    /// <summary>
+    /// Init component, get reference to gameobjects from children
+    /// </summary>
+    public void InitializeComponents()
+    {
+        // Init tasklist button
+        GameObject taskListbtn = transform.GetChild(0).gameObject;
+        _taskListbutton = taskListbtn.AddComponent<DwellButton>();
+        _taskListbutton.gameObject.name += "FacetasklistButton";
+        //_taskListbutton.InitializeButton(EyeTarget.orbtasklistButton, () => ToggleOrbTaskList(), null, true, DwellButtonType.Select);
+
+        float _startDegRight = 23;
+        float _startDegLeft = 180;
+        float degR = _startDegRight;
+        float degL = _startDegLeft;
+
+        // Init Pie Menu
+        for (int i = 0; i < 5; i++)
+        {
+            GameObject ob = transform.GetChild(1).GetChild(0).GetChild(0).GetChild(0).GetChild(i).gameObject;
+            OrbPie current = ob.AddComponent<OrbPie>();
+            current.InitializeComponents(degR, degL);
+            degR += -23;
+            degL += 23;
+
+            _allPies.Add(current);
+        }
+
+        _nextAvailablePie = _allPies[_nextAvailablePieIndex];
+        taskNameToOrbPie = new Dictionary<string, OrbPie>();
+
+        IsMessageContainerActive = false;
+    }
+
+    public void Update()
+    {
+        // Update eye tracking flag
+        if (_isLookingAtMessage && EyeGazeManager.Instance.CurrentHit != EyeTarget.orbMessage && EyeGazeManager.Instance.CurrentHit != EyeTarget.orbtasklistButton)
+            _isLookingAtMessage = false;
+        else if (!_isLookingAtMessage && (EyeGazeManager.Instance.CurrentHit == EyeTarget.orbMessage || EyeGazeManager.Instance.CurrentHit == EyeTarget.orbtasklistButton))
+            _isLookingAtMessage = true;
+
+        if (!IsMessageContainerActive || IsMessageLerping) return;
+
+        // Update messagebox anchor
+        if (ChangeMessageBoxToRight(100))
+            UpdateAnchorLerp(MessageAnchor.right);
+
+        else if (ChangeMessageBoxToLeft(100))
+            UpdateAnchorLerp(MessageAnchor.left);
+    }
+
+    public void HandleUpdateActiveTaskEvent(string currentTask)
+    {
+        foreach (OrbPie pie in _allPies)
+            pie.UpdateSlice(currentTask);
     }
 
     public void HandleUpdateTaskListEvent(Dictionary<string, TaskList> currentSelectedTasks)
     {
+        //SetEnabled(currentSelectedTasks.Keys.Count > 0);
+
         if (currentSelectedTasks.Keys.Count==1)
         {
-            _singleMessage.SetEnabled(true);
-            _multipleMessage.SetEnabled(false);
-
-            _currentActiveMessage = _singleMessage;
+            //TODO only show one pie
         } else
         {
-            _singleMessage.SetEnabled(false);
-            _multipleMessage.SetEnabled(true);
-
-            _currentActiveMessage = _multipleMessage;
+            //TODO show all pies
         }
 
-        _currentActiveMessage.UpdateTaskList(currentSelectedTasks);
+        UpdateTaskList(currentSelectedTasks);
     }
 
-    public void SetIsActive(bool active, bool isNewTask) => _currentActiveMessage.SetIsActive(active, isNewTask);
+    private void UpdateTaskList(Dictionary<string, TaskList> currentSelectedTasks)
+    {
+        if (currentSelectedTasks.Count == 0 || currentSelectedTasks.Count > 5) return;
+
+        int i = 0;
+        foreach (string taskName in currentSelectedTasks.Keys)
+        {
+            if (!taskNameToOrbPie.ContainsKey(taskName))
+            {
+                taskNameToOrbPie.Add(taskName, _nextAvailablePie);
+                _nextAvailablePie.TaskName = taskName;
+                _nextAvailablePie.gameObject.name = currentSelectedTasks[taskName].Name;
+
+                _nextAvailablePie.SetTaskMessage(currentSelectedTasks[taskName].Name + " : " +
+                    currentSelectedTasks[taskName].Steps[currentSelectedTasks[taskName].CurrStepIndex].StepDesc);
+
+                if (_currentActivePie == null)
+                    _currentActivePie = _nextAvailablePie;
+
+                _nextAvailablePieIndex++;
+                _nextAvailablePie = _allPies[_nextAvailablePieIndex];
+            }
+
+            i++;
+        }
+
+        foreach (OrbPie pie in _allPies)
+            pie.SetTaskActive(taskNameToOrbPie.ContainsValue(pie));
+
+    }
+
+    #region Message and Notification Updates
 
     public void AddNotification(NotificationType type, string message, OrbFace face)
     {
-        _currentActiveMessage.AddNotification(type, message, face);
-        
+        //_currentActiveMessage.AddNotification(type, message, face);   
     }
 
     public void RemoveNotification(NotificationType type, OrbFace face)
     {
-        _currentActiveMessage.RemoveNotification(type, face);
+        //_currentActiveMessage.RemoveNotification(type, face);
     }
 
     public void RemoveAllNotifications()
     {
-        _currentActiveMessage.RemoveAllNotifications();
+        //_currentActiveMessage.RemoveAllNotifications();
+    }
+
+    #endregion
+
+    //private void ToggleOrbTaskList() => SetOrbListActive(!_prevText.gameObject.activeSelf);
+    private void SetOrbListActive(bool active)
+    {
+        //_prevText.gameObject.SetActive(active);
+        //_nextText.gameObject.SetActive(active);
+
+        //if (active)
+        //{
+        //    _textContainer.MessageCollider.size = new Vector3(_textContainer.MessageCollider.size.x, 0.08f, _textContainer.MessageCollider.size.z);
+        //}
+        //else
+        //{
+        //    _textContainer.MessageCollider.size = new Vector3(_textContainer.MessageCollider.size.x, 0.05f, _textContainer.MessageCollider.size.z);
+        //}
+    }
+
+    /// <summary>
+    /// Turn on or off message fading
+    /// </summary>
+    /// <param name="active"></param>
+    public void SetFadeOutMessage(bool active)
+    {
+        if (active)
+        {
+            StartCoroutine(FadeOutMessage());
+        }
+        else
+        {
+            StopCoroutine(FadeOutMessage());
+            IsMessageFading = false;
+        }
+    }
+
+    /// <summary>
+    /// Fade out message from the moment the user does not look at the message anymore
+    /// </summary>
+    /// <returns></returns>
+    private IEnumerator FadeOutMessage()
+    {
+        float fadeOutStep = 0.001f;
+        IsMessageFading = true;
+
+        yield return new WaitForSeconds(1.0f);
+
+        float shade = ARUISettings.OrbMessageBGColor.r;
+        float alpha = 1f;
+
+        while (IsMessageFading && shade > 0)
+        {
+            alpha -= (fadeOutStep * 20);
+            shade -= fadeOutStep;
+
+            if (alpha < 0)
+                alpha = 0;
+            if (shade < 0)
+                shade = 0;
+
+            foreach (OrbPie op in _allPies)
+            {
+                op.Text.BackgroundColor = new Color(shade, shade, shade, shade);
+                op.SetTextAlpha(alpha);
+            }
+
+            yield return new WaitForEndOfFrame();
+        }
+
+        IsMessageFading = false;
+        IsMessageContainerActive = !(shade <= 0);
+    }
+
+
+    public List<BoxCollider> GetAllColliders()
+    {
+        //throw new System.NotImplementedException();
+        var pieColliders = new List<BoxCollider>();
+        foreach (OrbPie pie in _allPies)
+        {
+            pieColliders.AddRange(pie.GetComponentsInChildren<BoxCollider>());
+        }
+
+        return pieColliders;
     }
 
     public string SetTaskMessage(TaskList currentTask)
     {
-        return _currentActiveMessage.SetTaskMessage(currentTask);
+        taskNameToOrbPie[currentTask.Name].SetTaskMessage(currentTask.Steps[currentTask.CurrStepIndex].StepDesc);
+
+        float ratio = (float)currentTask.CurrStepIndex / (float)(currentTask.Steps.Count - 1);
+        taskNameToOrbPie[currentTask.Name].UpdateProgressbar(ratio, currentTask.Name);
+
+        return "";
     }
 
-    public void SetFadeOutMessage(bool fade) => _currentActiveMessage.SetFadeOutMessage(fade);
+
+    #region Update Data
+
+    public void UpdateActiveStep(TaskList taskList)
+    {
+
+    }
+
+    public void UpdateActiveTask(Dictionary<string, TaskList> manual, string activeTaskID)
+    {
+        foreach (OrbPie pie in _allPies)
+            pie.UpdateSlice(activeTaskID);
+
+        _currentActivePie = taskNameToOrbPie[activeTaskID];
+        SetTaskMessage(manual[activeTaskID]);
+    }
+
+    #endregion
+
+
+    #region Update UI
+
+    /// <summary>
+    /// Updates the anchor of the messagebox smoothly
+    /// </summary>
+    /// <param name="MessageAnchor">The new anchor</param>
+    private void UpdateAnchorLerp(MessageAnchor newMessageAnchor)
+    {
+        if (IsMessageLerping) return;
+
+        if (newMessageAnchor != _currentAnchor)
+        {
+            IsMessageLerping = true;
+            _currentAnchor = newMessageAnchor;
+
+            StartCoroutine(MoveMessageBox(_currentActivePie.Text.transform.position.x, newMessageAnchor != MessageAnchor.right, false));
+        }
+    }
+
+    public void UpdateAnchorInstant(MessageAnchor anchor)
+    {
+        _currentAnchor = anchor;
+        foreach (OrbPie ob in _allPies)
+            ob.UpdateAnchor(anchor);
+    }
+
+    /// <summary>
+    /// Lerps the message box to the other side
+    /// </summary>
+    /// <param name="YOffset">y offset of the message box to the orb prefab</param>
+    /// <param name="addWidth"> if messagebox on the left, change the signs</param>
+    /// <param name="instant">if lerp should be almost instant (need to do this in a coroutine anyway, because we are waiting for the Hgroup to update properly</param>
+    /// <returns></returns>
+    IEnumerator MoveMessageBox(float YOffset, bool isLeft, bool instant)
+    {
+        float initialYOffset = YOffset;
+        float step = 0.1f;
+
+        if (instant)
+            step = 0.5f;
+
+        while (step < 1)
+        {
+            foreach (OrbPie op in _allPies)
+            {
+                if (isLeft)
+                    YOffset = -initialYOffset - op.Text.MessageCollider.size.x;
+
+                op.Text.transform.localPosition = Vector2.Lerp(op.Text.transform.localPosition, new Vector3(YOffset, 0, 0), step += Time.deltaTime);
+                step += Time.deltaTime;
+            }
+
+            yield return new WaitForEndOfFrame();
+        }
+
+        if (isLeft)
+            _taskListbutton.transform.SetLocalXPos(-0.043f);
+        else
+            _taskListbutton.transform.SetLocalXPos(0.043f);
+
+        IsMessageLerping = false;
+    }
+
+
+    /// <summary>
+    /// Check if message box should be anchored right
+    /// </summary>
+    /// <param name="offsetPaddingInPixel"></param>
+    /// <returns></returns>
+    private bool ChangeMessageBoxToRight(float offsetPaddingInPixel)
+    {
+        return AngelARUI.Instance.ARCamera.WorldToScreenPoint(transform.position).x < ((AngelARUI.Instance.ARCamera.pixelWidth * 0.5f) - offsetPaddingInPixel);
+    }
+
+    /// <summary>
+    /// Check if message box should be anchored left
+    /// </summary>
+    private bool ChangeMessageBoxToLeft(float offsetPaddingInPixel)
+    {
+        return (AngelARUI.Instance.ARCamera.WorldToScreenPoint(transform.position).x > ((AngelARUI.Instance.ARCamera.pixelWidth * 0.5f) + offsetPaddingInPixel));
+    }
+
+    #endregion
 }

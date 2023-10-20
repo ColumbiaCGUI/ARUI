@@ -306,6 +306,16 @@ public static class Utils
     }
 
     /// <summary>
+    /// TODO
+    /// </summary>
+    /// <param name="root"></param>
+    /// <param name="component"></param>
+    public static Transform[] GetAllDescendents(this Transform root)
+    {
+        return root.GetComponentsInChildren<Transform>(includeInactive: true);
+    }
+
+    /// <summary>
     /// Returns true if given position is close to zero, given a threshold
     /// </summary>
     /// <param name="position"></param>

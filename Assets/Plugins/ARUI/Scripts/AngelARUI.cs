@@ -136,11 +136,10 @@ public class AngelARUI : Singleton<AngelARUI>
     /// Set the current task the user has to do.
     /// If taskID is >= 0 and < the number of tasks, the orb won't react.
     /// If taskID is the same as the current one, the ARUI won't react.
-    /// If taskID has subtasks, the orb shows the first subtask as the current task
     /// TODO
     /// </summary>
     /// <param name="taskID">index of the current task that should be highlighted in the UI</param>
-    public void AdvanceToStep(string recipeID, int taskID) => DataProvider.Instance.SetCurrentActiveStep(recipeID, taskID);
+    public void GoToStep(string recipeID, int taskID) => DataProvider.Instance.SetCurrentActiveStep(recipeID, taskID);
 
     /// <summary>
     /// TODO 

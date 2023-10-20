@@ -174,10 +174,7 @@ public class DataProvider : Singleton<DataProvider>
     public void SetCurrentActiveTask(string taskID)
     {
         if (!_manual.ContainsKey(taskID)) return;
-
         _currentTask = taskID;
-        TaskList currentTaskObj = _manual[_currentTask];
-        int currStepIndex = _manual[_currentTask].CurrStepIndex;
 
         PublishToSubscribers(SusbcriberType.UpdateActiveTask);
     }
@@ -198,13 +195,7 @@ public class DataProvider : Singleton<DataProvider>
             _manual[taskID].CurrStepIndex = 0;
             _manual[taskID].NextStepIndex = 1;
 
-        } else if (stepIndex >= _manual[taskID].Steps.Count - 1)
-        {
-            _manual[taskID].PrevStepIndex = _manual[taskID].Steps.Count - 2;
-            _manual[taskID].CurrStepIndex = _manual[taskID].Steps.Count - 1;
-            _manual[taskID].NextStepIndex = -1;
-
-        }
+        } 
         else
         {
             _manual[taskID].PrevStepIndex = stepIndex - 1;

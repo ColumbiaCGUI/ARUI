@@ -57,6 +57,7 @@ public class Orb : Singleton<Orb>
         // Get message object in orb prefab
         GameObject messageObj = transform.GetChild(0).GetChild(1).gameObject;
         _messageContainer = messageObj.AddComponent<OrbMessageContainer>();
+        _messageContainer.InitializeComponents();
 
         // Get handle object in orb prefab
         GameObject handleObj = transform.GetChild(0).GetChild(2).gameObject;
@@ -80,12 +81,17 @@ public class Orb : Singleton<Orb>
 
     private void HandleUpdateActiveTaskEvent()
     {
+        _messageContainer.HandleUpdateActiveTaskEvent(DataProvider.Instance.CurrentTask);
         //if (DataProvider.Instance.CurrentSelectedTasks.Count != 1)
         //    _multiple.UpdateActiveTask(DataProvider.Instance.CurrentSelectedTasks, DataProvider.Instance.CurrentTask);
 
     }
 
-    private void HandleUpdateActiveStepEvent() => SetTaskMessage(DataProvider.Instance.CurrentSelectedTasks[DataProvider.Instance.CurrentTask]);
+    private void HandleUpdateActiveStepEvent()
+    {
+        Debug.Log("Update step event is triggered: " + DataProvider.Instance.CurrentTask);
+        SetTaskMessage(DataProvider.Instance.CurrentSelectedTasks[DataProvider.Instance.CurrentTask]);
+    }
 
 
     /// <summary>
@@ -99,19 +105,22 @@ public class Orb : Singleton<Orb>
         else if (!_isLookingAtOrb && EyeGazeManager.Instance.CurrentHit == EyeTarget.orbFace)
             SetIsLookingAtFace(true);
 
-        if (_messageContainer.UserHasSeenNewStep || _isLookingAtOrb || _messageContainer.IsLookingAtMessage)
+        if (_isLookingAtOrb || _messageContainer.IsLookingAtMessage)
             _face.MessageNotificationEnabled = false;
 
         _orbHandle.IsActive = (_orbBehavior == MovementBehavior.Fixed);
         _followSolver.IsPaused = (_orbBehavior == MovementBehavior.Fixed || _face.UserIsGrabbing);
-
-        UpdateOrbVisibility();
 
         float distance = Vector3.Distance(_followSolver.transform.position, AngelARUI.Instance.ARCamera.transform.position);
         if (distance > 0.8)
             _followSolver.transform.localScale = new Vector3(distance * 1.1f, distance * 1.1f, distance * 1.1f);
         else
             _followSolver.transform.localScale = new Vector3(1, 1, 1);
+
+        if (DataProvider.Instance.CurrentSelectedTasks.Keys.Count > 0)
+        {
+            UpdateMessageVisibility();
+        }
     }
 
 
@@ -121,28 +130,27 @@ public class Orb : Singleton<Orb>
     /// View management
     /// Update the visibility of the orb message based on eye gaze collisions with the orb collider 
     /// </summary>
-    private void UpdateOrbVisibility()
+    private void UpdateMessageVisibility()
     {
-        //if (TaskListManager.Instance.GetTaskCount() != 0)
-        //{
-            if ((IsLookingAtOrb(false) && !_messageContainer.IsMessageVisible && !_messageContainer.IsMessageFading))
-            { //Set the message visible!
-                _messageContainer.SetIsActive(true, false);
-            }
-            else if (!_messageContainer.IsLookingAtMessage && !IsLookingAtOrb(false) && _followSolver.IsOutOfFOV)
-            {
-                _messageContainer.SetIsActive(false, false);
-            }
-            else if ((_messageContainer.IsLookingAtMessage || IsLookingAtOrb(false)) && _messageContainer.IsMessageVisible && _messageContainer.IsMessageFading)
-            { //Stop Fading, set the message visible
-                _messageContainer.SetFadeOutMessage(false);
-            }
-            else if (!IsLookingAtOrb(false) && _messageContainer.IsMessageVisible && !_messageContainer.IsMessageFading
-                && !_messageContainer.IsLookingAtMessage)
-            { //Start Fading
-                _messageContainer.SetFadeOutMessage(true);
-            }
-        //} 
+        if ((IsLookingAtOrb(false) && !_messageContainer.IsMessageContainerActive && !_messageContainer.IsMessageFading))
+        { //Set the message visible!
+          //_messageContainer.SetIsActive(true, false);
+            _messageContainer.IsMessageContainerActive = true;
+        }
+        else if (!_messageContainer.IsLookingAtMessage && !IsLookingAtOrb(false) && _followSolver.IsOutOfFOV)
+        {
+            //_messageContainer.SetIsActive(false, false);
+            _messageContainer.IsMessageContainerActive = false;
+        }
+        else if ((_messageContainer.IsLookingAtMessage || IsLookingAtOrb(false)) && _messageContainer.IsMessageContainerActive && _messageContainer.IsMessageFading)
+        { //Stop Fading, set the message visible
+            _messageContainer.SetFadeOutMessage(false);
+        }
+        else if (!IsLookingAtOrb(false) && _messageContainer.IsMessageContainerActive && !_messageContainer.IsMessageFading
+            && !_messageContainer.IsLookingAtMessage)
+        { //Start Fading
+            _messageContainer.SetFadeOutMessage(true);
+        }
     } 
 
     /// <summary>
@@ -267,7 +275,7 @@ public class Orb : Singleton<Orb>
         if (_allOrbColliders.Count == 0)
         {
             _allOrbColliders.Add(transform.GetChild(0).GetComponent<BoxCollider>());
-            _allOrbColliders.AddRange(_messageContainer.GetAllColliders);
+            _allOrbColliders.AddRange(_messageContainer.GetAllColliders());
         }
     }
 
@@ -296,7 +304,7 @@ public class Orb : Singleton<Orb>
         _followSolver.SetSticky(isSticky);
 
         if (isSticky)
-            _messageContainer.SetIsActive(false, false);
+            _messageContainer.IsMessageContainerActive = false;
     }
 
     /// <summary>

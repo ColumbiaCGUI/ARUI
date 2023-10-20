@@ -15,7 +15,7 @@ public class ConfirmationDialogue : MonoBehaviour
     private bool _init = false;                      /// <true if dialogue was initialized (e.g. message, event)
     private bool _timerStarted = false;              /// <true if timer started already
 
-    private FlexibleTextContainerSingle _textContainer;
+    private FlexibleTextContainer _textContainer;
     private DwellButton _okBtn;                      /// <Dialogue button
     private Orbital _movingBehavior;
     private bool _delayedMoving = false;
@@ -27,8 +27,8 @@ public class ConfirmationDialogue : MonoBehaviour
     
     private void Awake()
     {
-        _textContainer = transform.GetChild(1).GetChild(0).gameObject.AddComponent<FlexibleTextContainerSingle>();
-        _textContainer.AddVMNC();
+        _textContainer = transform.GetChild(1).GetChild(0).gameObject.AddComponent<FlexibleTextContainer>();
+        //_textContainer.AddVMNC();
 
         GameObject btn = transform.GetChild(0).gameObject;
         _okBtn = btn.AddComponent<DwellButton>();

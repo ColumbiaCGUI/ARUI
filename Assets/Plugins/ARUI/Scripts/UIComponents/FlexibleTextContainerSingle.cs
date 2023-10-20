@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-public class FlexibleTextContainerSingle : MonoBehaviour
+public class FlexibleTextContainer : MonoBehaviour
 {
     private TMPro.TextMeshProUGUI _textComponent;
 
@@ -23,6 +23,7 @@ public class FlexibleTextContainerSingle : MonoBehaviour
         get => _taskBackgroundMat.GetColor("_InnerGlowColor");
         set { _taskBackgroundMat.SetColor("_InnerGlowColor", value); }
     }
+
     public Color TextColor
     {
         get => _textComponent.color;
@@ -63,7 +64,7 @@ public class FlexibleTextContainerSingle : MonoBehaviour
 
     }
 
-    public void AddVMNC() => gameObject.AddComponent<VMNonControllable>();
+    //public void AddVMNC() => gameObject.AddComponent<VMNonControllable>();
 
     /// <summary>
     /// Update collider of messagebox based on the how much space the text takes

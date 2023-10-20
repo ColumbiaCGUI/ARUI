@@ -22,12 +22,12 @@ public class ExampleScript : MonoBehaviour
         yield return new WaitForSeconds(1f);
 
         AngelARUI.Instance.InitManual(new List<string> { "Pinwheels", "Coffee", "Oatmeal" });
-        AngelARUI.Instance.SetSelectedTasks(new List<string> { "Pinwheels"});
+        AngelARUI.Instance.SetSelectedTasks(new List<string> { "Pinwheels", "Coffee", "Oatmeal" });
 
         for (int u = -1; u < 3; u++)
         {
             yield return new WaitForSeconds(1f);
-            AngelARUI.Instance.AdvanceToStep("Pinwheels", u);
+            AngelARUI.Instance.GoToStep("Pinwheels", u);
 
             _currentTask = u;
         }
@@ -49,6 +49,17 @@ public class ExampleScript : MonoBehaviour
     /// </summary>
     public void Update()
     {
+        // Example how to use the NLI confirmation dialogue
+        if (Input.GetKeyUp(KeyCode.Alpha1))
+        {
+            AngelARUI.Instance.SetCurrentDetectedTask("Pinwheels");
+        }
+
+        if (Input.GetKeyUp(KeyCode.Alpha2))
+        {
+            AngelARUI.Instance.SetCurrentDetectedTask("Coffee");
+        }
+
         // Example how to use the NLI confirmation dialogue
         if (Input.GetKeyUp(KeyCode.I))
         {
@@ -74,12 +85,12 @@ public class ExampleScript : MonoBehaviour
         if (Input.GetKeyUp(KeyCode.RightArrow))
         {
             _currentTask++;
-            AngelARUI.Instance.AdvanceToStep("Pinwheels", _currentTask);
+            AngelARUI.Instance.GoToStep("Pinwheels", _currentTask);
         }
         else if (Input.GetKeyUp(KeyCode.LeftArrow))
         {
             _currentTask--;
-            AngelARUI.Instance.AdvanceToStep("Pinwheels", _currentTask);
+            AngelARUI.Instance.GoToStep("Pinwheels", _currentTask);
         }
 
         // Example how to trigger a skip notification. 
