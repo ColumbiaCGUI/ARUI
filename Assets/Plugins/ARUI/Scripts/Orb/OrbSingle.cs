@@ -21,7 +21,7 @@
 //    public bool IsNoteActive => _currentNote.IsSet;
 //    public bool IsWarningActive => _currentWarning.IsSet;
 
-//    private FlexibleTextContainerSingle _textContainer;
+//    private FlexibleTextContainer _textContainer;
 //    private GameObject _indicator;
 //    private Vector3 _initialIndicatorPos;
 //    private float _initialmessageYOffset;
@@ -60,7 +60,7 @@
 //    {
 //        messageType = OrbMessageType.single;
 
-//        _textContainer = transform.GetChild(0).gameObject.AddComponent<FlexibleTextContainerSingle>();
+//        _textContainer = transform.GetChild(0).gameObject.AddComponent<FlexibleTextContainer>();
 //        _textContainer.gameObject.name += "_orb";
 
 //        TMPro.TextMeshProUGUI[] allText = _textContainer.AllTextMeshComponents;
@@ -429,7 +429,8 @@
 //        if (active)
 //        {
 //            _textContainer.MessageCollider.size = new Vector3(_textContainer.MessageCollider.size.x, 0.08f, _textContainer.MessageCollider.size.z);
-//        } else
+//        }
+//        else
 //        {
 //            _textContainer.MessageCollider.size = new Vector3(_textContainer.MessageCollider.size.x, 0.05f, _textContainer.MessageCollider.size.z);
 //        }

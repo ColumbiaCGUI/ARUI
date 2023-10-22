@@ -17,7 +17,8 @@ public enum EyeTarget
     listmenuButton_items = 10,
     upButton = 11,
     downButton =12,
-    resetButton = 13
+    resetButton = 13,
+    pieCollider = 14
 }
 
 public class EyeGazeManager : Singleton<EyeGazeManager>
@@ -76,14 +77,21 @@ public class EyeGazeManager : Singleton<EyeGazeManager>
 
                 else if (goName.Contains("listmenubutton_tasks"))
                     CurrentHit = EyeTarget.listmenuButton_tasks;
+
                 else if (goName.Contains("listmenubutton_items"))
                     CurrentHit = EyeTarget.listmenuButton_items;
+
                 else if (goName.Contains("upbutton"))
                     CurrentHit = EyeTarget.upButton;
+
                 else if (goName.Contains("downbutton"))
                     CurrentHit = EyeTarget.downButton;
+
                 else if (goName.Contains("resetbutton"))
                     CurrentHit = EyeTarget.resetButton;
+
+                else if (goName.Contains("piecollider"))
+                    CurrentHit = EyeTarget.pieCollider;
 
                 else
                     CurrentHit = EyeTarget.nothing;
@@ -94,9 +102,11 @@ public class EyeGazeManager : Singleton<EyeGazeManager>
                     if (_showRayDebugCube)
                         _eyeGazeTargetCube.enabled = true;
 
+                    AngelARUI.Instance.LogDebugMessage(CurrentHit+"", true);
                 }
                 else if (CurrentHit == EyeTarget.nothing)
                     CurrentHitObj = null;
+
             }
             else
             {

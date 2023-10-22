@@ -17,31 +17,43 @@ public class OrbPie : MonoBehaviour
     }
 
     private GameObject _pieSlice;
+    private BoxCollider _sliceCollider;
     private Shapes.Disc _pie;
     private Shapes.Disc _pieProgress;
     private TextMeshProUGUI _progressText;
-    
-    private float _minRadius = 0.0175f;
-    private float _minThick = 0.005f;
-    private float _maxRadius = 0.027f;
-    private float _maxThick = 0.02f;
-    private float _maxRadiusActive = 0.032f;
-    private float _maxThickActive = 0.03f;
-
-    private float _rDeg = 0;
-    private float _lDeg = 0;
 
     private FlexibleTextContainer _textContainer;
     public FlexibleTextContainer Text
     {
         get => _textContainer;
     }
-    private float _initialmessageYOffset;
+
+    private float _initialmessageXOffset = 0;
+    public float InitialXOffset
+    {
+        get => _initialmessageXOffset;
+    }
+
+    private float _minRadius = 0.0175f;
+    private float _minThick = 0.005f;
+    private float _maxRadius = 0.024f;
+    private float _maxThick = 0.014f;
+    private float _maxRadiusActive = 0.027f;
+    private float _maxThickActive = 0.02f;
+
+    private float _rDeg = 0;
+    private float _lDeg = 0;
 
     private GameObject _pieText;
     private TextMeshProUGUI _currentStepText;
+    public string CurrentStepMessage
+    {
+        get => _currentStepText.text;
+    }
 
     private Color _activeColorText = Color.white;
+
+    private bool _isLookingAtPies = false;
 
     public void InitializeComponents(float rDeg, float lDeg)
     {
@@ -51,6 +63,7 @@ public class OrbPie : MonoBehaviour
         //init pie slice and components
         _pieSlice = transform.GetChild(0).gameObject;
         _pie = _pieSlice.GetComponent<Shapes.Disc>();
+        _sliceCollider = _pie.GetComponentInChildren<BoxCollider>();
         _pieProgress = _pie.transform.GetChild(0).GetComponent<Shapes.Disc>();
         _pieProgress.Radius = 0;
         _pieProgress.Thickness = 0;
@@ -58,7 +71,7 @@ public class OrbPie : MonoBehaviour
         _progressText.gameObject.SetActive(false);
 
         _textContainer = transform.GetChild(1).GetChild(0).gameObject.AddComponent<FlexibleTextContainer>();
-        _initialmessageYOffset = _textContainer.transform.position.x;
+        _initialmessageXOffset = _textContainer.transform.localPosition.x;
 
         UpdateAnchor(MessageAnchor.right);
 
@@ -77,19 +90,54 @@ public class OrbPie : MonoBehaviour
 
         _taskname = gameObject.name;
 
-        SetTaskActive(false);
+        SetPieActive(false, "");
     }
 
-    public void SetTaskActive(bool active)
+    public void UpdateMessageVisibility(string currentActiveID)
     {
-        _pieSlice.SetActive(active && _currentStepText.text.Length > 0);
-        _pieText.SetActive(active && _currentStepText.text.Length > 0);
+        if (_currentStepText.text.Length == 0) return;
+
+        if (_pieSlice.activeSelf && EyeGazeManager.Instance.CurrentHit.Equals(EyeTarget.pieCollider))
+        {
+            _isLookingAtPies = true;
+            if (!_pieText.activeSelf)
+                _pieText.SetActive(true);
+
+        } else
+        {
+            _isLookingAtPies = false;
+            if (!_taskname.Equals(currentActiveID))
+                _pieText.SetActive(false);
+        }
+
+        if (_pieSlice.activeSelf && !_pieText.activeSelf && _taskname.Equals(currentActiveID))
+            _pieText.SetActive(true);
+    }
+
+    public void SetPieActive(bool active, string currentActiveID)
+    {
+        _pieSlice.SetActive(active);
+
+        if (active && (_taskname.Equals(currentActiveID) && _currentStepText.text.Length > 0) || _isLookingAtPies)
+        {
+            _pieText.SetActive(true);
+        } else
+            _pieText.SetActive(false);
     }
 
     public void SetTaskMessage(string message)
     {
         AngelARUI.Instance.LogDebugMessage("Set step message: '" + message + "' for task: " + gameObject.name, true);
         _currentStepText.text = message;
+
+        //_prevText.text = "";
+        //        _nextText.text = "";
+        //        if (previousMessage.Length > 0)
+        //            _prevText.text = "<b>DONE:</b> " + Utils.SplitTextIntoLines(previousMessage, ARUISettings.OrbMessageMaxCharCountPerLine);
+
+        //        if (nextMessage.Length > 0)
+        //            _nextText.text = "<b>Upcoming:</b> " + Utils.SplitTextIntoLines(nextMessage, ARUISettings.OrbNoteMaxCharCountPerLine);
+
     }
 
     //public void SetMessageActive(bool active)
@@ -97,39 +145,28 @@ public class OrbPie : MonoBehaviour
     //    _pieText.SetActive(active);
     //}
 
-    public void UpdateSlice(string activeTaskID)
+    #region Update Pie
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public void UpdateCurrentTaskStatus(float ratio, string currentActiveID)
     {
-        if (_taskname.Equals(activeTaskID))
+        bool isCurrent = _taskname.Equals(currentActiveID);
+
+        //Update pie length
+        if (isCurrent)
         {
-            _pie.Radius = 0.032f;
-            _pie.Thickness = 0.03f;
+            _pie.Radius = _maxRadiusActive;
+            _pie.Thickness = _maxThickActive;
         }
         else
         {
-            _pie.Radius = 0.027f;
-            _pie.Thickness = 0.02f;
-        }
-    }
-
-    public void UpdateAnchor(MessageAnchor anchor)
-    {
-        _textContainer.UpdateAnchorInstant();
-
-        float deg = _rDeg;
-        if (anchor.Equals(MessageAnchor.left))
-        {
-            deg = _lDeg;
+            _pie.Radius = _maxRadius;
+            _pie.Thickness = _maxThick;
         }
 
-        _pie.AngRadiansEnd = deg * Mathf.Deg2Rad;
-        _pie.AngRadiansStart = (deg -21) * Mathf.Deg2Rad;
-
-        _pieProgress.AngRadiansEnd = deg * Mathf.Deg2Rad;
-        _pieProgress.AngRadiansStart = (deg -5) * Mathf.Deg2Rad;
-    }
-
-    public void UpdateProgressbar(float ratio, string activeTaskID)
-    {
+        //Update progress pie length
         if (ratio == 0)
         {
             _pieProgress.Radius = 0;
@@ -137,7 +174,7 @@ public class OrbPie : MonoBehaviour
         }
         else
         {
-            if (_taskname.Equals(activeTaskID))
+            if (isCurrent)
             {
                 _pieProgress.Radius = _minRadius + (ratio * (_maxRadiusActive - _minRadius));
                 _pieProgress.Thickness = _minThick + (ratio * (_maxThickActive - _minThick));
@@ -148,6 +185,32 @@ public class OrbPie : MonoBehaviour
                 _pieProgress.Thickness = _minThick + (ratio * (_maxThick - _minThick));
             }
         }
+    }
+
+    #endregion
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="anchor"></param>
+    public void UpdateAnchor(MessageAnchor anchor)
+    {
+        _textContainer.UpdateAnchorInstant();
+
+        float deg = _rDeg;
+        float YRot = 0;
+        if (anchor.Equals(MessageAnchor.left))
+        {
+            deg = _lDeg;
+            YRot = 180;
+        }
+        _sliceCollider.transform.rotation = Quaternion.Euler(new Vector3(_sliceCollider.transform.rotation.x, YRot, _sliceCollider.transform.rotation.z));
+
+        _pie.AngRadiansEnd = deg * Mathf.Deg2Rad;
+        _pie.AngRadiansStart = (deg -21) * Mathf.Deg2Rad;
+
+        _pieProgress.AngRadiansEnd = deg * Mathf.Deg2Rad;
+        _pieProgress.AngRadiansStart = (deg -5) * Mathf.Deg2Rad;
     }
 
     /// <summary>

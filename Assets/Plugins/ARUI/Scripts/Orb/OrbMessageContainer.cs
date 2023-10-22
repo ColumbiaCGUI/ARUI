@@ -16,8 +16,6 @@ public class OrbMessageContainer : MonoBehaviour
     private int _nextAvailablePieIndex = 0;
     private Dictionary<string, OrbPie> taskNameToOrbPie;
 
-    private OrbPie _currentActivePie = null;
-
     //** Layout
     private MessageAnchor _currentAnchor = MessageAnchor.right;
 
@@ -38,7 +36,7 @@ public class OrbMessageContainer : MonoBehaviour
 
             foreach (OrbPie op in _allPies)
             {
-                op.SetTaskActive(value);
+                op.SetPieActive(value, DataProvider.Instance.CurrentTask);
                 if (value)
                 {
                     op.Text.BackgroundColor = ARUISettings.OrbMessageBGColor;
@@ -90,7 +88,7 @@ public class OrbMessageContainer : MonoBehaviour
         GameObject taskListbtn = transform.GetChild(0).gameObject;
         _taskListbutton = taskListbtn.AddComponent<DwellButton>();
         _taskListbutton.gameObject.name += "FacetasklistButton";
-        //_taskListbutton.InitializeButton(EyeTarget.orbtasklistButton, () => ToggleOrbTaskList(), null, true, DwellButtonType.Select);
+        _taskListbutton.InitializeButton(EyeTarget.orbtasklistButton, () => MultiTaskList.Instance.ToggleOverview(), null, true, DwellButtonType.Select);
 
         float _startDegRight = 23;
         float _startDegLeft = 180;
@@ -118,9 +116,14 @@ public class OrbMessageContainer : MonoBehaviour
     public void Update()
     {
         // Update eye tracking flag
-        if (_isLookingAtMessage && EyeGazeManager.Instance.CurrentHit != EyeTarget.orbMessage && EyeGazeManager.Instance.CurrentHit != EyeTarget.orbtasklistButton)
+        if (_isLookingAtMessage && EyeGazeManager.Instance.CurrentHit != EyeTarget.orbMessage
+            && EyeGazeManager.Instance.CurrentHit != EyeTarget.orbtasklistButton
+            && EyeGazeManager.Instance.CurrentHit != EyeTarget.pieCollider)
             _isLookingAtMessage = false;
-        else if (!_isLookingAtMessage && (EyeGazeManager.Instance.CurrentHit == EyeTarget.orbMessage || EyeGazeManager.Instance.CurrentHit == EyeTarget.orbtasklistButton))
+
+        else if (!_isLookingAtMessage && (EyeGazeManager.Instance.CurrentHit == EyeTarget.orbMessage
+            || EyeGazeManager.Instance.CurrentHit == EyeTarget.orbtasklistButton)
+            || EyeGazeManager.Instance.CurrentHit == EyeTarget.pieCollider)
             _isLookingAtMessage = true;
 
         if (!IsMessageContainerActive || IsMessageLerping) return;
@@ -131,12 +134,20 @@ public class OrbMessageContainer : MonoBehaviour
 
         else if (ChangeMessageBoxToLeft(100))
             UpdateAnchorLerp(MessageAnchor.left);
+
+        foreach (OrbPie pie in _allPies)
+        {
+            pie.UpdateMessageVisibility(DataProvider.Instance.CurrentTask);
+        }
     }
 
-    public void HandleUpdateActiveTaskEvent(string currentTask)
+    public void HandleUpdateActiveTaskEvent(Dictionary<string, TaskList> currentSelectedTasks, string currentTaskID)
     {
         foreach (OrbPie pie in _allPies)
-            pie.UpdateSlice(currentTask);
+        {
+            float ratio = (float)currentSelectedTasks[pie.TaskName].CurrStepIndex / (float)(currentSelectedTasks[pie.TaskName].Steps.Count - 1);
+            pie.UpdateCurrentTaskStatus(ratio, currentTaskID);
+        }
     }
 
     public void HandleUpdateTaskListEvent(Dictionary<string, TaskList> currentSelectedTasks)
@@ -170,19 +181,12 @@ public class OrbMessageContainer : MonoBehaviour
                 _nextAvailablePie.SetTaskMessage(currentSelectedTasks[taskName].Name + " : " +
                     currentSelectedTasks[taskName].Steps[currentSelectedTasks[taskName].CurrStepIndex].StepDesc);
 
-                if (_currentActivePie == null)
-                    _currentActivePie = _nextAvailablePie;
-
                 _nextAvailablePieIndex++;
-                _nextAvailablePie = _allPies[_nextAvailablePieIndex];
+                _nextAvailablePie = _allPies[Mathf.Min(4,_nextAvailablePieIndex)];
             }
 
             i++;
         }
-
-        foreach (OrbPie pie in _allPies)
-            pie.SetTaskActive(taskNameToOrbPie.ContainsValue(pie));
-
     }
 
     #region Message and Notification Updates
@@ -287,34 +291,25 @@ public class OrbMessageContainer : MonoBehaviour
         return pieColliders;
     }
 
-    public string SetTaskMessage(TaskList currentTask)
+    public string SetTaskMessage(Dictionary<string, TaskList> currentSelectedTasks, string currentTaskID)
     {
-        taskNameToOrbPie[currentTask.Name].SetTaskMessage(currentTask.Steps[currentTask.CurrStepIndex].StepDesc);
+        UpdateAnchorInstant(_currentAnchor);
 
-        float ratio = (float)currentTask.CurrStepIndex / (float)(currentTask.Steps.Count - 1);
-        taskNameToOrbPie[currentTask.Name].UpdateProgressbar(ratio, currentTask.Name);
+        foreach (string task in currentSelectedTasks.Keys)
+        {
+            if (taskNameToOrbPie.ContainsKey(task))
+            {
+                OrbPie ob = taskNameToOrbPie[task];
+                ob.SetTaskMessage(currentSelectedTasks[task].Steps[currentSelectedTasks[task].CurrStepIndex].StepDesc);
 
-        return "";
+                float ratio = (float)currentSelectedTasks[task].CurrStepIndex / (float)(currentSelectedTasks[task].Steps.Count - 1);
+                ob.UpdateCurrentTaskStatus(ratio, currentTaskID);
+            }
+        }
+
+        return currentSelectedTasks[currentTaskID].Steps[currentSelectedTasks[currentTaskID].CurrStepIndex].StepDesc;
     }
 
-
-    #region Update Data
-
-    public void UpdateActiveStep(TaskList taskList)
-    {
-
-    }
-
-    public void UpdateActiveTask(Dictionary<string, TaskList> manual, string activeTaskID)
-    {
-        foreach (OrbPie pie in _allPies)
-            pie.UpdateSlice(activeTaskID);
-
-        _currentActivePie = taskNameToOrbPie[activeTaskID];
-        SetTaskMessage(manual[activeTaskID]);
-    }
-
-    #endregion
 
 
     #region Update UI
@@ -332,7 +327,7 @@ public class OrbMessageContainer : MonoBehaviour
             IsMessageLerping = true;
             _currentAnchor = newMessageAnchor;
 
-            StartCoroutine(MoveMessageBox(_currentActivePie.Text.transform.position.x, newMessageAnchor != MessageAnchor.right, false));
+            StartCoroutine(MoveMessageBox(newMessageAnchor != MessageAnchor.right, false));
         }
     }
 
@@ -341,6 +336,8 @@ public class OrbMessageContainer : MonoBehaviour
         _currentAnchor = anchor;
         foreach (OrbPie ob in _allPies)
             ob.UpdateAnchor(anchor);
+
+        StartCoroutine(MoveMessageBox(anchor.Equals(MessageAnchor.left), true));
     }
 
     /// <summary>
@@ -350,9 +347,8 @@ public class OrbMessageContainer : MonoBehaviour
     /// <param name="addWidth"> if messagebox on the left, change the signs</param>
     /// <param name="instant">if lerp should be almost instant (need to do this in a coroutine anyway, because we are waiting for the Hgroup to update properly</param>
     /// <returns></returns>
-    IEnumerator MoveMessageBox(float YOffset, bool isLeft, bool instant)
+    IEnumerator MoveMessageBox(bool isLeft, bool instant)
     {
-        float initialYOffset = YOffset;
         float step = 0.1f;
 
         if (instant)
@@ -362,20 +358,22 @@ public class OrbMessageContainer : MonoBehaviour
         {
             foreach (OrbPie op in _allPies)
             {
+                float XOffset = op.InitialXOffset;
                 if (isLeft)
-                    YOffset = -initialYOffset - op.Text.MessageCollider.size.x;
+                    XOffset = -op.InitialXOffset - op.Text.MessageCollider.size.x;
+                float YOffset = op.Text.transform.localPosition.y;
 
-                op.Text.transform.localPosition = Vector2.Lerp(op.Text.transform.localPosition, new Vector3(YOffset, 0, 0), step += Time.deltaTime);
+                op.Text.transform.localPosition = Vector2.Lerp(op.Text.transform.localPosition, new Vector3(XOffset, YOffset, 0), step + Time.deltaTime);
                 step += Time.deltaTime;
             }
 
             yield return new WaitForEndOfFrame();
         }
 
-        if (isLeft)
-            _taskListbutton.transform.SetLocalXPos(-0.043f);
-        else
-            _taskListbutton.transform.SetLocalXPos(0.043f);
+        //if (isLeft)
+            //_taskListbutton.transform.SetLocalXPos(-0.043f);
+        //else
+            //_taskListbutton.transform.SetLocalXPos(0.043f);
 
         IsMessageLerping = false;
     }

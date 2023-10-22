@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -81,16 +82,13 @@ public class Orb : Singleton<Orb>
 
     private void HandleUpdateActiveTaskEvent()
     {
-        _messageContainer.HandleUpdateActiveTaskEvent(DataProvider.Instance.CurrentTask);
-        //if (DataProvider.Instance.CurrentSelectedTasks.Count != 1)
-        //    _multiple.UpdateActiveTask(DataProvider.Instance.CurrentSelectedTasks, DataProvider.Instance.CurrentTask);
-
+        if (DataProvider.Instance.CurrentSelectedTasks.Count > 0)
+            _messageContainer.HandleUpdateActiveTaskEvent(DataProvider.Instance.CurrentSelectedTasks, DataProvider.Instance.CurrentTask);
     }
 
     private void HandleUpdateActiveStepEvent()
     {
-        Debug.Log("Update step event is triggered: " + DataProvider.Instance.CurrentTask);
-        SetTaskMessage(DataProvider.Instance.CurrentSelectedTasks[DataProvider.Instance.CurrentTask]);
+        SetTaskMessage(DataProvider.Instance.CurrentSelectedTasks, DataProvider.Instance.CurrentTask);
     }
 
 
@@ -118,9 +116,7 @@ public class Orb : Singleton<Orb>
             _followSolver.transform.localScale = new Vector3(1, 1, 1);
 
         if (DataProvider.Instance.CurrentSelectedTasks.Keys.Count > 0)
-        {
             UpdateMessageVisibility();
-        }
     }
 
 
@@ -134,12 +130,10 @@ public class Orb : Singleton<Orb>
     {
         if ((IsLookingAtOrb(false) && !_messageContainer.IsMessageContainerActive && !_messageContainer.IsMessageFading))
         { //Set the message visible!
-          //_messageContainer.SetIsActive(true, false);
             _messageContainer.IsMessageContainerActive = true;
         }
         else if (!_messageContainer.IsLookingAtMessage && !IsLookingAtOrb(false) && _followSolver.IsOutOfFOV)
         {
-            //_messageContainer.SetIsActive(false, false);
             _messageContainer.IsMessageContainerActive = false;
         }
         else if ((_messageContainer.IsLookingAtMessage || IsLookingAtOrb(false)) && _messageContainer.IsMessageContainerActive && _messageContainer.IsMessageFading)
@@ -260,12 +254,12 @@ public class Orb : Singleton<Orb>
     /// Set the task messages the orb communicates, if 'message' is less than 2 char, the message is deactivated
     /// </summary>
     /// <param name="message"></param>
-    private void SetTaskMessage(TaskList currentSelectedTask)
+    private void SetTaskMessage(Dictionary<string, TaskList> currentSelectedTasks, string currentActiveTask)
     {
         _messageContainer.RemoveAllNotifications();
         _face.UpdateNotification(false,false);
 
-        string currentMessage = _messageContainer.SetTaskMessage(currentSelectedTask);
+        string currentMessage = _messageContainer.SetTaskMessage(currentSelectedTasks, currentActiveTask);
 
         if (!currentMessage.Contains("Done"))
             AudioManager.Instance.PlayText(currentMessage);

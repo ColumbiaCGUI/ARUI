@@ -60,7 +60,7 @@ MonoBehaviour:
   stencilWriteMask: 255
   pivot: 1
   width: 0.05
-  height: 0.058
+  height: 0.04
   type: 0
   cornerRadiusMode: 0
   cornerRadii: {x: 0.25, y: 0.25, z: 0.25, w: 0.25}
