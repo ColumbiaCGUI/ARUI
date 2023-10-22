@@ -9,7 +9,7 @@ public enum EyeTarget
     orbMessage = 2,
     tasklist = 3,
     orbtasklistButton = 4,
-    //USE 6
+    menuBtn = 5,
     listmenuButton_tasks = 6,
     okButton = 7,
     ringindicator = 8,
@@ -92,6 +92,9 @@ public class EyeGazeManager : Singleton<EyeGazeManager>
 
                 else if (goName.Contains("piecollider"))
                     CurrentHit = EyeTarget.pieCollider;
+
+                else if (goName.Contains("_menu"))
+                    CurrentHit = EyeTarget.menuBtn;
 
                 else
                     CurrentHit = EyeTarget.nothing;

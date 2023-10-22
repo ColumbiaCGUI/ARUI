@@ -399,7 +399,7 @@
 //                previousMessage = currentTask.Steps[previousID].StepDesc;
 
 //            if (currentID + 1 < stepCount && nextID != currentID)
-//                nextMessage = currentTask.Steps[nextID].StepDesc;
+//                nextMessage = UpdateAnchorInstant();currentTask.Steps[nextID].StepDesc;
 //        }
 
 //        //Update UI
