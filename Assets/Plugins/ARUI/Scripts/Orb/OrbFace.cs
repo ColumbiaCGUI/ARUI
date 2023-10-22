@@ -20,6 +20,8 @@ public class OrbFace : MonoBehaviour
     private Shapes.Disc _mouth;
     private Shapes.Disc _orbHalo;
 
+    private Shapes.Disc _shut;
+
     ///** Colors of orb states
     private Color _faceColorInnerStart = new Color(1, 1, 1, 1f);
     private Color _faceColorOuterStart = new Color(1, 1, 1, 0f);
@@ -102,7 +104,7 @@ public class OrbFace : MonoBehaviour
 
     private void Start()
     {
-        Shapes.Disc[] allDiscs = GetComponentsInChildren<Shapes.Disc>();
+        Shapes.Disc[] allDiscs = transform.GetChild(0).GetComponentsInChildren<Shapes.Disc>();
         _face = allDiscs[0];
         _mouth = allDiscs[1];
         _eyes = allDiscs[2];
@@ -122,6 +124,9 @@ public class OrbFace : MonoBehaviour
         _noteIcon.SetActive(false);
         _warningIcon = allDiscs[5].gameObject;
         _warningIcon.SetActive(false);
+
+        _shut = transform.GetChild(1).GetComponentInChildren<Shapes.Disc>();
+        _shut.gameObject.SetActive(false);
     }
 
     private void Update()
@@ -132,7 +137,7 @@ public class OrbFace : MonoBehaviour
         else if (!_userIsLooking && !_userIsGrabbing && _eyes.gameObject.activeSelf)
             _eyes.gameObject.SetActive(false);
 
-        if (Orb.Instance.OrbBehavior.Equals(MovementBehavior.Fixed))
+        if (Orb.Instance.OrbBehavior.Equals(OrbMovementBehavior.Fixed))
             _mouth.Type = Shapes.DiscType.Disc;
         else
             _mouth.Type = Shapes.DiscType.Ring;
@@ -175,6 +180,12 @@ public class OrbFace : MonoBehaviour
 
         _face.ColorOuterStart = new Color(_face.ColorOuterStart.r, _face.ColorOuterStart.g, _face.ColorOuterStart.b, 0);
         _face.ColorOuterEnd = _face.ColorOuterStart;
+    }
+
+    public void SetOrbGuidance(bool isGuidanceActive)
+    {
+        transform.GetChild(0).gameObject.SetActive(isGuidanceActive);
+        transform.GetChild(1).gameObject.SetActive(!isGuidanceActive);
     }
 
     public void SetOrbState(OrbStates newState)

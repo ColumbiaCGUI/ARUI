@@ -1,10 +1,9 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
-public enum MovementBehavior
+public enum OrbMovementBehavior
 {
     Follow = 0,
     Fixed = 1,
@@ -17,11 +16,12 @@ public enum MovementBehavior
 public class Orb : Singleton<Orb>
 {
     ///** Reference to parts of the orb
-    private MovementBehavior _orbBehavior = MovementBehavior.Follow;                                   /// <the orb shape itself (part of prefab)
-    public MovementBehavior OrbBehavior
+    private OrbMovementBehavior _orbBehavior = OrbMovementBehavior.Follow;                                   /// <the orb shape itself (part of prefab)
+    public OrbMovementBehavior OrbBehavior
     {
         get => _orbBehavior;
     }
+
     ///** Reference to parts of the orb
     private OrbFace _face;                                   /// <the orb shape itself (part of prefab)
     public float MouthScale
@@ -30,6 +30,7 @@ public class Orb : Singleton<Orb>
         set => _face.MouthScale = value;
     }
 
+    private OrbHandle _orbHandle;
     private OrbGrabbable _grabbable;                         /// <reference to grabbing behavior
     private OrbMessageContainer _messageContainer;                     /// <reference to orb message container (part of prefab)
     public OrbMessageContainer Message => _messageContainer;
@@ -45,7 +46,7 @@ public class Orb : Singleton<Orb>
     private bool _lazyLookAtRunning = false;                 /// <used for lazy look at disable
     private bool _lazyFollowStarted = false;                 /// <used for lazy following
 
-    private OrbHandle _orbHandle;
+    private bool _guidanceIsActive = true;
 
     /// <summary>
     /// Get all orb references from prefab
@@ -106,8 +107,8 @@ public class Orb : Singleton<Orb>
         if (_isLookingAtOrb || _messageContainer.IsLookingAtMessage)
             _face.MessageNotificationEnabled = false;
 
-        _orbHandle.IsActive = (_orbBehavior == MovementBehavior.Fixed);
-        _followSolver.IsPaused = (_orbBehavior == MovementBehavior.Fixed || _face.UserIsGrabbing);
+        _orbHandle.IsActive = (_orbBehavior == OrbMovementBehavior.Fixed);
+        _followSolver.IsPaused = (_orbBehavior == OrbMovementBehavior.Fixed || _face.UserIsGrabbing);
 
         float distance = Vector3.Distance(_followSolver.transform.position, AngelARUI.Instance.ARCamera.transform.position);
         if (distance > 0.8)
@@ -115,8 +116,18 @@ public class Orb : Singleton<Orb>
         else
             _followSolver.transform.localScale = new Vector3(1, 1, 1);
 
-        if (DataProvider.Instance.CurrentSelectedTasks.Keys.Count > 0)
+        if (_guidanceIsActive != AngelARUI.Instance.IsGuidanceActive)
+            ToggleOrbGuidance();
+
+        if (DataProvider.Instance.CurrentSelectedTasks.Keys.Count > 0 && _guidanceIsActive)
             UpdateMessageVisibility();
+    }
+
+    private void ToggleOrbGuidance()
+    {
+        _face.SetOrbGuidance(AngelARUI.Instance.IsGuidanceActive);
+        _messageContainer.gameObject.SetActive(AngelARUI.Instance.IsGuidanceActive);
+        _guidanceIsActive = AngelARUI.Instance.IsGuidanceActive;
     }
 
 
@@ -128,7 +139,7 @@ public class Orb : Singleton<Orb>
     /// </summary>
     private void UpdateMessageVisibility()
     {
-        if ((IsLookingAtOrb(false) && !_messageContainer.IsMessageContainerActive && !_messageContainer.IsMessageFading))
+        if ((IsLookingAtOrb(false) && !_messageContainer.IsMessageContainerActive && !_messageContainer.IsMessageFading && !ManualManager.Instance.MenuActive))
         { //Set the message visible!
             _messageContainer.IsMessageContainerActive = true;
         }
@@ -182,7 +193,7 @@ public class Orb : Singleton<Orb>
         }
     }
 
-    public void UpdateMovementbehavior(MovementBehavior newBehavior)
+    public void UpdateMovementbehavior(OrbMovementBehavior newBehavior)
     {
         _orbBehavior = newBehavior;
     }
@@ -195,7 +206,7 @@ public class Orb : Singleton<Orb>
     {
         _face.UserIsGrabbing = isDragging;
 
-        if (_orbBehavior == MovementBehavior.Follow)
+        if (_orbBehavior == OrbMovementBehavior.Follow)
         {
             if (!isDragging && !_lazyFollowStarted)
                 StartCoroutine(EnableLazyFollow());

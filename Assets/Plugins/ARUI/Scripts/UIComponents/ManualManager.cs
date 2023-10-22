@@ -1,40 +1,74 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class ManualManager : Singleton<ManualManager>
 {
-    private List<DwellButton> allButtons;
+    private bool _manualInitialized = false;
 
     private bool _menuActive = false;
+    public bool MenuActive
+    {
+        get => _menuActive;
+    }
+
+    private Dictionary<string, DwellButton> allTaskBtns;
     private GameObject _okayButton;
 
     // Start is called before the first frame update
     private void Start()
     {
-        allButtons = new List<DwellButton>();
+        allTaskBtns = new Dictionary<string, DwellButton>();
         for (int i = 0; i<5; i++)
         {
-            DwellButton bn = transform.GetChild(i).gameObject.AddComponent<DwellButton>();
-            allButtons.Add(bn);
-
-            bn.InitializeButton(EyeTarget.menuBtn, () => Debug.Log("MenuBtn pressed"), null, false, DwellButtonType.Toggle, true);
+            DwellButton btn = transform.GetChild(i).gameObject.AddComponent<DwellButton>();
+            btn.InitializeButton(EyeTarget.menuBtn, () => Debug.Log("MenuBtn pressed"), null, false, DwellButtonType.Toggle, true);
+            allTaskBtns.Add(btn.gameObject.name.Substring(0, btn.gameObject.name.LastIndexOf('_')), btn);
         }
 
         DwellButton okayBtn = transform.GetChild(5).gameObject.AddComponent<DwellButton>();
         _okayButton = okayBtn.gameObject;
         okayBtn.InitializeButton(EyeTarget.menuBtn, () => SubmitSelection(), null, true, DwellButtonType.Select, true);
 
-        DataProvider.Instance.InitManual(new List<string> { "Pinwheels", "Coffee", "Oatmeal", "Quesadilla", "Tea" });
-        _menuActive = true;
+        _okayButton.gameObject.SetActive(false);
+        foreach (DwellButton btn in allTaskBtns.Values)
+        {
+            btn.Toggled = false;
+            btn.gameObject.SetActive(false);
+        }
     }
+
+    public void SetMenuActive(bool isActive)
+    {
+        if (!_manualInitialized) return;
+
+        _menuActive = isActive;
+        _okayButton.gameObject.SetActive(isActive);
+        foreach (DwellButton btn in allTaskBtns.Values)
+        {
+            btn.Toggled = false;
+            btn.gameObject.SetActive(isActive);
+        }
+    }
+
+    public void SetManual(List<string> manual)
+    {
+        if (_manualInitialized) return;
+
+        _manualInitialized = true;
+        DataProvider.Instance.InitManual(manual);
+
+        foreach (string btnNames in allTaskBtns.Keys)
+            allTaskBtns[btnNames].IsDisabled = !manual.Contains(btnNames);
+    }
+
+
 
     private void Update()
     {
-        if (!_menuActive) return;
+        if (!_menuActive || !_manualInitialized) return;
 
         int toggledCount = 0;
-        foreach (DwellButton btn in allButtons)
+        foreach (DwellButton btn in allTaskBtns.Values)
         {
             if (btn.Toggled)
                 toggledCount++;
@@ -43,6 +77,7 @@ public class ManualManager : Singleton<ManualManager>
         if (toggledCount == 0 && _okayButton.gameObject.activeSelf)
         {
             _okayButton.gameObject.SetActive(false);
+
         } else if (toggledCount > 0 && !_okayButton.gameObject.activeSelf)
         {
             _okayButton.gameObject.SetActive(true);
@@ -55,7 +90,7 @@ public class ManualManager : Singleton<ManualManager>
     private void SubmitSelection()
     {
         List<string> allToggled = new List<string>();
-        foreach (DwellButton btn in allButtons)
+        foreach (DwellButton btn in allTaskBtns.Values)
         {
             if (btn.Toggled) 
                 allToggled.Add(btn.gameObject.name.Substring(0, btn.gameObject.name.LastIndexOf('_')));

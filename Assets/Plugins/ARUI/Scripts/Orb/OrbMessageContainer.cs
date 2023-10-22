@@ -145,8 +145,10 @@ public class OrbMessageContainer : MonoBehaviour
     {
         foreach (OrbPie pie in _allPies)
         {
-            float ratio = (float)currentSelectedTasks[pie.TaskName].CurrStepIndex / (float)(currentSelectedTasks[pie.TaskName].Steps.Count - 1);
-            pie.UpdateCurrentTaskStatus(ratio, currentTaskID);
+            if (currentSelectedTasks.ContainsKey(pie.TaskName)) { 
+                float ratio = (float)currentSelectedTasks[pie.TaskName].CurrStepIndex / (float)(currentSelectedTasks[pie.TaskName].Steps.Count - 1);
+                pie.UpdateCurrentTaskStatus(ratio, currentTaskID);
+            }
         }
     }
 
@@ -300,14 +302,15 @@ public class OrbMessageContainer : MonoBehaviour
             if (taskNameToOrbPie.ContainsKey(task))
             {
                 OrbPie ob = taskNameToOrbPie[task];
-                ob.SetTaskMessage(currentSelectedTasks[task].Steps[currentSelectedTasks[task].CurrStepIndex].StepDesc);
+                ob.SetTaskMessage(currentSelectedTasks[task].Name + " : " +
+                    currentSelectedTasks[task].Steps[currentSelectedTasks[task].CurrStepIndex].StepDesc);
 
                 float ratio = (float)currentSelectedTasks[task].CurrStepIndex / (float)(currentSelectedTasks[task].Steps.Count - 1);
                 ob.UpdateCurrentTaskStatus(ratio, currentTaskID);
             }
         }
 
-        return currentSelectedTasks[currentTaskID].Steps[currentSelectedTasks[currentTaskID].CurrStepIndex].StepDesc;
+        return "For task "+currentSelectedTasks[currentTaskID].Name+", please "+currentSelectedTasks[currentTaskID].Steps[currentSelectedTasks[currentTaskID].CurrStepIndex].StepDesc;
     }
 
 

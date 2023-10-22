@@ -1,9 +1,9 @@
 ﻿using Microsoft.MixedReality.Toolkit;
 using Microsoft.MixedReality.Toolkit.Input;
 using System.Collections;
-using System.Diagnostics;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.UI;
 
 public enum DwellButtonType
 {
@@ -16,11 +16,13 @@ public enum DwellButtonType
 /// </summary>
 public class DwellButton : MonoBehaviour, IMixedRealityTouchHandler
 {
+    private bool _btnInitialized = false;
+
     public bool IsInteractingWithBtn = false;
     public float Width => _btnCollider.size.y;
 
     private bool _isLookingAtBtn = false;
-    public bool GetIsLookingAtBtn => _isLookingAtBtn;
+    public bool IsLookingAtBtn => _isLookingAtBtn;
 
     private bool _isTouchingBtn = false;
     private bool _touchable = false;
@@ -50,12 +52,22 @@ public class DwellButton : MonoBehaviour, IMixedRealityTouchHandler
         get => _isDisabled;
         set { 
             _isDisabled = value;
+
             _btnmesh.gameObject.SetActive(!value);
+
+            if (_icon)
+            {
+                if (value)
+                    _icon.color = new Color(0.2f, 0.2f, 0.2f);
+                else
+                    _icon.color = Color.white;
+            }
         }
     }
 
     //*** Btn Dwelling Feedback 
     private Shapes.Disc _loadingDisc;
+
     private float _startingAngle;
 
     //*** Btn Push Feedback
@@ -63,8 +75,11 @@ public class DwellButton : MonoBehaviour, IMixedRealityTouchHandler
 
     //*** Btn Design
     private Material _btnBGMat;
+
+    private Image _icon;
    
-    private void Awake()
+    public void InitializeButton(EyeTarget target, UnityAction btnSelectEvent, UnityAction btnHalfSelect, 
+        bool touchable, DwellButtonType type, bool isUnique = false)
     {
         Shapes.Disc[] discs = GetComponentsInChildren<Shapes.Disc>(true);
         _loadingDisc = discs[0];
@@ -78,16 +93,16 @@ public class DwellButton : MonoBehaviour, IMixedRealityTouchHandler
         _btnBGMat.color = ARUISettings.BtnBaseColor;
         mr.material = _btnBGMat;
 
+        _icon = transform.GetComponentInChildren<Image>();
+        if (_icon)
+            _icon.color = Color.white;
+
         _selectEvent = new UnityEvent();
         _quarterSelectEvent = new UnityEvent();
 
         _btnCollider = GetComponentInChildren<BoxCollider>(true);
         _btnmesh = transform.GetChild(0).gameObject;
-    }
 
-    public void InitializeButton(EyeTarget target, UnityAction btnSelectEvent, UnityAction btnHalfSelect, 
-        bool touchable, DwellButtonType type, bool isUnique = false)
-    {
         _uniqueObj = isUnique;
         //TODO: FIGURE OUT HOW TO GET RID OF THIS
         _selectEvent = new UnityEvent();
@@ -104,24 +119,27 @@ public class DwellButton : MonoBehaviour, IMixedRealityTouchHandler
         if (touchable)
             gameObject.AddComponent<NearInteractionTouchable>();
 
+        _btnInitialized = true;
     }
 
     private void Update()
     {
+        if (!_btnInitialized) return;
+
         UpdateCurrentlyLooking();
         IsInteractingWithBtn = _isTouchingBtn || _isLookingAtBtn || EyeGazeManager.Instance.CurrentHit.Equals(EyeTarget.textConfirmationWindow);
     }
 
     private void UpdateCurrentlyLooking()
     {
+        if (!_btnInitialized) return;
+
         bool currentLooking = false;
 
         if (_uniqueObj)
         {
-            if (EyeGazeManager.Instance.CurrentHitObj != null)
-            {
-                currentLooking = EyeGazeManager.Instance.CurrentHitObj.GetInstanceID() == this.gameObject.GetInstanceID();
-            }
+            currentLooking = EyeGazeManager.Instance.CurrentHitObj != null &&
+                    EyeGazeManager.Instance.CurrentHitObj.GetInstanceID() == this.gameObject.GetInstanceID();
         }
         else
         {
@@ -205,7 +223,7 @@ public class DwellButton : MonoBehaviour, IMixedRealityTouchHandler
     /// <param name="eventData"></param>
     public void OnTouchStarted(HandTrackingInputEventData eventData)
     {
-        if (!_touchable || _isDisabled) return;
+        if (!_touchable || _isDisabled || !_btnInitialized) return;
         _isTouchingBtn = true;
         _btnBGMat.color = ARUISettings.BtnActiveColor;
         _pushConfiromationDisc.enabled = true;
@@ -213,7 +231,7 @@ public class DwellButton : MonoBehaviour, IMixedRealityTouchHandler
 
     public void OnTouchCompleted(HandTrackingInputEventData eventData)
     {
-        if (!_touchable || _isDisabled) return;
+        if (!_touchable || _isDisabled || !_btnInitialized) return;
         _isTouchingBtn = false;
 
         _btnBGMat.color = ARUISettings.BtnBaseColor;
@@ -223,7 +241,7 @@ public class DwellButton : MonoBehaviour, IMixedRealityTouchHandler
 
     public void OnTouchUpdated(HandTrackingInputEventData eventData) 
     {
-        if (!_touchable || _isDisabled) return;
+        if (!_touchable || _isDisabled || !_btnInitialized) return;
         _btnmesh.transform.position = eventData.InputData;
 
         if (_btnmesh.transform.localPosition.z > _pushConfiromationDisc.transform.localPosition.z)
@@ -236,6 +254,8 @@ public class DwellButton : MonoBehaviour, IMixedRealityTouchHandler
 
     private void SetSelected(bool selected)
     {
+        if (!_btnInitialized) return;
+
         if (selected)
         {
             _loadingDisc.AngRadiansEnd = 6.24f;

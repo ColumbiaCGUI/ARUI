@@ -104,8 +104,6 @@ public class EyeGazeManager : Singleton<EyeGazeManager>
                     CurrentHitObj = hitInfo.collider.gameObject;
                     if (_showRayDebugCube)
                         _eyeGazeTargetCube.enabled = true;
-
-                    AngelARUI.Instance.LogDebugMessage(CurrentHit+"", true);
                 }
                 else if (CurrentHit == EyeTarget.nothing)
                     CurrentHitObj = null;

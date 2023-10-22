@@ -116,6 +116,8 @@ public class OrbPie : MonoBehaviour
 
     public void SetPieActive(bool active, string currentActiveID)
     {
+        if (active && _currentStepText.text.Length == 0) return;
+
         _pieSlice.SetActive(active);
 
         if (active && (_taskname.Equals(currentActiveID) && _currentStepText.text.Length > 0) || _isLookingAtPies)

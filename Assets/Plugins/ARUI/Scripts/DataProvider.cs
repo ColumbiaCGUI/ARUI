@@ -173,7 +173,7 @@ public class DataProvider : Singleton<DataProvider>
     /// <param name="taskID"></param>
     public void SetCurrentActiveTask(string taskID)
     {
-        if (!_manual.ContainsKey(taskID)) return;
+        if (!_currentSelectedTasks.ContainsKey(taskID)) return;
         _currentTask = taskID;
 
         PublishToSubscribers(SusbcriberType.UpdateActiveTask);

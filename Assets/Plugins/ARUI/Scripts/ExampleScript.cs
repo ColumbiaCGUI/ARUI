@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System.Collections;
+using System;
 
 public class ExampleScript : MonoBehaviour
 {
@@ -41,7 +42,6 @@ public class ExampleScript : MonoBehaviour
 
     }
 
-
 #if UNITY_EDITOR
 
     /// <summary>
@@ -49,16 +49,7 @@ public class ExampleScript : MonoBehaviour
     /// </summary>
     public void Update()
     {
-        // Example how to use the NLI confirmation dialogue
-        if (Input.GetKeyUp(KeyCode.Alpha1))
-        {
-            AngelARUI.Instance.SetCurrentDetectedTask("Pinwheels");
-        }
-
-        if (Input.GetKeyUp(KeyCode.Alpha2))
-        {
-            AngelARUI.Instance.SetCurrentDetectedTask("Coffee");
-        }
+        CheckForRecipeChange();
 
         // Example how to use the NLI confirmation dialogue
         if (Input.GetKeyUp(KeyCode.I))
@@ -71,14 +62,19 @@ public class ExampleScript : MonoBehaviour
             AngelARUI.Instance.DeRegisterDetectedObject("test");
         }
 
-        if (Input.GetKeyUp(KeyCode.Y))
+        if (Input.GetKeyUp(KeyCode.M))
         {
-            AngelARUI.Instance.SetEyeDwellingAllowed(false);
+            ManualManager.Instance.SetMenuActive(!ManualManager.Instance.MenuActive);
+        }
+
+        if (Input.GetKeyUp(KeyCode.O))
+        {
+            ManualManager.Instance.SetManual(new List<string> { "Pinwheels", "Coffee", "Oatmeal", "Quesadilla", "Tea" });
         }
 
         if (Input.GetKeyUp(KeyCode.U))
         {
-            AngelARUI.Instance.SetEyeDwellingAllowed(true);
+            AngelARUI.Instance.IsGuidanceActive = !AngelARUI.Instance.IsGuidanceActive;
         }
 
         // Example how to step forward/backward in tasklist. 
@@ -138,6 +134,35 @@ public class ExampleScript : MonoBehaviour
         if (Input.GetKeyUp(KeyCode.F))
         {
             AngelARUI.Instance.PrintVMDebug = false;
+        }
+    }
+
+    private void CheckForRecipeChange()
+    {
+        // Example how to use the NLI confirmation dialogue
+        if (Input.GetKeyUp(KeyCode.Alpha1))
+        {
+            AngelARUI.Instance.SetCurrentDetectedTask("Pinwheels");
+        }
+
+        if (Input.GetKeyUp(KeyCode.Alpha2))
+        {
+            AngelARUI.Instance.SetCurrentDetectedTask("Coffee");
+        }
+
+        if (Input.GetKeyUp(KeyCode.Alpha3))
+        {
+            AngelARUI.Instance.SetCurrentDetectedTask("Oatmeal");
+        }
+
+        if (Input.GetKeyUp(KeyCode.Alpha4))
+        {
+            AngelARUI.Instance.SetCurrentDetectedTask("Tea");
+        }
+
+        if (Input.GetKeyUp(KeyCode.Alpha5))
+        {
+            AngelARUI.Instance.SetCurrentDetectedTask("Quesadilla");
         }
     }
 

@@ -28,6 +28,9 @@ public class AngelARUI : Singleton<AngelARUI>
     [HideInInspector]
     public bool IsVMActiv => ViewManagement.Instance != null && _useViewManagement;
 
+    [HideInInspector]
+    public bool IsGuidanceActive = true;
+
     [Tooltip("Set a custom Skip Notification Message. Can not be empty.")]
     public string SkipNotificationMessage = "You are skipping the current task:";
 
@@ -145,7 +148,11 @@ public class AngelARUI : Singleton<AngelARUI>
     /// TODO 
     /// </summary>
     /// <param name="taskID"></param>
-    public void SetCurrentDetectedTask(string taskID) => DataProvider.Instance.SetCurrentActiveTask(taskID);
+    public void SetCurrentDetectedTask(string taskID)
+    {
+        LogDebugMessage("Current Detected Task is: " + taskID, true);
+        DataProvider.Instance.SetCurrentActiveTask(taskID);
+    }
 
     /// <summary>
     /// TODO: Set all tasks in the tasklist as done. (or a specific task?)
@@ -301,12 +308,6 @@ public class AngelARUI : Singleton<AngelARUI>
 
         _useViewManagement = loaded;
     }
-    #endregion
-
-    #region Orb Behavior
-
-   // public void S
-
     #endregion
 
     #region Logging and Debugging
