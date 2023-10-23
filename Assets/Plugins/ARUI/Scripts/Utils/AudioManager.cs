@@ -176,7 +176,9 @@ public class AudioManager : Singleton<AudioManager>, IMixedRealitySpeechHandler
 
         yield return new WaitForEndOfFrame();
 
-        _tTos.StartSpeaking(text);
+        string cappedText = Utils.GetCappedText(text, 50);
+        AngelARUI.Instance.LogDebugMessage("Orb says: " + cappedText, true);
+        _tTos.StartSpeaking(cappedText);
         _currentlyPlayingText = _tTos.AudioSource;
 
         yield return new WaitForEndOfFrame();

@@ -285,6 +285,18 @@ public class AngelARUI : Singleton<AngelARUI>
     }
 
     /// <summary>
+    /// Forward a text-base message to the orb, and the orb will output the message using audio.
+    /// The message will be cut off after 50 words, which take around 25 seconds to speak on average. 
+    /// </summary>
+    /// <param name="message"></param>
+    public void PlayMessageAtOrb(string message)
+    {
+        if (message.Length == 0 || Orb.Instance == null || AudioManager.Instance == null) return;
+
+        AudioManager.Instance.PlayText(message);
+    }
+
+    /// <summary>
     /// Start view management if dll is available. If dll could not be loaded, view management is turned off.
     /// </summary>
     /// <returns></returns>

@@ -133,7 +133,7 @@ public class ExampleScript : MonoBehaviour
         }
         if (Input.GetKeyUp(KeyCode.F))
         {
-            AngelARUI.Instance.PrintVMDebug = false;
+            AngelARUI.Instance.PlayMessageAtOrb("This is a test");
         }
     }
 
