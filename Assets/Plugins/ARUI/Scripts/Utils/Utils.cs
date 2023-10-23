@@ -103,6 +103,20 @@ public static class Utils
         return -1;
     }
 
+    /// <summary>
+    /// Cut off string after nuberOfWords.
+    /// </summary>
+    /// <param name="text"></param>
+    /// <returns>the first 'numberOfWords' of the given string 'text' or less</returns>
+    public static string GetCappedText(string text, int numberOfWords)
+    {
+        // Split the input text into words using space as the delimiter
+        string[] words = text.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+        // Take the first 'maxWords' words and join them back into a string
+        return string.Join(" ", words.Take(numberOfWords));
+    }
+
 #if UNITY_EDITOR
     /// <summary>
     /// Adds the layer.
@@ -158,20 +172,6 @@ public static class Utils
             }
         }
         return false;
-    }
-
-    /// <summary>
-    /// Cut off string after nuberOfWords.
-    /// </summary>
-    /// <param name="text"></param>
-    /// <returns>the first 'numberOfWords' of the given string 'text' or less</returns>
-    public static string GetCappedText(string text, int numberOfWords)
-    {
-        // Split the input text into words using space as the delimiter
-        string[] words = text.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-
-        // Take the first 'maxWords' words and join them back into a string
-        return string.Join(" ", words.Take(numberOfWords));
     }
 
     #endif

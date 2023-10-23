@@ -23,20 +23,8 @@ public class ExampleScript : MonoBehaviour
         yield return new WaitForSeconds(1f);
 
         AngelARUI.Instance.InitManual(new List<string> { "Pinwheels", "Coffee", "Oatmeal", "Quesadilla", "Tea" });
-        AngelARUI.Instance.SetSelectedTasks(new List<string> { "Pinwheels", "Coffee", "Oatmeal", "Quesadilla", "Tea" });
 
-        for (int u = -1; u < 7; u++)
-        {
-            yield return new WaitForSeconds(1f);
-            AngelARUI.Instance.GoToStep("Pinwheels", u);
-
-            _currentTask = u;
-        }
-
-
-        yield return new WaitForSeconds(1f);
-
-        AngelARUI.Instance.SetCurrentDetectedTask("Coffee");
+        AngelARUI.Instance.PlayMessageAtOrb("This is a test");
 
         //ngelARUI.Instance.SetNotification(NotificationType.warning, "Hello, this is a wanrning");
 
@@ -69,7 +57,7 @@ public class ExampleScript : MonoBehaviour
 
         if (Input.GetKeyUp(KeyCode.O))
         {
-            ManualManager.Instance.SetManual(new List<string> { "Pinwheels", "Coffee", "Oatmeal", "Quesadilla", "Tea" });
+            ManualManager.Instance.SetManual(new List<string> { "Pinwheels", "Coffee", "Oatmeal", "Tea" });
         }
 
         if (Input.GetKeyUp(KeyCode.U))

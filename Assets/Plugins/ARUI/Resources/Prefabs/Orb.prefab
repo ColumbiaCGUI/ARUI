@@ -1166,7 +1166,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Hello this is a test '
+  m_text: "Hello this is a test \nHello this is a test \nHello this is a test "
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 34cfd363edd5f004aa7175107fdbe327, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 34cfd363edd5f004aa7175107fdbe327, type: 2}
@@ -1483,7 +1483,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   blendMode: 1
   scaleMode: 0
-  color: {r: 0.36142755, g: 0.5849056, b: 0.37048745, a: 0.5372549}
+  color: {r: 0.56402034, g: 0.9245283, b: 0.6735811, a: 0.92156863}
   detailLevel: 2
   renderQueue: -1
   zTest: 4
@@ -2564,7 +2564,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Hello this is a test '
+  m_text: "Hello this is a test \nHello this is a test \nHello this is a test "
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 34cfd363edd5f004aa7175107fdbe327, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 34cfd363edd5f004aa7175107fdbe327, type: 2}
@@ -3371,7 +3371,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   blendMode: 1
   scaleMode: 0
-  color: {r: 0.36142755, g: 0.5849056, b: 0.37048745, a: 0.5372549}
+  color: {r: 0.56402034, g: 0.9245283, b: 0.6735811, a: 0.92156863}
   detailLevel: 2
   renderQueue: -1
   zTest: 4
@@ -6625,7 +6625,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Hello this is a test '
+  m_text: "Hello this is a test Hello this is a test \nHello this is a test \nHello
+    this is a test "
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 34cfd363edd5f004aa7175107fdbe327, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 34cfd363edd5f004aa7175107fdbe327, type: 2}
@@ -7364,7 +7365,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   blendMode: 1
   scaleMode: 0
-  color: {r: 0.36142755, g: 0.5849056, b: 0.37048745, a: 0.5372549}
+  color: {r: 0.56402034, g: 0.9245283, b: 0.6735811, a: 0.92156863}
   detailLevel: 2
   renderQueue: -1
   zTest: 4
@@ -9717,7 +9718,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   blendMode: 1
   scaleMode: 0
-  color: {r: 0.7830189, g: 0.7830189, b: 0.7830189, a: 0.6745098}
+  color: {r: 0.7830189, g: 0.7830189, b: 0.7830189, a: 0.5882353}
   detailLevel: 2
   renderQueue: -1
   zTest: 4
@@ -10733,7 +10734,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   blendMode: 1
   scaleMode: 0
-  color: {r: 0.7830189, g: 0.7830189, b: 0.7830189, a: 0.6745098}
+  color: {r: 0.7830189, g: 0.7830189, b: 0.7830189, a: 0.5882353}
   detailLevel: 2
   renderQueue: -1
   zTest: 4
@@ -10865,7 +10866,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   blendMode: 1
   scaleMode: 0
-  color: {r: 0.36142755, g: 0.5849056, b: 0.37048745, a: 0.5372549}
+  color: {r: 0.56402034, g: 0.9245283, b: 0.6735811, a: 0.92156863}
   detailLevel: 2
   renderQueue: -1
   zTest: 4
@@ -11833,7 +11834,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   blendMode: 1
   scaleMode: 0
-  color: {r: 0.7830189, g: 0.7830189, b: 0.7830189, a: 0.6745098}
+  color: {r: 0.7830189, g: 0.7830189, b: 0.7830189, a: 0.5882353}
   detailLevel: 2
   renderQueue: -1
   zTest: 4
@@ -12566,7 +12567,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   blendMode: 1
   scaleMode: 0
-  color: {r: 0.7830189, g: 0.7830189, b: 0.7830189, a: 0.6745098}
+  color: {r: 0.7830189, g: 0.7830189, b: 0.7830189, a: 0.5882353}
   detailLevel: 2
   renderQueue: -1
   zTest: 4
@@ -12699,7 +12700,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   blendMode: 1
   scaleMode: 0
-  color: {r: 0.7830189, g: 0.7830189, b: 0.7830189, a: 0.6745098}
+  color: {r: 0.7830189, g: 0.7830189, b: 0.7830189, a: 0.5882353}
   detailLevel: 2
   renderQueue: -1
   zTest: 4
@@ -15579,7 +15580,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   blendMode: 1
   scaleMode: 0
-  color: {r: 0.36142755, g: 0.5849056, b: 0.37048745, a: 0.5372549}
+  color: {r: 0.56402034, g: 0.9245283, b: 0.6735811, a: 0.92156863}
   detailLevel: 2
   renderQueue: -1
   zTest: 4
