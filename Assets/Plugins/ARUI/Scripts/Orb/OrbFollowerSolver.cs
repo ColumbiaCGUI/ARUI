@@ -69,7 +69,7 @@ public class OrbFollowerSolver : Solver
         // Update the collider AABB of the orb based on the position and visibility of the orb message
         thisControllable.UpdateRectBasedOnSubColliders(Orb.Instance.AllOrbColliders);
 
-        if (!(_paused || _isLookingAtOrbFlag))
+        if (!(_paused || _isLookingAtOrbFlag || ManualManager.Instance.MenuActive))
         {
             Vector3 goalPosition = WorkingPosition;
 

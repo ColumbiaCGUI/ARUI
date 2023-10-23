@@ -74,39 +74,14 @@ public class Orb : Singleton<Orb>
         // Collect all orb colliders
         _allOrbColliders = new List<BoxCollider>();
 
-        DataProvider.Instance.RegisterDataSubscriber(() => HandleUpdateTaskListEvent(), SusbcriberType.UpdateTask);
-        DataProvider.Instance.RegisterDataSubscriber(() => HandleUpdateActiveTaskEvent(), SusbcriberType.UpdateActiveTask);
-        DataProvider.Instance.RegisterDataSubscriber(() => HandleUpdateActiveStepEvent(), SusbcriberType.UpdateStep);
+        ListenToDataEvents();
     }
-
-    private void HandleUpdateTaskListEvent() => _messageContainer.HandleUpdateTaskListEvent(DataProvider.Instance.CurrentSelectedTasks);
-
-    private void HandleUpdateActiveTaskEvent()
-    {
-        if (DataProvider.Instance.CurrentSelectedTasks.Count > 0)
-            _messageContainer.HandleUpdateActiveTaskEvent(DataProvider.Instance.CurrentSelectedTasks, DataProvider.Instance.CurrentTask);
-    }
-
-    private void HandleUpdateActiveStepEvent()
-    {
-        SetTaskMessage(DataProvider.Instance.CurrentSelectedTasks, DataProvider.Instance.CurrentTask);
-    }
-
 
     /// <summary>
     /// Update visibility of orb based on eye evets and task manager.
     /// </summary>
     private void Update()
     {
-        // Update eye tracking flag
-        if (_isLookingAtOrb && EyeGazeManager.Instance.CurrentHit != EyeTarget.orbFace)
-            SetIsLookingAtFace(false);
-        else if (!_isLookingAtOrb && EyeGazeManager.Instance.CurrentHit == EyeTarget.orbFace)
-            SetIsLookingAtFace(true);
-
-        if (_isLookingAtOrb || _messageContainer.IsLookingAtMessage)
-            _face.MessageNotificationEnabled = false;
-
         _orbHandle.IsActive = (_orbBehavior == OrbMovementBehavior.Fixed);
         _followSolver.IsPaused = (_orbBehavior == OrbMovementBehavior.Fixed || _face.UserIsGrabbing);
 
@@ -119,7 +94,18 @@ public class Orb : Singleton<Orb>
         if (_guidanceIsActive != AngelARUI.Instance.IsGuidanceActive)
             ToggleOrbGuidance();
 
-        if (DataProvider.Instance.CurrentSelectedTasks.Keys.Count > 0 && _guidanceIsActive)
+        if (!_guidanceIsActive) return;
+
+        // Update eye tracking flag
+        if (_isLookingAtOrb && EyeGazeManager.Instance.CurrentHit != EyeTarget.orbFace)
+            SetIsLookingAtFace(false);
+        else if (!_isLookingAtOrb && EyeGazeManager.Instance.CurrentHit == EyeTarget.orbFace)
+            SetIsLookingAtFace(true);
+
+        if (_isLookingAtOrb || _messageContainer.IsLookingAtMessage)
+            _face.MessageNotificationEnabled = false;
+
+        if (DataProvider.Instance.CurrentSelectedTasks.Keys.Count > 0)
             UpdateMessageVisibility();
     }
 
@@ -143,7 +129,8 @@ public class Orb : Singleton<Orb>
         { //Set the message visible!
             _messageContainer.IsMessageContainerActive = true;
         }
-        else if (!_messageContainer.IsLookingAtMessage && !IsLookingAtOrb(false) && _followSolver.IsOutOfFOV)
+        else if ( (ManualManager.Instance.MenuActive && _messageContainer.IsMessageContainerActive)
+            || (!_messageContainer.IsLookingAtMessage && !IsLookingAtOrb(false) && _followSolver.IsOutOfFOV))
         {
             _messageContainer.IsMessageContainerActive = false;
         }
@@ -323,6 +310,45 @@ public class Orb : Singleton<Orb>
             return _isLookingAtOrb || _messageContainer.IsLookingAtMessage || _messageContainer.IsInteractingWithBtn;
         else
             return _isLookingAtOrb || _messageContainer.IsLookingAtMessage;
+    }
+
+    #endregion
+
+    #region Data Change Listeners
+
+    /// <summary>
+    /// Register events that happen in case the task data changes
+    /// </summary>
+    private void ListenToDataEvents()
+    {
+        DataProvider.Instance.RegisterDataSubscriber(() => HandleUpdateTaskListEvent(), SusbcriberType.UpdateTask);
+        DataProvider.Instance.RegisterDataSubscriber(() => HandleUpdateActiveTaskEvent(), SusbcriberType.UpdateActiveTask);
+        DataProvider.Instance.RegisterDataSubscriber(() => HandleUpdateActiveStepEvent(), SusbcriberType.UpdateStep);
+    }
+
+    /// <summary>
+    /// Task List changed (add or removal of task)
+    /// </summary>
+    private void HandleUpdateTaskListEvent()
+    {
+        _messageContainer.HandleUpdateTaskListEvent(DataProvider.Instance.CurrentSelectedTasks, DataProvider.Instance.CurrentObservedTask);
+    }
+
+    /// <summary>
+    /// Currently observed task changed. Update orb message
+    /// </summary>
+    private void HandleUpdateActiveTaskEvent()
+    {
+        if (DataProvider.Instance.CurrentSelectedTasks.Count > 0)
+            _messageContainer.HandleUpdateActiveTaskEvent(DataProvider.Instance.CurrentSelectedTasks, DataProvider.Instance.CurrentObservedTask);
+    }
+
+    /// <summary>
+    /// Current step for tasks changed. Update orb message
+    /// </summary>
+    private void HandleUpdateActiveStepEvent()
+    {
+        SetTaskMessage(DataProvider.Instance.CurrentSelectedTasks, DataProvider.Instance.CurrentObservedTask);
     }
 
     #endregion

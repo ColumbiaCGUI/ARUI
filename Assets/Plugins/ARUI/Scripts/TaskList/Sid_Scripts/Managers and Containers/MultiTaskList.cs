@@ -51,7 +51,7 @@ public class MultiTaskList : Singleton<MultiTaskList>
 
     public void HandleDataUpdateEvent()
     {
-        MultiTaskList.Instance.UpdateAllSteps(DataProvider.Instance.CurrentSelectedTasks, DataProvider.Instance.CurrentTask);
+        MultiTaskList.Instance.UpdateAllSteps(DataProvider.Instance.CurrentSelectedTasks, DataProvider.Instance.CurrentObservedTask);
     }
 
     void Update()

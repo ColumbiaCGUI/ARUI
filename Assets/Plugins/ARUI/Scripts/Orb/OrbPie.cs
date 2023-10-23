@@ -93,6 +93,21 @@ public class OrbPie : MonoBehaviour
         SetPieActive(false, "");
     }
 
+    public void ResetPie()
+    {
+        _taskname = "";
+        _currentStepText.text = "";
+
+        _pieProgress.Radius = 0;
+        _pieProgress.Thickness = 0;
+        _pie.Radius = _maxRadius;
+        _pie.Thickness = _maxThick;
+
+        _textContainer.TextColor = new Color(_activeColorText.r, _activeColorText.g, _activeColorText.b, 1);
+
+        SetPieActive(false, "");
+    }
+
     public void UpdateMessageVisibility(string currentActiveID)
     {
         if (_currentStepText.text.Length == 0) return;
@@ -129,7 +144,7 @@ public class OrbPie : MonoBehaviour
 
     public void SetTaskMessage(string message)
     {
-        AngelARUI.Instance.LogDebugMessage("Set step message: '" + message + "' for task: " + gameObject.name, true);
+        AngelARUI.Instance.LogDebugMessage("Set step message: '" + message + "' for task: " + TaskName, true);
         _currentStepText.text = message;
 
         //_prevText.text = "";
@@ -141,11 +156,6 @@ public class OrbPie : MonoBehaviour
         //            _nextText.text = "<b>Upcoming:</b> " + Utils.SplitTextIntoLines(nextMessage, ARUISettings.OrbNoteMaxCharCountPerLine);
 
     }
-
-    //public void SetMessageActive(bool active)
-    //{
-    //    _pieText.SetActive(active);
-    //}
 
     #region Update Pie
 

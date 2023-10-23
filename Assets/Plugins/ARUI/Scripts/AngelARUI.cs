@@ -125,7 +125,7 @@ public class AngelARUI : Singleton<AngelARUI>
         zBufferCam.gameObject.AddComponent<ZBufferCamera>();
     }
 
-    public void SetSelectedTasks(List<string> list) => DataProvider.Instance.SetSelectedTasks(list);
+  
 
     #region Task Guidance
 
@@ -142,7 +142,7 @@ public class AngelARUI : Singleton<AngelARUI>
     /// TODO
     /// </summary>
     /// <param name="taskID">index of the current task that should be highlighted in the UI</param>
-    public void GoToStep(string recipeID, int taskID) => DataProvider.Instance.SetCurrentActiveStep(recipeID, taskID);
+    public void GoToStep(string recipeID, int taskID) => DataProvider.Instance.SetCurrentStep(recipeID, taskID);
 
     /// <summary>
     /// TODO 
@@ -151,7 +151,7 @@ public class AngelARUI : Singleton<AngelARUI>
     public void SetCurrentDetectedTask(string taskID)
     {
         LogDebugMessage("Current Detected Task is: " + taskID, true);
-        DataProvider.Instance.SetCurrentActiveTask(taskID);
+        DataProvider.Instance.SetCurrentlyObservedTask(taskID);
     }
 
     /// <summary>
@@ -327,6 +327,12 @@ public class AngelARUI : Singleton<AngelARUI>
         _showEyeGazeTarget = show;
         EyeGazeManager.Instance.ShowDebugTarget(_showEyeGazeTarget);
     }
+
+    /// <summary>
+    /// ********FOR TESTING AND DEBUGGIN PURPOSES ONLY. Use if you know what you are doing.
+    /// </summary>
+    /// <param name="list"></param>
+    public void SetSelectedTasks(List<string> list) => DataProvider.Instance.SetSelectedTasksFromManual(list);
 
     /// <summary>
     /// ********FOR DEBUGGING ONLY, prints ARUI logging messages

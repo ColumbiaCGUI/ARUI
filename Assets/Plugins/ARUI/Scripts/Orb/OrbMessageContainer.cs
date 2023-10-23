@@ -12,8 +12,6 @@ public enum MessageAnchor
 public class OrbMessageContainer : MonoBehaviour
 {
     private List<OrbPie> _allPies = new List<OrbPie>();
-    private OrbPie _nextAvailablePie;
-    private int _nextAvailablePieIndex = 0;
     private Dictionary<string, OrbPie> taskNameToOrbPie;
 
     //** Layout
@@ -36,7 +34,7 @@ public class OrbMessageContainer : MonoBehaviour
 
             foreach (OrbPie op in _allPies)
             {
-                op.SetPieActive(value, DataProvider.Instance.CurrentTask);
+                op.SetPieActive(value, DataProvider.Instance.CurrentObservedTask);
                 if (value)
                 {
                     op.Text.BackgroundColor = ARUISettings.OrbMessageBGColor;
@@ -107,7 +105,6 @@ public class OrbMessageContainer : MonoBehaviour
             _allPies.Add(current);
         }
 
-        _nextAvailablePie = _allPies[_nextAvailablePieIndex];
         taskNameToOrbPie = new Dictionary<string, OrbPie>();
 
         IsMessageContainerActive = false;
@@ -137,58 +134,41 @@ public class OrbMessageContainer : MonoBehaviour
 
         foreach (OrbPie pie in _allPies)
         {
-            pie.UpdateMessageVisibility(DataProvider.Instance.CurrentTask);
+            pie.UpdateMessageVisibility(DataProvider.Instance.CurrentObservedTask);
         }
     }
 
     public void HandleUpdateActiveTaskEvent(Dictionary<string, TaskList> currentSelectedTasks, string currentTaskID)
     {
-        foreach (OrbPie pie in _allPies)
+        foreach (OrbPie pie in taskNameToOrbPie.Values)
         {
-            if (currentSelectedTasks.ContainsKey(pie.TaskName)) { 
-                float ratio = (float)currentSelectedTasks[pie.TaskName].CurrStepIndex / (float)(currentSelectedTasks[pie.TaskName].Steps.Count - 1);
-                pie.UpdateCurrentTaskStatus(ratio, currentTaskID);
-            }
+            float ratio = (float)currentSelectedTasks[pie.TaskName].CurrStepIndex / (float)(currentSelectedTasks[pie.TaskName].Steps.Count - 1);
+            pie.UpdateCurrentTaskStatus(ratio, currentTaskID);
         }
     }
 
-    public void HandleUpdateTaskListEvent(Dictionary<string, TaskList> currentSelectedTasks)
-    {
-        //SetEnabled(currentSelectedTasks.Keys.Count > 0);
-
-        if (currentSelectedTasks.Keys.Count==1)
-        {
-            //TODO only show one pie
-        } else
-        {
-            //TODO show all pies
-        }
-
-        UpdateTaskList(currentSelectedTasks);
-    }
-
-    private void UpdateTaskList(Dictionary<string, TaskList> currentSelectedTasks)
+    public void HandleUpdateTaskListEvent(Dictionary<string, TaskList> currentSelectedTasks, string currentTaskID)
     {
         if (currentSelectedTasks.Count == 0 || currentSelectedTasks.Count > 5) return;
 
-        int i = 0;
+        foreach (OrbPie pie in taskNameToOrbPie.Values)
+            pie.ResetPie();
+
+        taskNameToOrbPie = new Dictionary<string, OrbPie>();
+
+        int pieIndex = 0;
         foreach (string taskName in currentSelectedTasks.Keys)
         {
-            if (!taskNameToOrbPie.ContainsKey(taskName))
-            {
-                taskNameToOrbPie.Add(taskName, _nextAvailablePie);
-                _nextAvailablePie.TaskName = taskName;
-                _nextAvailablePie.gameObject.name = currentSelectedTasks[taskName].Name;
-
-                _nextAvailablePie.SetTaskMessage(currentSelectedTasks[taskName].Name + " : " +
-                    currentSelectedTasks[taskName].Steps[currentSelectedTasks[taskName].CurrStepIndex].StepDesc);
-
-                _nextAvailablePieIndex++;
-                _nextAvailablePie = _allPies[Mathf.Min(4,_nextAvailablePieIndex)];
-            }
-
-            i++;
+            taskNameToOrbPie.Add(taskName, _allPies[pieIndex]); //assign task to pie
+            _allPies[pieIndex].TaskName = currentSelectedTasks[taskName].Name;
+            _allPies[pieIndex].SetTaskMessage(currentSelectedTasks[taskName].Name + " : " +
+                currentSelectedTasks[taskName].Steps[currentSelectedTasks[taskName].CurrStepIndex].StepDesc);
+            _allPies[pieIndex].UpdateMessageVisibility(currentTaskID);
+            pieIndex++;
         }
+
+        HandleUpdateActiveTaskEvent(currentSelectedTasks, currentTaskID);
+     
     }
 
     #region Message and Notification Updates
