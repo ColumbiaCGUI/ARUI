@@ -53,7 +53,6 @@ public class AudioManager : Singleton<AudioManager>, IMixedRealitySpeechHandler
     private bool _isMute = false;                                        /// <if true, task instructions or dialogue system audio feedback is not played. BUT system sound is.
     public bool IsMute => _isMute;
     
-
     public void Awake() => CoreServices.InputSystem?.RegisterHandler<IMixedRealitySpeechHandler>(this);
 
     private void Start()
@@ -177,7 +176,7 @@ public class AudioManager : Singleton<AudioManager>, IMixedRealitySpeechHandler
         yield return new WaitForEndOfFrame();
 
         string cappedText = Utils.GetCappedText(text, 50);
-        AngelARUI.Instance.LogDebugMessage("Orb says: " + cappedText, true);
+        AngelARUI.Instance.DebugLogMessage("Orb says: " + cappedText, true);
         _tTos.StartSpeaking(cappedText);
         _currentlyPlayingText = _tTos.AudioSource;
 
@@ -220,7 +219,10 @@ public class AudioManager : Singleton<AudioManager>, IMixedRealitySpeechHandler
             if (_tTos)
                 _tTos.StopSpeaking();
 
-            AngelARUI.Instance.LogDebugMessage("User triggered: Orb stopped speaking", true);
+            AngelARUI.Instance.DebugLogMessage("User triggered: Orb stopped speaking", true);
         }
+
+        if (eventData.Command.Keyword.ToLower().Equals("mute"))
+            MuteAudio(!_isMute);
     }
 }

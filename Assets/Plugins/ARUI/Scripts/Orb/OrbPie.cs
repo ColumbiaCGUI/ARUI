@@ -10,12 +10,6 @@ public class OrbPie : MonoBehaviour
         set { _taskname = value; }
     }
 
-    private bool _isMessageVisible = false;
-    public bool IsMessageVisible
-    {
-        get { return _isMessageVisible; }
-    }
-
     private GameObject _pieSlice;
     private BoxCollider _sliceCollider;
     private Shapes.Disc _pie;
@@ -112,7 +106,7 @@ public class OrbPie : MonoBehaviour
     {
         if (_currentStepText.text.Length == 0) return;
 
-        if (_pieSlice.activeSelf && EyeGazeManager.Instance.CurrentHit.Equals(EyeTarget.pieCollider))
+        if (_pieSlice.activeSelf && EyeGazeManager.Instance.CurrentHit.Equals(EyeTarget.pieCollider) || EyeGazeManager.Instance.CurrentHit.Equals(EyeTarget.orbMessage))
         {
             _isLookingAtPies = true;
             if (!_pieText.activeSelf)
@@ -142,11 +136,23 @@ public class OrbPie : MonoBehaviour
             _pieText.SetActive(false);
     }
 
-    public void SetTaskMessage(string message)
+    public void SetTaskMessage(int stepIndex, int total, string message, string currentTaskID)
     {
-        AngelARUI.Instance.LogDebugMessage("Set step message: '" + message + "' for task: " + TaskName, true);
-        _currentStepText.text = message;
+        AngelARUI.Instance.DebugLogMessage("Set step message: '" + message + "' for task: " + TaskName, true);
 
+        string newPotentialMessage = Utils.SplitTextIntoLines(TaskName + " (" + (stepIndex + 1) + "/" + total + ") : " +
+            message, 150);
+
+        //Play sound if task is finised and play task messag in case it was not played before
+        if (message.Contains("Done!") && !_currentStepText.text.Contains("Done!"))
+        {
+            AudioManager.Instance.PlaySound(transform.position, SoundType.taskDone);
+        } else if (currentTaskID.Equals(TaskName) && !newPotentialMessage.ToLower().Equals(_currentStepText.text.ToLower()))
+        {
+            AudioManager.Instance.PlayText(message);
+        }
+
+        _currentStepText.text = newPotentialMessage;
         //_prevText.text = "";
         //        _nextText.text = "";
         //        if (previousMessage.Length > 0)
@@ -216,7 +222,7 @@ public class OrbPie : MonoBehaviour
             deg = _lDeg;
             YRot = 180;
         }
-        _sliceCollider.transform.rotation = Quaternion.Euler(new Vector3(_sliceCollider.transform.rotation.x, YRot, _sliceCollider.transform.rotation.z));
+        _sliceCollider.transform.localRotation = Quaternion.Euler(new Vector3(_sliceCollider.transform.localRotation.x, YRot, _sliceCollider.transform.localRotation.z));
 
         _pie.AngRadiansEnd = deg * Mathf.Deg2Rad;
         _pie.AngRadiansStart = (deg -21) * Mathf.Deg2Rad;

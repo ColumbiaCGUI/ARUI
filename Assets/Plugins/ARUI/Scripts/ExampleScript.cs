@@ -6,28 +6,40 @@ using System;
 public class ExampleScript : MonoBehaviour
 {
     public bool Automate = true;
-    private int _currentTask = 0;
 
+    private Dictionary<string, int> _currentStepMap;
+    private string _currentTask = "";
     private void Start()
     {
         if (Automate)
-            StartCoroutine(RunTasksAtRuntime());
+            StartCoroutine(RunAutomatedTests());
     }
 
-    private IEnumerator RunTasksAtRuntime()
+    private IEnumerator RunAutomatedTests()
     {
-        yield return new WaitForSeconds(1f); //Wait a few frames, so everything is initialized
-
-        AngelARUI.Instance.RegisterDetectedObject(transform.GetChild(0).gameObject, "test");
-
         yield return new WaitForSeconds(1f);
 
-        AngelARUI.Instance.InitManual(new List<string> { "Pinwheels", "Coffee", "Oatmeal", "Quesadilla", "Tea" });
+        //AngelARUI.Instance.PrintVMDebug = true;
 
-        AngelARUI.Instance.PlayMessageAtOrb("This is a test");
+        //test with dummy data
+        var taskIDs = new List<string> { "Pinwheels", "Coffee", "Oatmeal", "Quesadilla", "Tea" };
+        _currentStepMap = new Dictionary<string, int> { 
+            { "Pinwheels", 0 }, { "Coffee", 0 },
+            { "Oatmeal", 0 }, { "Quesadilla", 0 }, { "Tea", 0 }};
+        _currentTask = "Pinwheels";
 
-        //ngelARUI.Instance.SetNotification(NotificationType.warning, "Hello, this is a wanrning");
+        var allJsonTasks = new Dictionary<string, string>();
+        foreach (string  taskID in taskIDs)
+        {
+            var jsonTextFile = Resources.Load<TextAsset>("Text/" + taskID);
+            allJsonTasks.Add(taskID, jsonTextFile.text);
+        }
 
+        AngelARUI.Instance.InitManual(allJsonTasks);
+
+        yield return new WaitForSeconds(2f);
+
+        AngelARUI.Instance.PlayMessageAtOrb("This is a test of a very long text. I am just going to continue talking until somebody says stop or if I am getting interrupted by another incoming message. I enjoy helping people, so ask me any question you want about the tasks.");
     }
 
 #if UNITY_EDITOR
@@ -39,67 +51,35 @@ public class ExampleScript : MonoBehaviour
     {
         CheckForRecipeChange();
 
-        // Example how to use the NLI confirmation dialogue
-        if (Input.GetKeyUp(KeyCode.I))
-        {
-            AngelARUI.Instance.RegisterDetectedObject(transform.GetChild(0).gameObject, "test");
-        }
-
-        if (Input.GetKeyUp(KeyCode.K))
-        {
-            AngelARUI.Instance.DeRegisterDetectedObject("test");
-        }
-
-        if (Input.GetKeyUp(KeyCode.M))
-        {
-            ManualManager.Instance.SetMenuActive(!ManualManager.Instance.MenuActive);
-        }
-
         if (Input.GetKeyUp(KeyCode.O))
         {
-            ManualManager.Instance.SetManual(new List<string> { "Pinwheels", "Coffee", "Oatmeal", "Tea" });
-        }
+            //test with dummy data
+            var taskIDs = new List<string> { "Pinwheels", "Coffee", "Oatmeal", "Quesadilla", "Tea" };
+            _currentStepMap = new Dictionary<string, int> {
+            { "Pinwheels", 0 }, { "Coffee", 0 },
+            { "Oatmeal", 0 }, { "Quesadilla", 0 }, { "Tea", 0 }};
+            _currentTask = "Pinwheels";
 
-        if (Input.GetKeyUp(KeyCode.U))
-        {
-            AngelARUI.Instance.IsGuidanceActive = !AngelARUI.Instance.IsGuidanceActive;
+            var allJsonTasks = new Dictionary<string, string>();
+            foreach (string taskID in taskIDs)
+            {
+                var jsonTextFile = Resources.Load<TextAsset>("Text/" + taskID);
+                allJsonTasks.Add(taskID, jsonTextFile.text);
+            }
+
+            AngelARUI.Instance.InitManual(allJsonTasks);
         }
 
         // Example how to step forward/backward in tasklist. 
         if (Input.GetKeyUp(KeyCode.RightArrow))
         {
-            _currentTask++;
-            AngelARUI.Instance.GoToStep("Pinwheels", _currentTask);
-            Debug.Log("GOto:" + _currentTask);
+            _currentStepMap[_currentTask]++;
+            AngelARUI.Instance.GoToStep(_currentTask, _currentStepMap[_currentTask]);
         }
         else if (Input.GetKeyUp(KeyCode.LeftArrow))
         {
-            _currentTask--;
-            AngelARUI.Instance.GoToStep("Pinwheels", _currentTask);
-        }
-
-        // Example how to trigger a skip notification. 
-        if (Input.GetKeyUp(KeyCode.UpArrow))
-        {
-            AngelARUI.Instance.SetNotification(NotificationType.note, "This is a very very very very very very very very very very very very very very very very very very long note");
-        }
-
-        // Example how to disable skip notification (is disable if system sets new task, or if system disables task manually
-        if (Input.GetKeyUp(KeyCode.DownArrow))
-        {
-            AngelARUI.Instance.RemoveNotification(NotificationType.note);
-        }
-
-        // Example how to trigger a skip notification. 
-        if (Input.GetKeyUp(KeyCode.LeftBracket))
-        {
-            AngelARUI.Instance.SetNotification(NotificationType.warning, "This is a very very very very very very very very very very very very very very very very very very long warning");
-        }
-
-        // Example how to disable skip notification (is disable if system sets new task, or if system disables task manually
-        if (Input.GetKeyUp(KeyCode.RightBracket))
-        {
-            AngelARUI.Instance.RemoveNotification(NotificationType.warning);
+            _currentStepMap[_currentTask]--;
+            AngelARUI.Instance.GoToStep(_currentTask, _currentStepMap[_currentTask]);
         }
 
         if (Input.GetKeyUp(KeyCode.V))
@@ -109,11 +89,11 @@ public class ExampleScript : MonoBehaviour
 
         if (Input.GetKeyUp(KeyCode.A))
         {
-            AngelARUI.Instance.ShowDebugEyeGazeTarget(false);
+            AngelARUI.Instance.DebugShowEyeGazeTarget(false);
         }
         if (Input.GetKeyUp(KeyCode.S))
         {
-            AngelARUI.Instance.ShowDebugEyeGazeTarget(true);
+            AngelARUI.Instance.DebugShowEyeGazeTarget(true);
         }
         if (Input.GetKeyUp(KeyCode.D))
         {
@@ -130,27 +110,32 @@ public class ExampleScript : MonoBehaviour
         // Example how to use the NLI confirmation dialogue
         if (Input.GetKeyUp(KeyCode.Alpha1))
         {
-            AngelARUI.Instance.SetCurrentDetectedTask("Pinwheels");
+            AngelARUI.Instance.SetCurrentObservedTask("Pinwheels");
+            _currentTask = "Pinwheels";
         }
 
         if (Input.GetKeyUp(KeyCode.Alpha2))
         {
-            AngelARUI.Instance.SetCurrentDetectedTask("Coffee");
+            AngelARUI.Instance.SetCurrentObservedTask("Coffee");
+            _currentTask = "Coffee";
         }
 
         if (Input.GetKeyUp(KeyCode.Alpha3))
         {
-            AngelARUI.Instance.SetCurrentDetectedTask("Oatmeal");
+            AngelARUI.Instance.SetCurrentObservedTask("Oatmeal");
+            _currentTask = "Oatmeal";
         }
 
         if (Input.GetKeyUp(KeyCode.Alpha4))
         {
-            AngelARUI.Instance.SetCurrentDetectedTask("Tea");
+            AngelARUI.Instance.SetCurrentObservedTask("Tea");
+            _currentTask = "Tea";
         }
 
         if (Input.GetKeyUp(KeyCode.Alpha5))
         {
-            AngelARUI.Instance.SetCurrentDetectedTask("Quesadilla");
+            AngelARUI.Instance.SetCurrentObservedTask("Quesadilla");
+            _currentTask = "Quesadilla";
         }
     }
 

@@ -1,3 +1,4 @@
+using Microsoft.MixedReality.Toolkit.Input;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -46,8 +47,6 @@ public class Orb : Singleton<Orb>
     private bool _lazyLookAtRunning = false;                 /// <used for lazy look at disable
     private bool _lazyFollowStarted = false;                 /// <used for lazy following
 
-    private bool _guidanceIsActive = true;
-
     /// <summary>
     /// Get all orb references from prefab
     /// </summary>
@@ -82,20 +81,6 @@ public class Orb : Singleton<Orb>
     /// </summary>
     private void Update()
     {
-        _orbHandle.IsActive = (_orbBehavior == OrbMovementBehavior.Fixed);
-        _followSolver.IsPaused = (_orbBehavior == OrbMovementBehavior.Fixed || _face.UserIsGrabbing);
-
-        float distance = Vector3.Distance(_followSolver.transform.position, AngelARUI.Instance.ARCamera.transform.position);
-        if (distance > 0.8)
-            _followSolver.transform.localScale = new Vector3(distance * 1.1f, distance * 1.1f, distance * 1.1f);
-        else
-            _followSolver.transform.localScale = new Vector3(1, 1, 1);
-
-        if (_guidanceIsActive != AngelARUI.Instance.IsGuidanceActive)
-            ToggleOrbGuidance();
-
-        if (!_guidanceIsActive) return;
-
         // Update eye tracking flag
         if (_isLookingAtOrb && EyeGazeManager.Instance.CurrentHit != EyeTarget.orbFace)
             SetIsLookingAtFace(false);
@@ -105,17 +90,17 @@ public class Orb : Singleton<Orb>
         if (_isLookingAtOrb || _messageContainer.IsLookingAtMessage)
             _face.MessageNotificationEnabled = false;
 
+        _orbHandle.IsActive = (_orbBehavior == OrbMovementBehavior.Fixed);
+        _followSolver.IsPaused = (_orbBehavior == OrbMovementBehavior.Fixed || _face.UserIsGrabbing);
+
+
+        float distance = Vector3.Distance(_followSolver.transform.position, AngelARUI.Instance.ARCamera.transform.position);
+        float scaleValue = Mathf.Max(1f, distance);
+        _followSolver.transform.localScale = new Vector3(scaleValue, scaleValue, scaleValue);
+
         if (DataProvider.Instance.CurrentSelectedTasks.Keys.Count > 0)
             UpdateMessageVisibility();
     }
-
-    private void ToggleOrbGuidance()
-    {
-        _face.SetOrbGuidance(AngelARUI.Instance.IsGuidanceActive);
-        _messageContainer.gameObject.SetActive(AngelARUI.Instance.IsGuidanceActive);
-        _guidanceIsActive = AngelARUI.Instance.IsGuidanceActive;
-    }
-
 
     #region Visibility, Position Updates and eye/collision event handler
 
@@ -125,12 +110,11 @@ public class Orb : Singleton<Orb>
     /// </summary>
     private void UpdateMessageVisibility()
     {
-        if ((IsLookingAtOrb(false) && !_messageContainer.IsMessageContainerActive && !_messageContainer.IsMessageFading && !ManualManager.Instance.MenuActive))
+        if ((IsLookingAtOrb(false) && !_messageContainer.IsMessageContainerActive && !_messageContainer.IsMessageFading && !_followSolver.IsSnappedToTaskList))
         { //Set the message visible!
             _messageContainer.IsMessageContainerActive = true;
         }
-        else if ( (ManualManager.Instance.MenuActive && _messageContainer.IsMessageContainerActive)
-            || (!_messageContainer.IsLookingAtMessage && !IsLookingAtOrb(false) && _followSolver.IsOutOfFOV))
+        else if (!_messageContainer.IsLookingAtMessage && !IsLookingAtOrb(false) && _followSolver.IsOutOfFOV || _followSolver.IsSnappedToTaskList)
         {
             _messageContainer.IsMessageContainerActive = false;
         }
@@ -257,12 +241,7 @@ public class Orb : Singleton<Orb>
         _messageContainer.RemoveAllNotifications();
         _face.UpdateNotification(false,false);
 
-        string currentMessage = _messageContainer.SetTaskMessage(currentSelectedTasks, currentActiveTask);
-
-        if (!currentMessage.Contains("Done"))
-            AudioManager.Instance.PlayText(currentMessage);
-        else
-            AudioManager.Instance.PlaySound(AllOrbColliders[0].transform.position, SoundType.taskDone);
+        _messageContainer.SetTaskMessage(currentSelectedTasks, currentActiveTask);
 
         if (_allOrbColliders.Count == 0)
         {
@@ -321,9 +300,9 @@ public class Orb : Singleton<Orb>
     /// </summary>
     private void ListenToDataEvents()
     {
-        DataProvider.Instance.RegisterDataSubscriber(() => HandleUpdateTaskListEvent(), SusbcriberType.UpdateTask);
-        DataProvider.Instance.RegisterDataSubscriber(() => HandleUpdateActiveTaskEvent(), SusbcriberType.UpdateActiveTask);
-        DataProvider.Instance.RegisterDataSubscriber(() => HandleUpdateActiveStepEvent(), SusbcriberType.UpdateStep);
+        DataProvider.Instance.RegisterDataSubscriber(() => HandleUpdateTaskListEvent(), SusbcriberType.TaskListChanged);
+        DataProvider.Instance.RegisterDataSubscriber(() => HandleUpdateActiveTaskEvent(), SusbcriberType.ObservedTaskChanged);
+        DataProvider.Instance.RegisterDataSubscriber(() => HandleUpdateActiveStepEvent(), SusbcriberType.CurrentStepChanged);
     }
 
     /// <summary>
@@ -349,6 +328,11 @@ public class Orb : Singleton<Orb>
     private void HandleUpdateActiveStepEvent()
     {
         SetTaskMessage(DataProvider.Instance.CurrentSelectedTasks, DataProvider.Instance.CurrentObservedTask);
+    }
+
+    public void SnapToTaskList(Vector3 position, bool isSnapped)
+    {
+        _followSolver.SnapToTaskList(position, isSnapped);
     }
 
     #endregion

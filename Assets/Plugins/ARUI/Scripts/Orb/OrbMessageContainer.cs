@@ -114,13 +114,13 @@ public class OrbMessageContainer : MonoBehaviour
     {
         // Update eye tracking flag
         if (_isLookingAtMessage && EyeGazeManager.Instance.CurrentHit != EyeTarget.orbMessage
-            && EyeGazeManager.Instance.CurrentHit != EyeTarget.orbtasklistButton
-            && EyeGazeManager.Instance.CurrentHit != EyeTarget.pieCollider)
+            && EyeGazeManager.Instance.CurrentHit != EyeTarget.orbtasklistButton && EyeGazeManager.Instance.CurrentHit != EyeTarget.pieCollider
+            )
             _isLookingAtMessage = false;
 
         else if (!_isLookingAtMessage && (EyeGazeManager.Instance.CurrentHit == EyeTarget.orbMessage
-            || EyeGazeManager.Instance.CurrentHit == EyeTarget.orbtasklistButton)
-            || EyeGazeManager.Instance.CurrentHit == EyeTarget.pieCollider)
+            || EyeGazeManager.Instance.CurrentHit == EyeTarget.orbtasklistButton || EyeGazeManager.Instance.CurrentHit == EyeTarget.pieCollider))
+            
             _isLookingAtMessage = true;
 
         if (!IsMessageContainerActive || IsMessageLerping) return;
@@ -161,14 +161,12 @@ public class OrbMessageContainer : MonoBehaviour
         {
             taskNameToOrbPie.Add(taskName, _allPies[pieIndex]); //assign task to pie
             _allPies[pieIndex].TaskName = currentSelectedTasks[taskName].Name;
-            _allPies[pieIndex].SetTaskMessage(currentSelectedTasks[taskName].Name + " : " +
-                currentSelectedTasks[taskName].Steps[currentSelectedTasks[taskName].CurrStepIndex].StepDesc);
+            _allPies[pieIndex].SetTaskMessage(currentSelectedTasks[taskName].CurrStepIndex,
+                currentSelectedTasks[taskName].Steps.Count,
+                currentSelectedTasks[taskName].Steps[currentSelectedTasks[taskName].CurrStepIndex].StepDesc, currentTaskID);
             _allPies[pieIndex].UpdateMessageVisibility(currentTaskID);
             pieIndex++;
         }
-
-        HandleUpdateActiveTaskEvent(currentSelectedTasks, currentTaskID);
-     
     }
 
     #region Message and Notification Updates
@@ -189,22 +187,6 @@ public class OrbMessageContainer : MonoBehaviour
     }
 
     #endregion
-
-    //private void ToggleOrbTaskList() => SetOrbListActive(!_prevText.gameObject.activeSelf);
-    private void SetOrbListActive(bool active)
-    {
-        //_prevText.gameObject.SetActive(active);
-        //_nextText.gameObject.SetActive(active);
-
-        //if (active)
-        //{
-        //    _textContainer.MessageCollider.size = new Vector3(_textContainer.MessageCollider.size.x, 0.08f, _textContainer.MessageCollider.size.z);
-        //}
-        //else
-        //{
-        //    _textContainer.MessageCollider.size = new Vector3(_textContainer.MessageCollider.size.x, 0.05f, _textContainer.MessageCollider.size.z);
-        //}
-    }
 
     /// <summary>
     /// Turn on or off message fading
@@ -273,7 +255,7 @@ public class OrbMessageContainer : MonoBehaviour
         return pieColliders;
     }
 
-    public string SetTaskMessage(Dictionary<string, TaskList> currentSelectedTasks, string currentTaskID)
+    public void SetTaskMessage(Dictionary<string, TaskList> currentSelectedTasks, string currentTaskID)
     {
         UpdateAnchorInstant(_currentAnchor);
 
@@ -282,18 +264,21 @@ public class OrbMessageContainer : MonoBehaviour
             if (taskNameToOrbPie.ContainsKey(task))
             {
                 OrbPie ob = taskNameToOrbPie[task];
-                ob.SetTaskMessage(currentSelectedTasks[task].Name + " : " +
-                    currentSelectedTasks[task].Steps[currentSelectedTasks[task].CurrStepIndex].StepDesc);
+                if (currentSelectedTasks[task].CurrStepIndex >= currentSelectedTasks[task].Steps.Count) {
+                    ob.SetTaskMessage(currentSelectedTasks[task].Steps.Count -1,
+                currentSelectedTasks[task].Steps.Count, "Done", currentTaskID);
+                } else
+                {
+                    ob.SetTaskMessage(currentSelectedTasks[task].CurrStepIndex,
+                currentSelectedTasks[task].Steps.Count,
+                    currentSelectedTasks[task].Steps[currentSelectedTasks[task].CurrStepIndex].StepDesc, currentTaskID);
+                }
 
-                float ratio = (float)currentSelectedTasks[task].CurrStepIndex / (float)(currentSelectedTasks[task].Steps.Count - 1);
+                float ratio = Mathf.Min(1,(float)currentSelectedTasks[task].CurrStepIndex / (float)(currentSelectedTasks[task].Steps.Count - 1));
                 ob.UpdateCurrentTaskStatus(ratio, currentTaskID);
             }
         }
-
-        return "For task "+currentSelectedTasks[currentTaskID].Name+", please "+currentSelectedTasks[currentTaskID].Steps[currentSelectedTasks[currentTaskID].CurrStepIndex].StepDesc;
     }
-
-
 
     #region Update UI
 

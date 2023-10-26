@@ -38,21 +38,11 @@ public class OrbGrabbable : MonoBehaviour, IMixedRealityPointerHandler
 
     public void OnPointerDragged(MixedRealityPointerEventData eventData) 
     {
-        if ((Handedness.Right == eventData.Handedness && HandPoseManager.Instance.rightPose == Holofunk.HandPose.HandPose.Closed)
-         || (Handedness.Left == eventData.Handedness && HandPoseManager.Instance.leftPose == Holofunk.HandPose.HandPose.Closed))
-            Orb.Instance.UpdateMovementbehavior(OrbMovementBehavior.Fixed);
-        else
-            Orb.Instance.UpdateMovementbehavior(OrbMovementBehavior.Follow);
+        //Orb.Instance.UpdateMovementbehavior(OrbMovementBehavior.Follow);
     }
 
     public void OnPointerUp(MixedRealityPointerEventData eventData)
     {
-        if ((Handedness.Right == eventData.Handedness && HandPoseManager.Instance.rightPose == Holofunk.HandPose.HandPose.Closed)
-         || (Handedness.Left == eventData.Handedness && HandPoseManager.Instance.leftPose == Holofunk.HandPose.HandPose.Closed))
-            Orb.Instance.UpdateMovementbehavior(OrbMovementBehavior.Fixed);
-        else
-            Orb.Instance.UpdateMovementbehavior(OrbMovementBehavior.Follow);
-
         Orb.Instance.SetIsDragging(false);
         AudioManager.Instance.PlaySound(transform.position, SoundType.moveEnd);
     }

@@ -18,28 +18,17 @@ public class AngelARUI : Singleton<AngelARUI>
     ///****** Debug Settings
     private bool _showARUIDebugMessages = true;       /// <If true, ARUI debug messages are shown in the unity console and scene Logger (if available)
     private bool _showEyeGazeTarget = false;          /// <If true, the eye gaze target is shown if the eye ray hits UI elements (white small cube), can be toggled on/off at runtime
-
+   
     [HideInInspector]
     public bool PrintVMDebug = false;
 
     ///****** Guidance Settings
     private bool _useViewManagement = true;           /// <If true, the ARUI view mangement will run
-
     [HideInInspector]
     public bool IsVMActiv => ViewManagement.Instance != null && _useViewManagement;
 
-    [HideInInspector]
-    public bool IsGuidanceActive = true;
-
-    [Tooltip("Set a custom Skip Notification Message. Can not be empty.")]
-    public string SkipNotificationMessage = "You are skipping the current task:";
-
     ///****** Confirmation Dialogue
-    private UnityAction _onUserIntentConfirmedAction = null;     /// <Action invoked if the user accepts the confirmation dialogue
-    private ConfirmationDialogue _confirmationWindow = null;     /// <Reference to confirmation dialogue
     private GameObject _confirmationWindowPrefab = null;
-
-    private Dictionary<string, CVDetectedObj> DetectedObjects = new Dictionary<string, CVDetectedObj>();
 
     private void Awake() => StartCoroutine(InitProjectSettingsAndScene());
 
@@ -86,8 +75,8 @@ public class AngelARUI : Singleton<AngelARUI>
         eyeTarget.AddComponent<EyeGazeManager>();
         EyeGazeManager.Instance.ShowDebugTarget(_showEyeGazeTarget);
 
-        GameObject handPoseManager = Instantiate(Resources.Load(StringResources.HandPoseManager_path)) as GameObject;
-        handPoseManager.gameObject.name = "***ARUI-" + StringResources.HandPoseManager_name;
+        //GameObject handPoseManager = Instantiate(Resources.Load(StringResources.HandPoseManager_path)) as GameObject;
+        //handPoseManager.gameObject.name = "***ARUI-" + StringResources.HandPoseManager_name;
         yield return new WaitForEndOfFrame();
 
         //Instantiate the AI assistant - orb
@@ -105,15 +94,6 @@ public class AngelARUI : Singleton<AngelARUI>
         if (_useViewManagement)
             StartCoroutine(TryStartVM());
 
-        //Instantiate empty tasklist
-        //GameObject taskList = Instantiate(Resources.Load(StringResources.TaskList_path)) as GameObject;
-        //taskList.gameObject.name = "***ARUI-" + StringResources.tasklist_name;
-        //taskList.AddComponent<TaskListManager>();
-
-        //Instantiate empty multi tasklist
-        //GameObject overviewObj = Instantiate(Resources.Load(StringResources.Sid_Tasklist_path)) as GameObject;
-        //TasklistPositionManager.Instance.SnapToCentroid();
-
         //Load resources for UI elements
         _confirmationWindowPrefab = Resources.Load(StringResources.ConfNotification_path) as GameObject;
         _confirmationWindowPrefab.gameObject.name = "***ARUI-" + StringResources.confirmationWindow_name;
@@ -125,47 +105,41 @@ public class AngelARUI : Singleton<AngelARUI>
         zBufferCam.gameObject.AddComponent<ZBufferCamera>();
     }
 
-  
-
     #region Task Guidance
 
     /// <summary>
-    /// TODO
+    /// Set the manual for the current guidance session. Manual can only set once. If manual is not set, 
+    /// the orb is not showing anything. 
+    /// Nothing happens if allTasks is null or length is 0, else the manual will be set in the database
     /// </summary>
     /// <param name="allTasks"></param>
-    public void InitManual(List<string> allTasks) => DataProvider.Instance.InitManual(allTasks);
+    public void InitManual(Dictionary<string, string> allTasks)
+    {
+        DataProvider.Instance.InitManual(allTasks);
+        DataProvider.Instance.SetSelectedTasksFromManual(new List<string>(allTasks.Keys));
+    }
 
     /// <summary>
-    /// Set the current task the user has to do.
-    /// If taskID is >= 0 and < the number of tasks, the orb won't react.
-    /// If taskID is the same as the current one, the ARUI won't react.
-    /// TODO
+    /// Set the current step the user has to do at given taskID
+    /// If stepIndex is <= 0 the current step index at takID will be set to 0 (first step)
+    /// If stepIndex is > than the numer of steps of taskID, then the task will be removed from the tasklist (it is assumed that it is done)
+    /// If stepIndex is the same as the current one at taskID, nothing happens
     /// </summary>
-    /// <param name="taskID">index of the current task that should be highlighted in the UI</param>
-    public void GoToStep(string recipeID, int taskID) => DataProvider.Instance.SetCurrentStep(recipeID, taskID);
+    /// <param name="taskID">ID of the task that should be updated</param>
+    /// <param name="stepIndex">index of the current task that should be highlighted in the UI</param>
+    public void GoToStep(string taskID, int stepIndex)
+    {
+        DataProvider.Instance.SetCurrentStep(taskID, stepIndex);
+    }
 
     /// <summary>
-    /// TODO 
+    /// Set the 
     /// </summary>
     /// <param name="taskID"></param>
-    public void SetCurrentDetectedTask(string taskID)
+    public void SetCurrentObservedTask(string taskID)
     {
-        LogDebugMessage("Current Detected Task is: " + taskID, true);
-        DataProvider.Instance.SetCurrentlyObservedTask(taskID);
+        DataProvider.Instance.SetCurrentObservedTask(taskID);
     }
-
-    /// <summary>
-    /// TODO: Set all tasks in the tasklist as done. (or a specific task?)
-    /// </summary>
-    public void SetAllTasksDone(string key)
-    {
-
-    }
-
-    /// <summary>
-    /// TODO
-    /// </summary>
-    public void SetEyeDwellingAllowed(bool active) => ARUISettings.EyeDwellAllowed = active;
 
     /// <summary>
     /// Mute voice feedback for task guidance. ONLY influences task guidance.
@@ -175,42 +149,58 @@ public class AngelARUI : Singleton<AngelARUI>
 
     #endregion
 
-    #region Notifications
-
-    /// <summary>
-    /// Set the callback function that is invoked if the user confirms the confirmation dialogue
-    /// </summary>
-    public void SetUserIntentCallback(UnityAction userIntentCallBack) => _onUserIntentConfirmedAction = userIntentCallBack;
-
+    #region Callbacks
 
     ///// <summary>
-    ///// If confirmation action is set - SetUserIntentCallback(...) - and no confirmation window is active at the moment, the user is shown a 
-    ///// timed confirmation window. Recommended text: "Did you mean ...". If the user confirms the dialogue, the onUserIntentConfirmedAction action is invoked. 
+    ///// If no confirmation window is active at the moment, the user is shown a 
+    ///// timed confirmation window. If the user confirms the dialogue, the confirmationCallback action is invoked. 
     ///// </summary>
     ///// <param name="msg">message that is shown in the confirmation dialogue</param>
-    public void TryGetUserFeedbackOnUserIntent(string msg)
+    public void AskForUserConfirmation(string msg, UnityAction confirmationCallback)
     {
-        if (_onUserIntentConfirmedAction == null || _confirmationWindow != null || msg == null || msg.Length == 0) return;
+        if (msg == null || msg.Length == 0) return;
 
         GameObject window = Instantiate(_confirmationWindowPrefab, transform);
         window.gameObject.name = "***ARUI-Confirmation-" + msg;
-        _confirmationWindow = window.AddComponent<ConfirmationDialogue>();
-        _confirmationWindow.InitializeConfirmationNotification(msg, _onUserIntentConfirmedAction);
+        var _confirmationWindow = window.AddComponent<ConfirmationDialogue>();
+        _confirmationWindow.InitializeConfirmationNotification(msg, confirmationCallback);
+    }
+
+    #endregion
+
+    #region Notifications
+
+    /// <summary>
+    /// Forward a text-base message to the orb, and the orb will output the message using audio.
+    /// The message will be cut off after 50 words, which take around 25 seconds to speak on average. 
+    /// </summary>
+    /// <param name="message"></param>
+    public void PlayMessageAtOrb(string message)
+    {
+        if (message.Length == 0 || Orb.Instance == null || AudioManager.Instance == null) return;
+        AudioManager.Instance.PlayText(message);
     }
 
     /// <summary>
     /// If given paramter is true, the orb will show message to the user that the system detected an attempt to skip the current task.
     /// The message will disappear if "SetCurrentTaskID(..)" is called, or ShowSkipNotification(false)
+    /// 
+    /// //TODO
     /// </summary>
     /// <param name="show">if true, the orb will show a skip notification, if false, the notification will disappear</param>
-    public void SetNotification(NotificationType type, string message)
+    private void SetNotification(NotificationType type, string message)
     {
-        if (DataProvider.Instance.CurrentSelectedTasks.Count==0) return;
-
         Orb.Instance.AddNotification(type, message);
     }
 
-    public void RemoveNotification(NotificationType type) => Orb.Instance.RemoveNotification(type);
+    /// <summary>
+    /// //TODO
+    /// </summary>
+    /// <param name="type"></param>
+    private void RemoveNotification(NotificationType type)
+    {
+        Orb.Instance.RemoveNotification(type);
+    }
 
     #endregion
 
@@ -223,17 +213,8 @@ public class AngelARUI : Singleton<AngelARUI>
     /// <param name="ID">ID to identify the gameobject that should be added</param>
     public void RegisterDetectedObject(GameObject bbox, string ID)
     {
-        if (DetectedObjects.ContainsKey(ID)) return;
-
-        GameObject copy = Instantiate(bbox);
-        copy.gameObject.name = "***ARUI-CVDetected-" + ID;
-
-        // destroy mesh renderer, if attached
-        if (copy.GetComponent<MeshRenderer>()!=null)
-            Destroy(copy.GetComponent<MeshRenderer>());
-
-        CVDetectedObj ndetection = copy.AddComponent<CVDetectedObj>();
-        DetectedObjects.Add(ID, ndetection);
+        if (DataProvider.Instance == null) return;
+        DataProvider.Instance.AddDetectedObjects(bbox, ID);
     }
 
     /// <summary>
@@ -242,19 +223,8 @@ public class AngelARUI : Singleton<AngelARUI>
     /// <param name="ID">ID to identify the gameobject that should be removed</param>
     public void DeRegisterDetectedObject(string ID)
     {
-        if (!DetectedObjects.ContainsKey(ID)) return;
-
-        StartCoroutine(LateDestroy(DetectedObjects[ID]));
-        DetectedObjects.Remove(ID);
-    }
-
-    private IEnumerator LateDestroy(CVDetectedObj temp)
-    {
-        temp.IsDestroyed = true;
-
-        yield return new WaitForSeconds(0.2f);
-
-        Destroy(temp.gameObject);
+        if (DataProvider.Instance == null) return;
+        DataProvider.Instance.RemoveDetectedObjects(ID);
     }
 
     #endregion
@@ -279,21 +249,9 @@ public class AngelARUI : Singleton<AngelARUI>
                 Destroy(ARCamera.gameObject.GetComponent<SpaceManagement>());
                 _useViewManagement = false;
 
-                AngelARUI.Instance.LogDebugMessage("View Management is OFF",true);
+                AngelARUI.Instance.DebugLogMessage("View Management is OFF",true);
             }
         }
-    }
-
-    /// <summary>
-    /// Forward a text-base message to the orb, and the orb will output the message using audio.
-    /// The message will be cut off after 50 words, which take around 25 seconds to speak on average. 
-    /// </summary>
-    /// <param name="message"></param>
-    public void PlayMessageAtOrb(string message)
-    {
-        if (message.Length == 0 || Orb.Instance == null || AudioManager.Instance == null) return;
-
-        AudioManager.Instance.PlayText(message);
     }
 
     /// <summary>
@@ -310,12 +268,12 @@ public class AngelARUI : Singleton<AngelARUI>
         if (loaded)
         {
             ARCamera.gameObject.AddComponent<ViewManagement>();
-            AngelARUI.Instance.LogDebugMessage("View Management is ON", true);
+            AngelARUI.Instance.DebugLogMessage("View Management is ON", true);
         }
         else
         {
             Destroy(sm);
-            LogDebugMessage("VM could not be loaded. Setting vm disabled.", true);
+            DebugLogMessage("VM could not be loaded. Setting vm disabled.", true);
         }
 
         _useViewManagement = loaded;
@@ -325,33 +283,29 @@ public class AngelARUI : Singleton<AngelARUI>
     #region Logging and Debugging
 
     /// <summary>
+    /// ********FOR DEBUGGING ONLY
     /// Set if debug information is shown in the logger window
     /// </summary>
     /// <param name="show">if true, ARUI debug messages are shown in the unity console and scene Logger (if available)</param>
-    public void ShowDebugMessagesInLogger(bool show) => _showARUIDebugMessages = show;
+    public void DebugShowMessagesInLogger(bool show) => _showARUIDebugMessages = show;
 
     /// <summary>
+    /// ********FOR DEBUGGING ONLY 
     /// Set if debug information is shown about the users eye gaze, the user will see a small transparent sphere that represents the eye target
     /// </summary>
     /// <param name="show">if true and the user is looking at a virtual UI element, a small transparent sphere is shown </param>
-    public void ShowDebugEyeGazeTarget(bool show)
+    public void DebugShowEyeGazeTarget(bool show)
     {
         _showEyeGazeTarget = show;
         EyeGazeManager.Instance.ShowDebugTarget(_showEyeGazeTarget);
     }
 
     /// <summary>
-    /// ********FOR TESTING AND DEBUGGIN PURPOSES ONLY. Use if you know what you are doing.
-    /// </summary>
-    /// <param name="list"></param>
-    public void SetSelectedTasks(List<string> list) => DataProvider.Instance.SetSelectedTasksFromManual(list);
-
-    /// <summary>
     /// ********FOR DEBUGGING ONLY, prints ARUI logging messages
     /// </summary>
     /// <param name="message"></param>
     /// <param name="showInLogger"></param>
-    public void LogDebugMessage(string message, bool showInLogger)
+    public void DebugLogMessage(string message, bool showInLogger)
     {
         if (_showARUIDebugMessages)
         {
