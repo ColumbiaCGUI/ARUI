@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.Events;
 using System.Collections;
 using System.Collections.Generic;
 using Shapes;
@@ -88,7 +87,6 @@ public class AngelARUI : Singleton<AngelARUI>
         //Instantiate the Task Overview
         GameObject TaskOverview = Instantiate(Resources.Load(StringResources.Sid_Tasklist_path)) as GameObject;
         TaskOverview.gameObject.name = "***ARUI-" + StringResources.tasklist_name;
-        TaskOverview.GetComponent<TasklistPositionManager>().SnapToCentroid();
 
         //Start View Management, if enabled
         if (_useViewManagement)
@@ -129,7 +127,7 @@ public class AngelARUI : Singleton<AngelARUI>
     /// <param name="stepIndex">index of the current task that should be highlighted in the UI</param>
     public void GoToStep(string taskID, int stepIndex)
     {
-        DataProvider.Instance.SetCurrentStep(taskID, stepIndex);
+        DataProvider.Instance.SetCurrentStep(taskID, stepIndex);   
     }
 
     /// <summary>
@@ -149,30 +147,13 @@ public class AngelARUI : Singleton<AngelARUI>
 
     #endregion
 
-    #region Callbacks
-
-    ///// <summary>
-    ///// If no confirmation window is active at the moment, the user is shown a 
-    ///// timed confirmation window. If the user confirms the dialogue, the confirmationCallback action is invoked. 
-    ///// </summary>
-    ///// <param name="msg">message that is shown in the confirmation dialogue</param>
-    public void AskForUserConfirmation(string msg, UnityAction confirmationCallback)
-    {
-        if (msg == null || msg.Length == 0) return;
-
-        GameObject window = Instantiate(_confirmationWindowPrefab, transform);
-        window.gameObject.name = "***ARUI-Confirmation-" + msg;
-        var _confirmationWindow = window.AddComponent<ConfirmationDialogue>();
-        _confirmationWindow.InitializeConfirmationNotification(msg, confirmationCallback);
-    }
-
-    #endregion
-
     #region Notifications
 
     /// <summary>
     /// Forward a text-base message to the orb, and the orb will output the message using audio.
     /// The message will be cut off after 50 words, which take around 25 seconds to speak on average. 
+    /// 
+    /// Iterrupts the last message that was spoken
     /// </summary>
     /// <param name="message"></param>
     public void PlayMessageAtOrb(string message)
@@ -182,25 +163,33 @@ public class AngelARUI : Singleton<AngelARUI>
     }
 
     /// <summary>
+    /// Forward a text-base message to the orb, and the orb will output the message using audio.
+    /// The message will be cut off after 50 words, which take around 25 seconds to speak on average. 
+    /// 
+    /// Iterrupts the last message that was spoken
+    /// </summary>
+    /// <param name="message"></param>
+    public void PlayMessageAtOrb(string utterance,string message)
+    {
+        if (message.Length == 0 || Orb.Instance == null || AudioManager.Instance == null) return;
+        AudioManager.Instance.PlayText(utterance, message);
+        Orb.Instance.SetOrbThinking(false);
+    }
+
+    /// <summary>
     /// If given paramter is true, the orb will show message to the user that the system detected an attempt to skip the current task.
     /// The message will disappear if "SetCurrentTaskID(..)" is called, or ShowSkipNotification(false)
     /// 
     /// //TODO
     /// </summary>
     /// <param name="show">if true, the orb will show a skip notification, if false, the notification will disappear</param>
-    private void SetNotification(NotificationType type, string message)
-    {
-        Orb.Instance.AddNotification(type, message);
-    }
+    public void SetNotification(string message) => Orb.Instance.AddNotification(message);
 
     /// <summary>
     /// //TODO
     /// </summary>
     /// <param name="type"></param>
-    private void RemoveNotification(NotificationType type)
-    {
-        Orb.Instance.RemoveNotification(type);
-    }
+    public void RemoveNotification() => Orb.Instance.RemoveNotification();
 
     #endregion
 
@@ -313,6 +302,11 @@ public class AngelARUI : Singleton<AngelARUI>
                 Logger.Instance.LogInfo("***ARUI: " + message);
             Debug.Log("***ARUI: " + message);
         }
+    }
+
+    public void SetOrbThinking(bool isThinking)
+    {
+        Orb.Instance.SetOrbThinking(isThinking);
     }
 
     #endregion

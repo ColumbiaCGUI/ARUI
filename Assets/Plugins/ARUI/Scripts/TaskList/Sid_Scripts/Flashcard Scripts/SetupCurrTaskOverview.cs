@@ -15,11 +15,9 @@ public class SetupCurrTaskOverview : MonoBehaviour
     {
         if (allSteps == null || currentStep <= -1)
         {
-            currFlashcardSolo.gameObject.SetActive(false);
+            currFlashcardSolo.SetAsDone("Task Done");
         } else {
-
-            currFlashcardSolo.gameObject.SetActive(true);
-            currFlashcardSolo.InitializeFlashcard(allSteps[currentStep], currentStep+1, allSteps.Count);
+            currFlashcardSolo.SetFlashcard(allSteps[currentStep], currentStep+1, allSteps.Count);
         }
     }
 
@@ -32,7 +30,7 @@ public class SetupCurrTaskOverview : MonoBehaviour
         else
         {
             prevFlashcard.gameObject.SetActive(true);
-            prevFlashcard.InitializeFlashcard(allSteps[prevStep]);
+            prevFlashcard.SetFlashcard(allSteps[prevStep]);
         }
     }
 
@@ -51,7 +49,7 @@ public class SetupCurrTaskOverview : MonoBehaviour
                 if (i < allSteps.Count)
                 {
                     card.gameObject.SetActive(true);
-                    card.InitializeFlashcard(allSteps[i]);
+                    card.SetFlashcard(allSteps[i]);
                 }
                 else
                     card.gameObject.SetActive(false);

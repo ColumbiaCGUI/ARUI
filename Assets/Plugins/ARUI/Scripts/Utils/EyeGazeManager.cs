@@ -18,7 +18,8 @@ public enum EyeTarget
     upButton = 11,
     downButton =12,
     resetButton = 13,
-    pieCollider = 14
+    pieCollider = 14,
+    gptDialogue = 15,
 }
 
 public class EyeGazeManager : Singleton<EyeGazeManager>
@@ -95,6 +96,9 @@ public class EyeGazeManager : Singleton<EyeGazeManager>
 
                 else if (goName.Contains("_menu"))
                     CurrentHit = EyeTarget.menuBtn;
+
+                else if (goName.Contains("gptdialogue"))
+                    CurrentHit = EyeTarget.gptDialogue;
 
                 else
                     CurrentHit = EyeTarget.nothing;

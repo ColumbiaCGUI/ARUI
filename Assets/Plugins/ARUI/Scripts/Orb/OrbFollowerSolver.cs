@@ -23,22 +23,15 @@ public class OrbFollowerSolver : Solver
     //** Radial and positional behavior of the orb
     private float _currentMaxDistance = 0.7f;           /// < Current max distance from eye to element, changes depending on the environment
     private float _currentMaxViewDegrees = 15f;         /// < The element will stay at least this close to the center of view
-    
+
     private bool _coolDown = false;
     private Vector3 _coolDownTarget = Vector3.zero;
 
     private bool _stayCenter = false;
     private bool _isSticky = false;                     /// < If true, orb stays at the edge of the view cone
 
-    private bool _snappedToTaskList = false;
-    public bool IsSnappedToTaskList
-    {
-        get => _snappedToTaskList;
-    }
-
     private bool _outOfFOV = false;                     /// < If true, orb is not in the FOV of the user
     public bool IsOutOfFOV => _outOfFOV;
-
 
     //** Eye gaze events
     private bool _isLookingAtOrbFlag = false;           /// < If true, user is looking at orb
@@ -97,14 +90,18 @@ public class OrbFollowerSolver : Solver
                 goalPosition = _coolDownTarget;
 
             GoalPosition = goalPosition;
-            transform.rotation = Quaternion.LookRotation(goalPosition - ReferencePoint, AngelARUI.Instance.ARCamera.transform.up);
+            transform.rotation = Quaternion.LookRotation(goalPosition - ReferencePoint, Vector3.up);
         }
         else if (!(_isLookingAtOrbFlag))
         {
             //only update rotation 
             GoalPosition = transform.position;
-            transform.rotation = Quaternion.LookRotation(transform.position - ReferencePoint, AngelARUI.Instance.ARCamera.transform.up);
+            transform.rotation = Quaternion.LookRotation(transform.position - ReferencePoint, Vector3.up);
             _outOfFOV = false;
+        } else
+        {
+            GoalPosition = transform.position;
+            transform.rotation = Quaternion.LookRotation(transform.position - ReferencePoint, Vector3.up);
         }
     }
 
@@ -134,11 +131,9 @@ public class OrbFollowerSolver : Solver
 
                     yield return new WaitForSeconds(0.2f);
                 }
-
             }
 
             dist = Vector3.Magnitude(transform.position - _coolDownTarget);
-
         }
 
         _coolDown = false;
@@ -200,7 +195,6 @@ public class OrbFollowerSolver : Solver
                 desiredPos = _coolDownTarget;
                 return true;
             }
-
         }
 
         if (currentAngle > ARUISettings.OrbOutOfFOVThresV * verticalAspectScale)
@@ -302,14 +296,6 @@ public class OrbFollowerSolver : Solver
             _currentMaxViewDegrees = ARUISettings.OrbMaxViewDegSticky;
             MoveLerpTime = ARUISettings.OrbMoveLerpRegular;
         }
-    }
-
-    public void SnapToTaskList(Vector3 position, bool snapped)
-    {
-        if (snapped) {
-            transform.position = position;
-        }
-        _snappedToTaskList = snapped;
     }
 
     #endregion

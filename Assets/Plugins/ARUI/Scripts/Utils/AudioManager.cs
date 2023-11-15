@@ -52,6 +52,8 @@ public class AudioManager : Singleton<AudioManager>, IMixedRealitySpeechHandler
     ///** Mute audio feedback for task guidance
     private bool _isMute = false;                                        /// <if true, task instructions or dialogue system audio feedback is not played. BUT system sound is.
     public bool IsMute => _isMute;
+
+    private GameObject lastDialogue;
     
     public void Awake() => CoreServices.InputSystem?.RegisterHandler<IMixedRealitySpeechHandler>(this);
 
@@ -63,6 +65,18 @@ public class AudioManager : Singleton<AudioManager>, IMixedRealitySpeechHandler
         _tTos = _tTosGO.AddComponent<TextToSpeech>();
 
         _currentlyPlayingSound = new List<AudioSource>();
+    }
+
+    /// <summary>
+    /// Speech-To-Text for the task. Plays the text at the orb's position 
+    /// and stops any other currently playing text instructions
+    /// NOTE: THIS ONLY WORKS IN BUILD (NOT HOLOGRAPHIC REMOTING)
+    /// </summary>
+    /// <param name="text">The text that is turned into audion and played</param>
+    public void PlayText(string utterance, string answer)
+    {
+        if (!_isMute)
+            StartCoroutine(PlayTextDialogue(Orb.Instance.transform.position, utterance, answer));
     }
 
     /// <summary>
@@ -162,13 +176,13 @@ public class AudioManager : Singleton<AudioManager>, IMixedRealitySpeechHandler
     /// <returns></returns>
     private IEnumerator PlayTextLocalized(Vector3 pos, String text)
     {
-        if (_currentlyPlayingText!= null)
+        if (_currentlyPlayingText != null)
         {
             _tTos.AudioSource.Stop();
             _tTos.StopSpeaking();
             _currentlyPlayingText.Stop();
         }
-            
+
         yield return new WaitForEndOfFrame();
 
         _tTos.gameObject.transform.position = pos;
@@ -176,6 +190,60 @@ public class AudioManager : Singleton<AudioManager>, IMixedRealitySpeechHandler
         yield return new WaitForEndOfFrame();
 
         string cappedText = Utils.GetCappedText(text, 50);
+        AngelARUI.Instance.DebugLogMessage("Orb says: " + cappedText, true);
+        _tTos.StartSpeaking(cappedText);
+        _currentlyPlayingText = _tTos.AudioSource;
+
+        yield return new WaitForEndOfFrame();
+
+        while (!_tTos.AudioSource.isPlaying)
+            yield return new WaitForEndOfFrame();
+
+        while (_tTos.AudioSource.isPlaying)
+        {
+            if (_updateTime > Time.time)
+                yield return new WaitForEndOfFrame();
+
+            _tTos.AudioSource.GetSpectrumData(_spectrumData, 0, FFTWindow.BlackmanHarris);
+            _updateTime = Time.time + _updateDelay;
+
+            var barHeight = Mathf.Clamp(_spectrumData[1], 0.001f, 1f);
+            Orb.Instance.MouthScale = barHeight;
+
+            yield return new WaitForEndOfFrame();
+        }
+
+        yield return new WaitForEndOfFrame();
+
+        Orb.Instance.MouthScale = 0;
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="pos"></param>
+    /// <param name="utterance"></param>
+    /// <param name="answer"></param>
+    /// <returns></returns>
+    private IEnumerator PlayTextDialogue(Vector3 pos, String utterance, string answer)
+    {
+        if (_currentlyPlayingText!= null)
+        {
+            _tTos.AudioSource.Stop();
+            _tTos.StopSpeaking();
+            _currentlyPlayingText.Stop();
+            Orb.Instance.SetDialogueActive(false);
+        }
+            
+        yield return new WaitForEndOfFrame();
+
+        _tTos.gameObject.transform.position = pos;
+        Orb.Instance.SetDialogueActive(true);
+        Orb.Instance.SetDialogueText(utterance, answer);
+
+        yield return new WaitForEndOfFrame();
+
+        string cappedText = Utils.GetCappedText(answer, 50);
         AngelARUI.Instance.DebugLogMessage("Orb says: " + cappedText, true);
         _tTos.StartSpeaking(cappedText);
         _currentlyPlayingText = _tTos.AudioSource;
