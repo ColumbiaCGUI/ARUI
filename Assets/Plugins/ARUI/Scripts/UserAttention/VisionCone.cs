@@ -19,6 +19,7 @@ public class VisionCone : MonoBehaviour
     {
         if (transform.parent == null)
         {
+            Debug.Log("I belive this only runs once.");
             GameObject mainCamera = GameObject.Find("MixedRealityPlayspace").GetNamedChild("Main Camera");
             if (mainCamera.transform.childCount != 0)
             {
@@ -27,6 +28,25 @@ public class VisionCone : MonoBehaviour
         }
     }
 
+    private void OnTriggerEnter(Collider other)
+    {
+        DwellTracker dwellTracker = other.GetComponent<DwellTracker>();
+
+        if (dwellTracker == null) return;
+
+        dwellTracker.bMulti = true; 
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        DwellTracker dwellTracker = other.GetComponent<DwellTracker>();
+
+        if (dwellTracker == null) return;
+
+        dwellTracker.bMulti = false;
+    }
+
+    /*
     private void OnTriggerStay(Collider other)
     {
         if (other.gameObject.layer == LayerMask.NameToLayer("TestCone"))
@@ -43,7 +63,10 @@ public class VisionCone : MonoBehaviour
 
                 if (angle < coneSize)
                 {
-                    meshRenderer.material.color = Color.red;
+                    if (meshRenderer.material.color != Color.green)
+                    {
+                        meshRenderer.material.color = Color.red;
+                    }
                 }
                 else
                 {
@@ -52,6 +75,7 @@ public class VisionCone : MonoBehaviour
             }
         }
     }
+    
 
     private void OnTriggerExit(Collider other)
     {
@@ -64,4 +88,5 @@ public class VisionCone : MonoBehaviour
             }
         }
     }
+    */
 }
