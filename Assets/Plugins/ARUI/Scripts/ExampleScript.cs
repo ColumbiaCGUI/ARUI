@@ -280,6 +280,9 @@ public class ExampleScript : MonoBehaviour
         {
             AngelARUI.Instance.PrintVMDebug = false;
         }
+
+        gameObject.GetComponent<Shapes.Line>().Start = transform.InverseTransformPoint(transform.GetChild(0).gameObject.transform.position);
+        gameObject.GetComponent<Shapes.Line>().End = transform.InverseTransformPoint(AngelARUI.Instance.GetOrbTransform().position);
     }
 
 #endif

@@ -294,7 +294,14 @@ public class AngelARUI : Singleton<AngelARUI>
 
     #region Orb Behavior
 
-   // public void S
+    public Transform GetOrbTransform()
+    {
+        if (Orb.Instance!=null)
+        {
+            return Orb.Instance.orbTransform;
+        }
+        return AngelARUI.Instance.transform;
+    }
 
     #endregion
 

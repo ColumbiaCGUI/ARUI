@@ -38,6 +38,10 @@ public class Orb : Singleton<Orb>
 
     ///** Placement behaviors - overall, orb stays in the FOV of the user
     private OrbFollowerSolver _followSolver;
+    public Transform orbTransform
+    {
+        get => _followSolver.transform;
+    }
 
     ///** Flags
     private bool _isLookingAtOrb = false;                    /// <true if the user is currently looking at the orb shape or orb message
