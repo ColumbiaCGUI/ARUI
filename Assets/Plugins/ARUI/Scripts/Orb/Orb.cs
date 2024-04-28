@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 public enum MovementBehavior
@@ -50,6 +51,8 @@ public class Orb : Singleton<Orb>
 
     private OrbHandle _orbHandle;
 
+    private TextMeshProUGUI _speechBubble;
+
     /// <summary>
     /// Get all orb references from prefab
     /// </summary>
@@ -71,6 +74,10 @@ public class Orb : Singleton<Orb>
         _grabbable = gameObject.GetComponentInChildren<OrbGrabbable>();
 
         _allOrbColliders = new List<BoxCollider>();
+
+        // Get handle orb speech bubble
+        GameObject speechBubble = transform.GetChild(0).GetChild(3).gameObject;
+        _speechBubble = speechBubble.transform.GetComponentInChildren<TextMeshProUGUI>();
     }
 
     /// <summary>
@@ -213,6 +220,20 @@ public class Orb : Singleton<Orb>
             _lazyLookAtRunning = false;
             _face.UserIsLooking= false;
         }
+    }
+
+    #endregion
+
+    #region speechBubble 
+
+    public void displayText(string text)
+    {
+        _speechBubble.SetText(text);
+    }
+
+    public void SetListeningFeedback(bool listening)
+    {
+        _face.UserIsTalkingToAgent = listening;
     }
 
     #endregion

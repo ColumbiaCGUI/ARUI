@@ -28,6 +28,14 @@ public class OrbFace : MonoBehaviour
 
     private GameObject _warningIcon;
     private GameObject _noteIcon;
+
+    public bool UserIsTalkingToAgent
+    {
+        get { return _userIsTalkingToAgent; }
+        set { _userIsTalkingToAgent = value; }
+    }
+    private bool _userIsTalkingToAgent = false;
+
     public bool MessageNotificationEnabled
     {
         set => SetNotificationPulse(value);
@@ -126,7 +134,7 @@ public class OrbFace : MonoBehaviour
 
     private void Update()
     {
-        if (_userIsLooking || _userIsGrabbing && !_eyes.gameObject.activeSelf)
+        if (_userIsLooking || _userIsGrabbing || _userIsTalkingToAgent && !_eyes.gameObject.activeSelf)
             _eyes.gameObject.SetActive(true);
 
         else if (!_userIsLooking && !_userIsGrabbing && _eyes.gameObject.activeSelf)
@@ -136,6 +144,12 @@ public class OrbFace : MonoBehaviour
             _mouth.Type = Shapes.DiscType.Disc;
         else
             _mouth.Type = Shapes.DiscType.Ring;
+
+        if (_userIsTalkingToAgent)
+            _eyes.Thickness = 0.4f;
+        else
+            _eyes.Thickness = 0.08f;
+
     }
 
     private void SetNotificationPulse(bool pulsing)

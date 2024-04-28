@@ -5,6 +5,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Whisper;
+using Whisper.Utils;
 
 public enum SoundType
 {
@@ -64,6 +66,8 @@ public class AudioManager : Singleton<AudioManager>, IMixedRealitySpeechHandler
         _tTos = _tTosGO.AddComponent<TextToSpeech>();
 
         _currentlyPlayingSound = new List<AudioSource>();
+
+        StartCoroutine(InitMic());
     }
 
     /// <summary>
@@ -219,6 +223,78 @@ public class AudioManager : Singleton<AudioManager>, IMixedRealitySpeechHandler
                 _tTos.StopSpeaking();
 
             AngelARUI.Instance.LogDebugMessage("User triggered: Orb stopped speaking", true);
+            microphoneRecord.StopRecord();
+        }
+
+        if (eventData.Command.Keyword.ToLower().Equals("coach"))
+        {
+            AngelARUI.Instance.LogDebugMessage("Coach", true);
+            if (!microphoneRecord.IsRecording)
+            {
+                microphoneRecord.StartRecord();
+                AngelARUI.Instance.LogDebugMessage("Orb is listening..", true);
+
+          
+                outputText = "";
+                Orb.Instance.displayText(outputText);
+                Orb.Instance.SetListeningFeedback(true);
+            }
         }
     }
+
+
+    public WhisperManager whisper;
+    public MicrophoneRecord microphoneRecord;
+    private WhisperStream _stream;
+    private string _buffer;
+    private string outputText = "";
+
+    private IEnumerator InitMic()
+    {
+        yield return new WaitForSeconds(2);
+
+        AngelARUI.Instance.LogDebugMessage("Init Mic", true);
+        whisper = gameObject.AddComponent<WhisperManager>();
+        whisper.singleSegment = true;
+        whisper.noContext = true;
+        whisper.stepSec = 3;
+        whisper.dropOldBuffer = false;
+        whisper.useVad = true;
+        whisper.lengthSec = 10;
+        whisper.language = "en";
+
+        microphoneRecord = gameObject.AddComponent<MicrophoneRecord>();
+        microphoneRecord.OnMicrophoneChanged(2);
+        microphoneRecord.maxLengthSec = 10;
+        microphoneRecord.chunksLengthSec = 50;
+        microphoneRecord.loop = false;
+
+        whisper.OnNewSegment += OnNewSegment;
+        microphoneRecord.vadStop = true;
+
+        microphoneRecord.OnRecordStop += OnRecordStop;
+    }
+
+    private void OnNewSegment(WhisperSegment segment)
+    {
+        _buffer += segment.Text;
+        outputText = _buffer + "...";
+        Orb.Instance.displayText(outputText);
+        Debug.Log(outputText);
+    }
+
+    private async void OnRecordStop(AudioChunk recordedAudio)
+    {
+        _buffer = "";
+        
+        var res = await whisper.GetTextAsync(recordedAudio.Data, recordedAudio.Frequency, recordedAudio.Channels);
+        if (res == null)
+            return;
+
+        outputText = res.Result;
+        Orb.Instance.displayText(outputText);
+        Debug.Log(outputText);
+        Orb.Instance.SetListeningFeedback(false);
+    }
+
 }

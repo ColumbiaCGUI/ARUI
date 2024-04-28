@@ -2,7 +2,6 @@ using UnityEngine;
 using UnityEngine.Events;
 using System.Collections;
 using System.Collections.Generic;
-using Shapes;
 
 /// <summary>
 /// Interface to the ARUI Components - a floating assistant in the shape as an orb and a task overview panel.
@@ -330,6 +329,9 @@ public class AngelARUI : Singleton<AngelARUI>
     /// <param name="showInLogger"></param>
     public void LogDebugMessage(string message, bool showInLogger)
     {
+        if (message.ToLower().Contains("colliders"))
+            return; 
+
         if (_showARUIDebugMessages)
         {
             if (showInLogger && FindObjectOfType<Logger>() != null)
