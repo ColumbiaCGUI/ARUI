@@ -24,7 +24,7 @@ MonoBehaviour:
       description: 
       axisConstraint: 0
   - localizationKey: 
-    keyword: 
+    keyword: Start Procedure
     keyCode: 0
     action:
       id: 0

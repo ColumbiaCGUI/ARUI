@@ -5,6 +5,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 public enum SoundType
 {
@@ -47,14 +48,15 @@ public class AudioManager : Singleton<AudioManager>, IMixedRealitySpeechHandler
     private float _updateTime = 0f;
     private float _updateDelay = 0.04f;
     private float[] _spectrumData = new float[64];
-    private float _multiplier = 2f;
 
     ///** Mute audio feedback for task guidance
     private bool _isMute = false;                                        /// <if true, task instructions or dialogue system audio feedback is not played. BUT system sound is.
     public bool IsMute => _isMute;
 
-    private GameObject lastDialogue;
-    
+    ///** Voice commands callback storage
+    private Dictionary<string, UnityAction> _keywordToActionMapping = new Dictionary<string, UnityAction>();
+
+
     public void Awake() => CoreServices.InputSystem?.RegisterHandler<IMixedRealitySpeechHandler>(this);
 
     private void Start()
@@ -65,6 +67,8 @@ public class AudioManager : Singleton<AudioManager>, IMixedRealitySpeechHandler
         _tTos = _tTosGO.AddComponent<TextToSpeech>();
 
         _currentlyPlayingSound = new List<AudioSource>();
+
+        RegisterKeyword("stop", () => UserSaidStopAction());
     }
 
     /// <summary>
@@ -272,6 +276,23 @@ public class AudioManager : Singleton<AudioManager>, IMixedRealitySpeechHandler
         Orb.Instance.MouthScale = 0; 
     }
 
+    #region Keyword Detection
+
+    /// <summary>
+    /// This function is called if user said 'stop'
+    /// Stops any ongoing TTS at the orb
+    /// </summary>
+    private void UserSaidStopAction()
+    {
+        if (_currentlyPlayingText != null)
+            _currentlyPlayingText.Stop();
+
+        if (_tTos)
+            _tTos.StopSpeaking();
+
+        AngelARUI.Instance.DebugLogMessage("Orb stopped speaking", true);
+    }
+
     /// <summary>
     /// Handles Speech input event from MRTK, for now we only listen to the 
     /// keyword 'stop', so the orb stops talking immediately.
@@ -279,18 +300,28 @@ public class AudioManager : Singleton<AudioManager>, IMixedRealitySpeechHandler
     /// <param name="eventData"></param>
     public void OnSpeechKeywordRecognized(SpeechEventData eventData)
     {
-        if (eventData.Command.Keyword.ToLower().Equals("stop"))
+        AngelARUI.Instance.DebugLogMessage("Detected keyword: " + eventData.Command.Keyword.ToLower(), true);
+        foreach (string keyword in _keywordToActionMapping.Keys)
         {
-            if (_currentlyPlayingText != null)
-                _currentlyPlayingText.Stop();
+            if (eventData.Command.Keyword.ToLower().Equals(keyword.ToLower()))
+            {
+                _keywordToActionMapping[keyword].Invoke();
+            }
+        }
+    }
 
-            if (_tTos)
-                _tTos.StopSpeaking();
-
-            AngelARUI.Instance.DebugLogMessage("User triggered: Orb stopped speaking", true);
+    public bool RegisterKeyword(string keyword, UnityAction keyWordDetectedCallBack)
+    {
+        if (keyword != null && keyword.Length >= 2)
+        {
+            _keywordToActionMapping.Add(keyword, keyWordDetectedCallBack);
+            AngelARUI.Instance.DebugLogMessage("Successfully registered keyword '" + keyword + "'.", true);
+            return true;
         }
 
-        if (eventData.Command.Keyword.ToLower().Equals("mute"))
-            MuteAudio(!_isMute);
+        AngelARUI.Instance.DebugLogMessage("Keyword '" + keyword + "'is already registered or not long enough. (>=2)", true);
+        return false;
     }
+
+    #endregion
 }

@@ -1,13 +1,13 @@
 using UnityEngine;
 
-public class Notification : MonoBehaviour
+public class OrbWarning : MonoBehaviour
 {
     private bool _init = false;
 
-    private TMPro.TextMeshProUGUI _textNotification;
-    public TMPro.TextMeshProUGUI Text {  get { return _textNotification; } }
+    private TMPro.TextMeshProUGUI _textContent;
+    public TMPro.TextMeshProUGUI Text {  get { return _textContent; } }
 
-    public bool IsSet => _textNotification.text.Length > 0;
+    public bool IsSet => _textContent.text.Length > 0;
 
     private float _xOffset = 0;
     public float XOffset
@@ -16,7 +16,7 @@ public class Notification : MonoBehaviour
     }
 
     /// <summary>
-    /// 
+    /// Ini
     /// </summary>
     /// <param name="message"></param>
     public void Init(string message)
@@ -24,9 +24,9 @@ public class Notification : MonoBehaviour
         if (!_init)
         {
             //init notification message group
-            _textNotification = gameObject.GetComponentInChildren<TMPro.TextMeshProUGUI>();
+            _textContent = gameObject.GetComponentInChildren<TMPro.TextMeshProUGUI>();
 
-            _textNotification.text = Utils.SplitTextIntoLines(message, ARUISettings.OrbMessageMaxCharCountPerLine);
+            _textContent.text = Utils.SplitTextIntoLines(message, ARUISettings.OrbMessageMaxCharCountPerLine);
             _xOffset = transform.localPosition.x;
             _init = true;
         }
@@ -37,6 +37,6 @@ public class Notification : MonoBehaviour
     /// </summary>
     /// <param name="message"></param>
     /// <param name="charPerLine"></param>
-    public void SetMessage(string message, int charPerLine) => _textNotification.text = Utils.SplitTextIntoLines(message, charPerLine);
+    public void SetMessage(string message, int charPerLine) => _textContent.text = Utils.SplitTextIntoLines(message, charPerLine);
 
 }

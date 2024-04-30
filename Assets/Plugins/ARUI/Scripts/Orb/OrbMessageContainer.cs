@@ -28,8 +28,8 @@ public class OrbMessageContainer : MonoBehaviour
         get { return _isLookingAtMessage; }
     }
 
-    private Notification _currentNote;
-    public bool IsNoteActive => _currentNote.IsSet;
+    private OrbWarning _currentWarning;
+    public bool IsNoteActive => _currentWarning.IsSet;
 
     private bool _isMessageContainerActive = false;
     public bool IsMessageContainerActive
@@ -123,9 +123,9 @@ public class OrbMessageContainer : MonoBehaviour
         _taskNameToOrbPie = new Dictionary<string, OrbTask>();
 
         IsMessageContainerActive = false;
-        _currentNote = transform.GetChild(2).gameObject.AddComponent<Notification>();
-        _currentNote.Init("");
-        _currentNote.gameObject.SetActive(false);
+        _currentWarning = transform.GetChild(2).gameObject.AddComponent<OrbWarning>();
+        _currentWarning.Init("");
+        _currentWarning.gameObject.SetActive(false);
     }
 
     public void Update()
@@ -226,19 +226,19 @@ public class OrbMessageContainer : MonoBehaviour
         }
     }
 
-    #region Notification
+    #region Warning
 
-    public void AddNotification(string message, OrbFace face)
+    public void AddWarning(string message, OrbFace face)
     {
-        _currentNote.SetMessage(message, ARUISettings.OrbNoteMaxCharCountPerLine);
-        _currentNote.gameObject.SetActive(true);
+        _currentWarning.SetMessage(message, ARUISettings.OrbNoteMaxCharCountPerLine);
+        _currentWarning.gameObject.SetActive(true);
         face.UpdateNotification(IsNoteActive);
     }
 
-    public void RemoveNotification(OrbFace face)
+    public void RemoveWarning(OrbFace face)
     {
-        _currentNote.SetMessage("", ARUISettings.OrbMessageMaxCharCountPerLine);
-        _currentNote.gameObject.SetActive(false);
+        _currentWarning.SetMessage("", ARUISettings.OrbMessageMaxCharCountPerLine);
+        _currentWarning.gameObject.SetActive(false);
         if (face)
             face.UpdateNotification(IsNoteActive);
     }
@@ -369,16 +369,16 @@ public class OrbMessageContainer : MonoBehaviour
                 step += Time.deltaTime;
             }
 
-            float XOffsetNote = _currentNote.XOffset;
+            float XOffsetNote = _currentWarning.XOffset;
             if (isLeft)
             {
-                XOffsetNote = -_currentNote.XOffset-0.25f;
-                _currentNote.Text.alignment = TMPro.TextAlignmentOptions.BottomRight;
+                XOffsetNote = -_currentWarning.XOffset-0.25f;
+                _currentWarning.Text.alignment = TMPro.TextAlignmentOptions.BottomRight;
             } else
-                _currentNote.Text.alignment = TMPro.TextAlignmentOptions.BottomLeft;
+                _currentWarning.Text.alignment = TMPro.TextAlignmentOptions.BottomLeft;
 
-            _currentNote.gameObject.transform.localPosition = Vector2.Lerp(_currentNote.gameObject.transform.localPosition,
-                                                                            new Vector3(XOffsetNote, _currentNote.gameObject.transform.localPosition.y, 0), step + Time.deltaTime);
+            _currentWarning.gameObject.transform.localPosition = Vector2.Lerp(_currentWarning.gameObject.transform.localPosition,
+                                                                            new Vector3(XOffsetNote, _currentWarning.gameObject.transform.localPosition.y, 0), step + Time.deltaTime);
 
             yield return new WaitForEndOfFrame();
         }

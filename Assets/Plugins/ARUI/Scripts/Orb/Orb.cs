@@ -26,6 +26,10 @@ public class Orb : Singleton<Orb>
 
     ///** Placement behaviors - overall, orb stays in the FOV of the user
     private OrbFollowerSolver _followSolver;
+    public Transform orbTransform
+    {
+        get => _followSolver.transform;
+    }
 
     ///** Flags
     private bool _isLookingAtOrb = false;                    /// <true if the user is currently looking at the orb shape or orb message
@@ -191,15 +195,15 @@ public class Orb : Singleton<Orb>
 
     #endregion
 
-    #region Task Messages and Notifications
+    #region Task Messages and Warnings
 
-    public void AddNotification(string message)
+    public void AddWarning(string message)
     {
-        _messageContainer.AddNotification(message, _face);
+        _messageContainer.AddWarning(message, _face);
         AudioManager.Instance.PlaySound(_face.transform.position, SoundType.warning);
     }
     
-    public void RemoveNotification() => _messageContainer.RemoveNotification(_face);
+    public void RemoveWarning() => _messageContainer.RemoveWarning(_face);
 
     /// <summary>
     /// Set the task messages the orb communicates, if 'message' is less than 2 char, the message is deactivated

@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Shapes;
 using System;
+using UnityEngine.Events;
 
 /// <summary>
 /// Interface to the ARUI Components - a floating assistant in the shape as an orb and a task overview panel.
@@ -183,13 +184,25 @@ public class AngelARUI : Singleton<AngelARUI>
     /// //TODO
     /// </summary>
     /// <param name="show">if true, the orb will show a skip notification, if false, the notification will disappear</param>
-    public void SetNotification(string message) => Orb.Instance.AddNotification(message);
+    public void SetWarningMessage(string message) => Orb.Instance.AddWarning(message);
 
     /// <summary>
     /// //TODO
     /// </summary>
     /// <param name="type"></param>
-    public void RemoveNotification() => Orb.Instance.RemoveNotification();
+    public void RemoveWarningMessage() => Orb.Instance.RemoveWarning();
+
+    /// <summary>
+    /// TODO
+    /// </summary>
+    /// <param name="msg"></param>
+    /// <param name="actionOnConfirmation"></param>
+    public void TryGetUserConfirmation(string msg, UnityAction actionOnConfirmation)
+    {
+        if (actionOnConfirmation == null || msg == null || msg.Length == 0) return;
+
+        DebugLogMessage("Future feature called. Not yet implemented.", true);
+    }
 
     #endregion
 
@@ -214,6 +227,33 @@ public class AngelARUI : Singleton<AngelARUI>
     {
         if (DataProvider.Instance == null) return;
         DataProvider.Instance.RemoveDetectedObjects(ID);
+    }
+
+    #endregion
+
+    #region Orb Behavior
+
+    public Transform GetOrbTransform()
+    {
+        if (Orb.Instance != null && Orb.Instance.orbTransform != null)
+        {
+            return Orb.Instance.orbTransform;
+        }
+        return transform;
+    }
+
+    public void SetOrbThinking(bool isThinking)
+    {
+        Orb.Instance.SetOrbThinking(isThinking);
+    }
+
+    #endregion
+
+    #region Voice Activation
+
+    public bool RegisterKeyword(string keyword, UnityAction keyWordDetectedCallBack)
+    {
+        return AudioManager.Instance.RegisterKeyword(keyword, keyWordDetectedCallBack);
     }
 
     #endregion
@@ -302,11 +342,6 @@ public class AngelARUI : Singleton<AngelARUI>
                 Logger.Instance.LogInfo("***ARUI: " + message);
             Debug.Log("***ARUI: " + message);
         }
-    }
-
-    public void SetOrbThinking(bool isThinking)
-    {
-        Orb.Instance.SetOrbThinking(isThinking);
     }
 
     #endregion

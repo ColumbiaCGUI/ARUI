@@ -9,13 +9,25 @@ public class ExampleScript : MonoBehaviour
 
     private Dictionary<string, int> _currentStepMap;
     private string _currentTask = "";
+
+    public bool multipleTasks = false;
+
     private void Start()
     {
         if (Automate)
-            StartCoroutine(RunAutomatedTests());
+        {
+            if (multipleTasks)
+            {
+                StartCoroutine(RunAutomatedTestsRecipes());
+            } else
+            {
+                StartCoroutine(RunAutomatedTestsMaintenance());
+            }
+        }
+            
     }
 
-    private IEnumerator RunAutomatedTests()
+    private IEnumerator RunAutomatedTestsRecipes()
     {
         yield return new WaitForSeconds(1f);
 
@@ -57,7 +69,7 @@ public class ExampleScript : MonoBehaviour
 
         yield return new WaitForSeconds(2f);
 
-        AngelARUI.Instance.SetNotification("You are skipping the this step.");
+        AngelARUI.Instance.SetWarningMessage("You are skipping the this step.");
 
         _currentStepMap[_currentTask]++;
         AngelARUI.Instance.GoToStep(_currentTask, _currentStepMap[_currentTask]);
@@ -81,14 +93,15 @@ public class ExampleScript : MonoBehaviour
 
         _currentStepMap[_currentTask]++;
         AngelARUI.Instance.GoToStep(_currentTask, _currentStepMap[_currentTask]);
-        AngelARUI.Instance.RemoveNotification();
+        AngelARUI.Instance.RemoveWarningMessage();
 
         yield return new WaitForSeconds(2f);
 
         AngelARUI.Instance.SetCurrentObservedTask("Pinwheels");
     }
 
-    private IEnumerator RunAutomatedTests2()
+    #region Maintenance Tests
+    private IEnumerator RunAutomatedTestsMaintenance()
     {
         yield return new WaitForSeconds(1f);
 
@@ -96,10 +109,10 @@ public class ExampleScript : MonoBehaviour
         AngelARUI.Instance.PrintVMDebug = false;
 
         //test with dummy data
-        var taskIDs = new List<string> { "Pinwheels"};
+        var taskIDs = new List<string> { "Filter Inspection"};
         _currentStepMap = new Dictionary<string, int> {
-            { "Pinwheels", 0 }};
-        _currentTask = "Pinwheels";
+            { "Filter Inspection", 0 }};
+        _currentTask = "Filter Inspection";
 
         var allJsonTasks = new Dictionary<string, string>();
         foreach (string taskID in taskIDs)
@@ -110,27 +123,25 @@ public class ExampleScript : MonoBehaviour
 
         AngelARUI.Instance.InitManual(allJsonTasks);
 
+        AngelARUI.Instance.SetOrbThinking(true);
+
+        AngelARUI.Instance.RegisterKeyword("Start Procedure", () => { SpeechCommandRegistrationTest(); });
+
+        AngelARUI.Instance.RegisterDetectedObject(transform.GetChild(0).gameObject, "test");
+
+        yield return new WaitForSeconds(4f);
+
+        AngelARUI.Instance.PlayMessageAtOrb
+            ("What is this in front of me?", "A motor.");
+
+        yield return new WaitForSeconds(1f);
+
+        _currentStepMap[_currentTask]++;
+        AngelARUI.Instance.GoToStep(_currentTask, _currentStepMap[_currentTask]);
+
         yield return new WaitForSeconds(2f);
 
-        AngelARUI.Instance.PlayMessageAtOrb("This is a test of a very long text. I am just going to continue talking until somebody says stop or if I am getting interrupted by another incoming message. I enjoy helping people, so ask me any question you want about the tasks.");
-
-        yield return new WaitForSeconds(5f);
-
-        AngelARUI.Instance.SetCurrentObservedTask("Pinwheels");
-        _currentTask = "Pinwheels";
-
-        yield return new WaitForSeconds(3f);
-
-        _currentStepMap[_currentTask]++;
-        AngelARUI.Instance.GoToStep(_currentTask, _currentStepMap[_currentTask]);
-
-        yield return new WaitForSeconds(3f);
-
-        AngelARUI.Instance.SetNotification("You are skipping the this step.");
-        _currentStepMap[_currentTask]++;
-        AngelARUI.Instance.GoToStep(_currentTask, _currentStepMap[_currentTask]);
-
-        yield return new WaitForSeconds(3f);
+        AngelARUI.Instance.SetWarningMessage("This is a very very very very very very very very long warning");
 
         _currentStepMap[_currentTask]++;
         AngelARUI.Instance.GoToStep(_currentTask, _currentStepMap[_currentTask]);
@@ -139,10 +150,31 @@ public class ExampleScript : MonoBehaviour
 
         _currentStepMap[_currentTask]++;
         AngelARUI.Instance.GoToStep(_currentTask, _currentStepMap[_currentTask]);
-        AngelARUI.Instance.RemoveNotification();
+
+
+        yield return new WaitForSeconds(3f);
+
+        _currentStepMap[_currentTask]++;
+        AngelARUI.Instance.GoToStep(_currentTask, _currentStepMap[_currentTask]);
+        AngelARUI.Instance.RemoveWarningMessage();
+
+        yield return new WaitForSeconds(2f);
+
+        //Show dialogue to user
+        AngelARUI.Instance.TryGetUserConfirmation("Did you mean Start Procedure?", () => { GoToNextStepConfirmation(); });
 
     }
+    private void GoToNextStepConfirmation()
+    {
+        _currentStepMap[_currentTask]++;
+        AngelARUI.Instance.GoToStep(_currentTask, _currentStepMap[_currentTask]);
+    }
 
+    private void SpeechCommandRegistrationTest()
+    {
+        AngelARUI.Instance.DebugLogMessage("The keyword was triggered!", true);
+    }
+    #endregion
 
 #if UNITY_EDITOR
 
@@ -153,7 +185,7 @@ public class ExampleScript : MonoBehaviour
     {
         CheckForRecipeChange();
 
-        if (Input.GetKeyUp(KeyCode.O))
+        if (Input.GetKeyUp(KeyCode.O) &&  multipleTasks)
         {
             //test with dummy data
             var taskIDs = new List<string> { "Pinwheels", "Coffee", "Oatmeal", "Quesadilla", "Tea" };
@@ -208,16 +240,18 @@ public class ExampleScript : MonoBehaviour
 
         if (Input.GetKeyUp(KeyCode.Alpha9))
         {
-            AngelARUI.Instance.SetNotification("You skipped the last step.");
+            AngelARUI.Instance.SetWarningMessage("You skipped the last step.");
         }
         if (Input.GetKeyUp(KeyCode.Alpha0))
         {
-            AngelARUI.Instance.RemoveNotification();
+            AngelARUI.Instance.RemoveWarningMessage();
         }
     }
 
     private void CheckForRecipeChange()
     {
+        if (!multipleTasks) { return; }
+
         // Example how to use the NLI confirmation dialogue
         if (Input.GetKeyUp(KeyCode.Alpha1))
         {
