@@ -33,11 +33,11 @@ public class OrbFace : MonoBehaviour
         set => SetNotificationPulse(value);
     }
 
-    public void UpdateNotification(bool note)
+    public void UpdateNotification(bool warning)
     {
-        SetNotificationPulse(note);
+        SetNotificationPulse(warning);
 
-        if (note)
+        if (warning)
         {
             _face.ColorInnerStart = Color.yellow;
             _face.ColorInnerEnd = Color.yellow;
@@ -47,7 +47,7 @@ public class OrbFace : MonoBehaviour
             _face.ColorInnerEnd = _faceColorInnerEnd;
         }
 
-        _noteIcon.SetActive(note);
+        _noteIcon.SetActive(warning);
     }
 
     private float _initialMouthScale;
@@ -115,6 +115,11 @@ public class OrbFace : MonoBehaviour
 
         else if (!_userIsLooking && !_userIsGrabbing && _eyes.gameObject.activeSelf)
             _eyes.gameObject.SetActive(false);
+
+        if (Orb.Instance.OrbBehavior.Equals(MovementBehavior.Fixed))
+            _mouth.Type = Shapes.DiscType.Disc;
+        else
+            _mouth.Type = Shapes.DiscType.Ring;
     }
 
     private void SetNotificationPulse(bool pulsing)
@@ -154,12 +159,6 @@ public class OrbFace : MonoBehaviour
 
         _face.ColorOuterStart = new Color(_face.ColorOuterStart.r, _face.ColorOuterStart.g, _face.ColorOuterStart.b, 0);
         _face.ColorOuterEnd = _face.ColorOuterStart;
-    }
-
-    public void SetOrbGuidance(bool isGuidanceActive)
-    {
-        transform.GetChild(0).gameObject.SetActive(isGuidanceActive);
-        transform.GetChild(1).gameObject.SetActive(!isGuidanceActive);
     }
 
     public void SetOrbState(OrbStates newState)

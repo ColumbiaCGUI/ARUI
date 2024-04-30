@@ -199,6 +199,30 @@ public class MultiTaskList : Singleton<MultiTaskList>
     }
 
     /// <summary>
+    /// Set the overview (containing all task data) active or inactive
+    /// </summary>
+    public void SetTaskOverViewVisibility(bool visible)
+    {
+        _taskOverviewContainer.SetActive(visible);
+        _isActive = visible;
+
+        if (visible)
+        {
+            TasklistPositionManager.Instance.SnapToCentroid();
+            MultiTaskList.Instance.UpdateAllSteps(DataProvider.Instance.CurrentSelectedTasks, DataProvider.Instance.CurrentObservedTask);
+        }
+    }
+
+    /// <summary>
+    /// Set the position of the task overview panel. The panel will always face the user.
+    /// </summary>
+    /// <param name="worldPosition"></param>
+    public void SetPosition(Vector3 worldPosition)
+    {
+        TasklistPositionManager.Instance.SetPosition(worldPosition);
+    }
+
+    /// <summary>
     /// Fades out entire task overview 
     /// once user does not look at it for a certain
     /// period of time

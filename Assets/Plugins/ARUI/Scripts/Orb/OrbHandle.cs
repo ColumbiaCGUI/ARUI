@@ -1,25 +1,32 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class OrbHandle : MonoBehaviour
 {
-    private Shapes.Polyline _indicator;
+    private Shapes.Triangle _indicator;
     private bool _isActive = false;
-    public bool IsActive
+
+    private float _fixingProgress = 0.0f;
+
+    public void SetHandleProgress(float progress)
     {
-        get => _isActive;
-        set => _isActive = value;
+        _indicator.ColorA = Color.white * progress;
+        _indicator.ColorB = Color.white * progress;
+        _indicator.ColorC = Color.white * progress;
+        _fixingProgress = progress;
     }
 
-    void Start()
+    public void Start()
     {
-        _indicator = gameObject.GetComponentInChildren<Shapes.Polyline>();
+        _indicator = gameObject.GetComponentInChildren<Shapes.Triangle>();
         _indicator.gameObject.SetActive(false);
     }
 
-    void Update()
+    public void Update()
     {
+        _isActive = Orb.Instance.OrbBehavior == MovementBehavior.Fixed || _fixingProgress > 0.0f;
         _indicator.gameObject.SetActive(_isActive);
     }
 

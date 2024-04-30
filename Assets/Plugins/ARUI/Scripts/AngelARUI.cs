@@ -79,6 +79,11 @@ public class AngelARUI : Singleton<AngelARUI>
         //handPoseManager.gameObject.name = "***ARUI-" + StringResources.HandPoseManager_name;
         yield return new WaitForEndOfFrame();
 
+        //Instantiate the heuristic based hand pose detector
+        GameObject handPoseManager = Instantiate(Resources.Load(StringResources.HandPoseManager_path)) as GameObject;
+        handPoseManager.gameObject.name = "***ARUI-" + StringResources.HandPoseManager_name;
+        yield return new WaitForEndOfFrame();
+
         //Instantiate the AI assistant - orb
         GameObject orb = Instantiate(Resources.Load(StringResources.Orb_path)) as GameObject;
         orb.gameObject.name = "***ARUI-" + StringResources.orb_name;
@@ -146,6 +151,12 @@ public class AngelARUI : Singleton<AngelARUI>
     /// <param name="mute">if true, the user will hear the tasks, in addition to text.</param>
     public void MuteAudio(bool mute) => AudioManager.Instance.MuteAudio(mute);
 
+    public void ShowTaskoverviewPanel(bool show) => MultiTaskList.Instance.SetTaskOverViewVisibility(show);
+
+    public void SetTaskOverviewPosition(Vector3 worldSpacePos) => MultiTaskList.Instance.SetPosition(worldSpacePos);
+
+    public void ToggleTaskOverview() => MultiTaskList.Instance.ToggleOverview();
+
     #endregion
 
     #region Notifications
@@ -157,7 +168,7 @@ public class AngelARUI : Singleton<AngelARUI>
     /// Iterrupts the last message that was spoken
     /// </summary>
     /// <param name="message"></param>
-    public void PlayMessageAtOrb(string message)
+    public void PlayMessageAtAgent(string message)
     {
         if (message.Length == 0 || Orb.Instance == null || AudioManager.Instance == null) return;
         AudioManager.Instance.PlayText(message);
@@ -170,7 +181,7 @@ public class AngelARUI : Singleton<AngelARUI>
     /// Iterrupts the last message that was spoken
     /// </summary>
     /// <param name="message"></param>
-    public void PlayMessageAtOrb(string utterance,string message)
+    public void PlayMessageAtAgent(string utterance,string message)
     {
         if (message.Length == 0 || Orb.Instance == null || AudioManager.Instance == null) return;
         AudioManager.Instance.PlayText(utterance, message);
@@ -233,7 +244,11 @@ public class AngelARUI : Singleton<AngelARUI>
 
     #region Orb Behavior
 
-    public Transform GetOrbTransform()
+    /// <summary>
+    /// Get the 3D world position of the agent
+    /// </summary>
+    /// <returns></returns>
+    public Transform GetAgentTransform()
     {
         if (Orb.Instance != null && Orb.Instance.orbTransform != null)
         {
@@ -242,10 +257,13 @@ public class AngelARUI : Singleton<AngelARUI>
         return transform;
     }
 
-    public void SetOrbThinking(bool isThinking)
-    {
-        Orb.Instance.SetOrbThinking(isThinking);
-    }
+    /// <summary>
+    /// If true, changes the visual appearance of the agent to a 'thinking' state, else idle.
+    /// </summary>
+    /// <param name="isThinking"></param>
+    public void SetAgentThinking(bool isThinking) => Orb.Instance.SetOrbThinking(isThinking);
+
+    public void CallAgentToUser() => Orb.Instance.MoveToUser();
 
     #endregion
 

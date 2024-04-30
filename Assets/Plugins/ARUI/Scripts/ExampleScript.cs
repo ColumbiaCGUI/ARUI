@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.Collections;
 using System;
+using UnityEditor;
 
 public class ExampleScript : MonoBehaviour
 {
@@ -44,17 +45,17 @@ public class ExampleScript : MonoBehaviour
         var allJsonTasks = new Dictionary<string, string>();
         foreach (string  taskID in taskIDs)
         {
-            var jsonTextFile = Resources.Load<TextAsset>("Text/" + taskID);
+            var jsonTextFile = Resources.Load<TextAsset>("Manuals/" + taskID);
             allJsonTasks.Add(taskID, jsonTextFile.text);
         }
 
         AngelARUI.Instance.InitManual(allJsonTasks);
 
-        AngelARUI.Instance.SetOrbThinking(true);
+        AngelARUI.Instance.SetAgentThinking(true);
 
         yield return new WaitForSeconds(4f);
 
-        AngelARUI.Instance.PlayMessageAtOrb
+        AngelARUI.Instance.PlayMessageAtAgent
             ("What is this in front of me?", "A grinder.");
 
         yield return new WaitForSeconds(5f);
@@ -106,56 +107,28 @@ public class ExampleScript : MonoBehaviour
         yield return new WaitForSeconds(1f);
 
         AngelARUI.Instance.DebugShowEyeGazeTarget(true);
+
         AngelARUI.Instance.PrintVMDebug = false;
 
-        //test with dummy data
-        var taskIDs = new List<string> { "Filter Inspection"};
-        _currentStepMap = new Dictionary<string, int> {
-            { "Filter Inspection", 0 }};
-        _currentTask = "Filter Inspection";
-
-        var allJsonTasks = new Dictionary<string, string>();
-        foreach (string taskID in taskIDs)
-        {
-            var jsonTextFile = Resources.Load<TextAsset>("Text/" + taskID);
-            allJsonTasks.Add(taskID, jsonTextFile.text);
-        }
-
-        AngelARUI.Instance.InitManual(allJsonTasks);
-
-        AngelARUI.Instance.SetOrbThinking(true);
-
-        AngelARUI.Instance.RegisterKeyword("Start Procedure", () => { SpeechCommandRegistrationTest(); });
+        AngelARUI.Instance.RegisterKeyword("Start Procedure", () => { StartCoroutine(SpeechCommandRegistrationTest()); });
+        AngelARUI.Instance.RegisterKeyword("Toggle Manual", () => { AngelARUI.Instance.ToggleTaskOverview(); });
+        AngelARUI.Instance.RegisterKeyword("Next Step", () => { GoToNextStepConfirmation(); });
+        AngelARUI.Instance.RegisterKeyword("Previous Step", () => { GoToPreviousStepConfirmation(); });
+        AngelARUI.Instance.RegisterKeyword("Coach", () => { AngelARUI.Instance.CallAgentToUser(); });
 
         AngelARUI.Instance.RegisterDetectedObject(transform.GetChild(0).gameObject, "test");
 
         yield return new WaitForSeconds(4f);
 
-        AngelARUI.Instance.PlayMessageAtOrb
-            ("What is this in front of me?", "A motor.");
+        AngelARUI.Instance.PlayMessageAtAgent
+            ("", "This is a very long message the user asked. to test how a very very very very long message with verrrrrrrryyyylooooonngg words would look like");
 
-        yield return new WaitForSeconds(1f);
-
-        _currentStepMap[_currentTask]++;
-        AngelARUI.Instance.GoToStep(_currentTask, _currentStepMap[_currentTask]);
-
-        yield return new WaitForSeconds(2f);
+        yield return new WaitForSeconds(5f);
 
         AngelARUI.Instance.SetWarningMessage("This is a very very very very very very very very long warning");
 
-        _currentStepMap[_currentTask]++;
-        AngelARUI.Instance.GoToStep(_currentTask, _currentStepMap[_currentTask]);
-
         yield return new WaitForSeconds(3f);
 
-        _currentStepMap[_currentTask]++;
-        AngelARUI.Instance.GoToStep(_currentTask, _currentStepMap[_currentTask]);
-
-
-        yield return new WaitForSeconds(3f);
-
-        _currentStepMap[_currentTask]++;
-        AngelARUI.Instance.GoToStep(_currentTask, _currentStepMap[_currentTask]);
         AngelARUI.Instance.RemoveWarningMessage();
 
         yield return new WaitForSeconds(2f);
@@ -170,9 +143,36 @@ public class ExampleScript : MonoBehaviour
         AngelARUI.Instance.GoToStep(_currentTask, _currentStepMap[_currentTask]);
     }
 
-    private void SpeechCommandRegistrationTest()
+    private void GoToPreviousStepConfirmation()
+    {
+        _currentStepMap[_currentTask]--;
+        AngelARUI.Instance.GoToStep(_currentTask, _currentStepMap[_currentTask]);
+    }
+
+    private IEnumerator SpeechCommandRegistrationTest()
     {
         AngelARUI.Instance.DebugLogMessage("The keyword was triggered!", true);
+        AngelARUI.Instance.SetAgentThinking(true);
+
+        yield return new WaitForSeconds(2);
+
+        AngelARUI.Instance.SetAgentThinking(false);
+
+        //test with dummy data
+        var taskIDs = new List<string> { "Filter Inspection" };
+        _currentStepMap = new Dictionary<string, int> {
+            { "Filter Inspection", 0 }};
+        _currentTask = "Filter Inspection";
+
+        var allJsonTasks = new Dictionary<string, string>();
+        foreach (string taskID in taskIDs)
+        {
+            var jsonTextFile = Resources.Load<TextAsset>("Manuals/" + taskID);
+            allJsonTasks.Add(taskID, jsonTextFile.text);
+        }
+
+        AngelARUI.Instance.InitManual(allJsonTasks);
+
     }
     #endregion
 
@@ -197,7 +197,7 @@ public class ExampleScript : MonoBehaviour
             var allJsonTasks = new Dictionary<string, string>();
             foreach (string taskID in taskIDs)
             {
-                var jsonTextFile = Resources.Load<TextAsset>("Text/" + taskID);
+                var jsonTextFile = Resources.Load("Manuals/" + taskID) as TextAsset;
                 allJsonTasks.Add(taskID, jsonTextFile.text);
             }
 
@@ -235,7 +235,7 @@ public class ExampleScript : MonoBehaviour
         }
         if (Input.GetKeyUp(KeyCode.F))
         {
-            AngelARUI.Instance.PlayMessageAtOrb("This is a test");
+            AngelARUI.Instance.PlayMessageAtAgent("This is a test");
         }
 
         if (Input.GetKeyUp(KeyCode.Alpha9))

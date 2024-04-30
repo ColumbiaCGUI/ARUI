@@ -51,6 +51,11 @@ public class TasklistPositionManager : Singleton<TasklistPositionManager>
         _lerpEnd = finalPos;
     }
 
+    public void SetPosition(Vector3 worldPosition)
+    {
+        transform.position = worldPosition;
+    }
+
     void FixedUpdate()
     {
         if (_isLerping)

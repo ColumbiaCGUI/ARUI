@@ -15,6 +15,7 @@ public static class StringResources
     public static string MoveEnd_path = "Sounds/MRTK_Move_End";
     public static string WarningSound_path = "Sounds/warning";
     public static string SelectSound_path = "Sounds/MRTK_Select_Secondary";
+    public static string VoiceConfirmation_path = "Sounds/MRTK_Select_Main";
 
     //Prefabs
     public static string POIHalo_path = "Prefabs/Halo3D";

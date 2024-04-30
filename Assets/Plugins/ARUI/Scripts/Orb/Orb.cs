@@ -1,8 +1,14 @@
-using Microsoft.MixedReality.Toolkit.Input;
+using Microsoft.MixedReality.OpenXR;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+
+public enum MovementBehavior
+{
+    Follow = 0,
+    Fixed = 1,
+}
 
 /// <summary>
 /// Represents a virtual assistant in the shape of an orb, staying in the FOV of the user and
@@ -10,6 +16,13 @@ using UnityEngine;
 /// </summary>
 public class Orb : Singleton<Orb>
 {
+    ///** Reference to parts of the orb
+    private MovementBehavior _orbBehavior = MovementBehavior.Follow;                                   /// <the orb shape itself (part of prefab)
+    public MovementBehavior OrbBehavior
+    {
+        get => _orbBehavior;
+    }
+
     ///** Reference to parts of the orb
     private OrbFace _face;                                   /// <the orb shape itself (part of prefab)
     public float MouthScale
@@ -37,6 +50,8 @@ public class Orb : Singleton<Orb>
     private bool _lazyFollowStarted = false;                 /// <used for lazy following
 
     private GPTDialogue _dialogue;
+    private OrbHandle _orbHandle;
+
     /// <summary>
     /// Get all orb references from prefab
     /// </summary>
@@ -61,6 +76,9 @@ public class Orb : Singleton<Orb>
         _dialogue.SetText("", "");
         _dialogue.gameObject.SetActive(false);
 
+        GameObject handleObj = transform.GetChild(0).GetChild(3).gameObject;
+        _orbHandle = handleObj.AddComponent<OrbHandle>();
+
         // Collect all orb colliders
         _allOrbColliders = new List<BoxCollider>();
 
@@ -80,6 +98,8 @@ public class Orb : Singleton<Orb>
 
         if (_isLookingAtOrb || _messageContainer.IsLookingAtMessage)
             _face.MessageNotificationEnabled = false;
+
+        _followSolver.IsPaused = (_orbBehavior == MovementBehavior.Fixed || _face.UserIsGrabbing);
 
         float distance = Vector3.Distance(_followSolver.transform.position, AngelARUI.Instance.ARCamera.transform.position);
         float scaleValue = Mathf.Max(1f, distance * 1.2f);
@@ -152,6 +172,20 @@ public class Orb : Singleton<Orb>
     }
 
     /// <summary>
+    /// TODO - 
+    /// </summary>
+    /// <param name="newBehavior"></param>
+    public void UpdateMovementbehavior(MovementBehavior newBehavior)
+    {
+        _orbBehavior = newBehavior;
+
+        if (newBehavior==MovementBehavior.Fixed)
+            Orb.Instance.SetHandleProgress(1);
+        else
+            Orb.Instance.SetHandleProgress(0);
+    }
+
+    /// <summary>
     /// Called if input events with hand collider are detected
     /// </summary>
     /// <param name="isDragging"></param>
@@ -159,15 +193,18 @@ public class Orb : Singleton<Orb>
     {
         _face.UserIsGrabbing = isDragging;
 
-        if (!isDragging && !_lazyFollowStarted)
-            StartCoroutine(EnableLazyFollow());
-
-        if (isDragging && _lazyFollowStarted)
+        if (_orbBehavior == MovementBehavior.Follow)
         {
-            StopCoroutine(EnableLazyFollow());
+            if (!isDragging && !_lazyFollowStarted)
+                StartCoroutine(EnableLazyFollow());
 
-            _lazyFollowStarted = false;
-            _followSolver.IsPaused = (false);
+            if (isDragging && _lazyFollowStarted)
+            {
+                StopCoroutine(EnableLazyFollow());
+
+                _lazyFollowStarted = false;
+                _followSolver.IsPaused = (false);
+            }
         }
     }
 
@@ -191,6 +228,20 @@ public class Orb : Singleton<Orb>
             _lazyLookAtRunning = false;
             _face.UserIsLooking= false;
         }
+    }
+
+    /// <summary>
+    /// Moves the orb in front of the user
+    /// </summary>
+    /// <exception cref="NotImplementedException"></exception>
+    public void MoveToUser() {
+
+        if (_orbBehavior == MovementBehavior.Fixed)
+        {
+            UpdateMovementbehavior(MovementBehavior.Follow);
+        }
+
+        _followSolver.MoveToCenter();
     }
 
     #endregion
@@ -243,6 +294,37 @@ public class Orb : Singleton<Orb>
     }
 
     /// <summary>
+    /// If true, changes the visual appearance to the agent to a 'thinking' state, else idle
+    /// </summary>
+    /// <param name="isThinking"></param>
+    public void SetOrbThinking(bool isThinking)
+    {
+        if (isThinking)
+            _face.SetOrbState(OrbStates.Loading);
+        else
+            _face.SetOrbState(OrbStates.Idle);
+    }
+
+    /// <summary>
+    /// Show the user dialogue at the orb active or not
+    /// </summary>
+    /// <param name="isActive"></param>
+    public void SetDialogueActive(bool isActive) => _dialogue.gameObject.SetActive(isActive);
+
+    /// <summary>
+    /// Change the dialogue message at the orb. If 'utterance' is an empty string, only the answer is shown.
+    /// </summary>
+    /// <param name="utterance"></param>
+    /// <param name="answer"></param>
+    public void SetDialogueText(string utterance, string answer) => _dialogue.SetText(utterance, answer);
+
+    /// <summary>
+    /// Change the visual appearance of the orb handle. 0% is black, 100% progress is white
+    /// </summary>
+    /// <param name="progress"></param>
+    public void SetHandleProgress(float progress) => _orbHandle.SetHandleProgress(progress);
+
+    /// <summary>
     /// Check if user is looking at orb. - includes orb message and task list button if 'any' is true. else only orb face and message
     /// </summary>
     /// <param name="any">if true, subobjects of orb are inlcluded, else only face and message</param>
@@ -292,24 +374,6 @@ public class Orb : Singleton<Orb>
     private void HandleUpdateActiveStepEvent()
     {
         SetTaskMessage(DataProvider.Instance.CurrentSelectedTasks);
-    }
-
-    public void SetOrbThinking(bool isThinking)
-    {
-        if (isThinking)
-            _face.SetOrbState(OrbStates.Loading);
-        else
-            _face.SetOrbState(OrbStates.Idle);
-    }
-
-    public void SetDialogueActive(bool isActive)
-    {
-        _dialogue.gameObject.SetActive(isActive);
-    }
-
-    public void SetDialogueText(string utterance, string answer)
-    {
-        _dialogue.SetText(utterance, answer);   
     }
 
     #endregion

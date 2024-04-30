@@ -28,6 +28,8 @@ public class OrbTask : MonoBehaviour
     private float _xStart = 0;
     private float _xEnd = 0;
 
+    public Rect TextRect => _textContainer.TextRect;
+
     private FlexibleTextContainer _textContainer;
     public FlexibleTextContainer Text
     {

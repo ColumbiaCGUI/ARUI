@@ -16,7 +16,8 @@ public enum SoundType
     moveStart = 4,
     moveEnd = 5,
     select = 6,
-    warning = 7
+    warning = 7,
+    voiceConfirmation = 8,
 }
 
 /// <summary>
@@ -38,7 +39,8 @@ public class AudioManager : Singleton<AudioManager>, IMixedRealitySpeechHandler
         { SoundType.moveStart,StringResources.MoveStart_path},
         { SoundType.moveEnd,StringResources.MoveEnd_path},
         { SoundType.select,StringResources.SelectSound_path},
-        { SoundType.warning,StringResources.WarningSound_path}
+        { SoundType.warning,StringResources.WarningSound_path},
+        { SoundType.voiceConfirmation,StringResources.VoiceConfirmation_path}
     };
 
     private List<AudioSource> _currentlyPlayingSound = null;             /// <Reference to all sounds that are currently playing
@@ -55,7 +57,6 @@ public class AudioManager : Singleton<AudioManager>, IMixedRealitySpeechHandler
 
     ///** Voice commands callback storage
     private Dictionary<string, UnityAction> _keywordToActionMapping = new Dictionary<string, UnityAction>();
-
 
     public void Awake() => CoreServices.InputSystem?.RegisterHandler<IMixedRealitySpeechHandler>(this);
 
@@ -80,7 +81,7 @@ public class AudioManager : Singleton<AudioManager>, IMixedRealitySpeechHandler
     public void PlayText(string utterance, string answer)
     {
         if (!_isMute)
-            StartCoroutine(PlayTextDialogue(Orb.Instance.transform.position, utterance, answer));
+            StartCoroutine(PlayTextDialogue(Orb.Instance.orbTransform.position, utterance, answer));
     }
 
     /// <summary>
@@ -92,7 +93,7 @@ public class AudioManager : Singleton<AudioManager>, IMixedRealitySpeechHandler
     public void PlayText(string text)
     {
         if (!_isMute)
-            StartCoroutine(PlayTextLocalized(Orb.Instance.transform.position, text));
+            StartCoroutine(PlayTextLocalized(Orb.Instance.orbTransform.position, text));
     }
 
     /// <summary>
@@ -306,6 +307,7 @@ public class AudioManager : Singleton<AudioManager>, IMixedRealitySpeechHandler
             if (eventData.Command.Keyword.ToLower().Equals(keyword.ToLower()))
             {
                 _keywordToActionMapping[keyword].Invoke();
+                PlaySound(Orb.Instance.orbTransform.position, SoundType.voiceConfirmation);
             }
         }
     }

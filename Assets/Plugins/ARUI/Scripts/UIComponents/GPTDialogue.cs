@@ -60,9 +60,16 @@ public class GPTDialogue : MonoBehaviour
 
     public void SetText(string utterance, string response)
     {
-        string utt_short = Utils.SplitTextIntoLines(utterance, ARUISettings.OrbMessageMaxCharCountPerLine);
         string res_short = Utils.SplitTextIntoLines(response, ARUISettings.OrbMessageMaxCharCountPerLine);
 
-        _textComponent.text = "<b>You:</b> " + utt_short + "\n\n" + "<b>Angel:</b> " + res_short;
+        if (utterance.Length==0)
+        {
+            _textComponent.text = res_short;
+        } else
+        {
+            string utt_short = Utils.SplitTextIntoLines(utterance, ARUISettings.OrbMessageMaxCharCountPerLine);
+
+            _textComponent.text = "<b>You:</b> " + utt_short + "\n\n" + "<b>Angel:</b> " + res_short;
+        }
     }
 }

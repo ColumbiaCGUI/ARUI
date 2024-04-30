@@ -44,7 +44,6 @@ public class OrbFollowerSolver : Solver
 
     private Vector3 ReferencePoint => SolverHandler.TransformTarget != null ? SolverHandler.TransformTarget.position : Vector3.zero;
 
-
     private new void Start()
     {
         base.Start();
@@ -226,26 +225,35 @@ public class OrbFollowerSolver : Solver
     /// For important notification, pull the orb to the center of the FOV
     /// </summary>
     /// <param name="move"></param>
-    public void MoveToCenter(bool toCenter)
+    public void MoveToCenter()
     {
-        this._stayCenter = toCenter;
+        this._stayCenter = true;
 
-        if (toCenter)
-        {
-            if (_isSticky)
-                SetSticky(false);
+        if (_isSticky)
+            SetSticky(false);
 
-            _currentMaxViewDegrees = ARUISettings.OrbMaxViewDegCenter;
-            MoveLerpTime = 0.3f;
-        }
-        else
-        {
-            _currentMaxViewDegrees = ARUISettings.OrbMaxViewDegRegular;
-            MoveLerpTime = ARUISettings.OrbMoveLerpRegular;
-            WorkingPosition = transform.position;
-        }
+        StartCoroutine(rushToCenter());
     }
 
+    private IEnumerator rushToCenter()
+    {
+        _currentMaxViewDegrees = ARUISettings.OrbMaxViewDegCenter;
+        MoveLerpTime = 0.3f;
+
+        float duration = 2f;
+        float pastSeconds = 0;
+
+        while (pastSeconds < duration)
+        {
+            pastSeconds += Time.deltaTime;
+            yield return new WaitForEndOfFrame();
+        }
+
+        this._stayCenter = false;
+        _currentMaxViewDegrees = ARUISettings.OrbMaxViewDegRegular;
+        MoveLerpTime = ARUISettings.OrbMoveLerpRegular;
+        WorkingPosition = transform.position;
+    }
 
     /// <summary>
     /// If true, stick the orb to the edge of the FOV, else run regular solver

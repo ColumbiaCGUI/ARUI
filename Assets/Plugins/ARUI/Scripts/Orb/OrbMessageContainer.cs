@@ -29,7 +29,12 @@ public class OrbMessageContainer : MonoBehaviour
     }
 
     private OrbWarning _currentWarning;
-    public bool IsNoteActive => _currentWarning.IsSet;
+    public bool IsWarningActive => _currentWarning.IsSet;
+
+
+    private TMPro.TextMeshProUGUI _prevText;
+    private TMPro.TextMeshProUGUI _nextText;
+
 
     private bool _isMessageContainerActive = false;
     public bool IsMessageContainerActive
@@ -57,7 +62,7 @@ public class OrbMessageContainer : MonoBehaviour
                 _isMessageFading = false;
             }
 
-            _taskListbutton.gameObject.SetActive(value);
+            //_taskListbutton.gameObject.SetActive(value);
         }
     }
 
@@ -104,7 +109,8 @@ public class OrbMessageContainer : MonoBehaviour
         GameObject taskListbtn = transform.GetChild(0).gameObject;
         _taskListbutton = taskListbtn.AddComponent<DwellButton>();
         _taskListbutton.gameObject.name += "FacetasklistButton";
-        _taskListbutton.InitializeButton(EyeTarget.orbtasklistButton, () => MultiTaskList.Instance.ToggleOverview(), null, true, DwellButtonType.Toggle);
+        //_taskListbutton.InitializeButton(EyeTarget.orbtasklistButton, () => MultiTaskList.Instance.ToggleOverview(), null, true, DwellButtonType.Toggle);
+        taskListbtn.SetActive(false);
 
         // Init Pie Menu
         for (int i = 0; i < 4; i++)
@@ -124,15 +130,21 @@ public class OrbMessageContainer : MonoBehaviour
 
         IsMessageContainerActive = false;
         _currentWarning = transform.GetChild(2).gameObject.AddComponent<OrbWarning>();
-        _currentWarning.Init("");
+        _currentWarning.Init("", _mainTaskPiePlace.TextRect.height);
         _currentWarning.gameObject.SetActive(false);
+
+        _prevText = obMain.transform.GetChild(1).GetChild(0).GetChild(0).GetChild(0).GetChild(0).GetChild(1).gameObject.GetComponentInChildren<TMPro.TextMeshProUGUI>();
+        _prevText.text = "You got me";
+        _nextText = obMain.transform.GetChild(1).GetChild(0).GetChild(0).GetChild(0).GetChild(0).GetChild(2).gameObject.GetComponentInChildren<TMPro.TextMeshProUGUI>();
+        _nextText.text = "You got me";
     }
 
     public void Update()
     {
         // Update eye tracking flag
         if (_isLookingAtMessage && EyeGazeManager.Instance.CurrentHit != EyeTarget.orbMessage
-            && EyeGazeManager.Instance.CurrentHit != EyeTarget.orbtasklistButton && EyeGazeManager.Instance.CurrentHit != EyeTarget.pieCollider
+            && EyeGazeManager.Instance.CurrentHit != EyeTarget.orbtasklistButton 
+            && EyeGazeManager.Instance.CurrentHit != EyeTarget.pieCollider
             )
             _isLookingAtMessage = false;
 
@@ -140,6 +152,16 @@ public class OrbMessageContainer : MonoBehaviour
             || EyeGazeManager.Instance.CurrentHit == EyeTarget.orbtasklistButton || EyeGazeManager.Instance.CurrentHit == EyeTarget.pieCollider))
             
             _isLookingAtMessage = true;
+
+        _currentWarning.UpdateSize(_mainTaskPiePlace.TextRect.width / 2);
+        _currentWarning.UpdateYPos(_mainTaskPiePlace.TextRect.height, _prevText.gameObject.activeSelf);
+
+        //_prevText.gameObject.transform.SetLocalYPos(_mainTaskPiePlace.TextRect.height);
+        Vector2 anchor = _prevText.transform.parent.GetComponent<RectTransform>().anchoredPosition;
+        _prevText.transform.parent.GetComponent<RectTransform>().anchoredPosition = new Vector2(anchor.x, _mainTaskPiePlace.TextRect.height+0.01f);
+
+        anchor = _nextText.transform.parent.GetComponent<RectTransform>().anchoredPosition;
+        _nextText.transform.parent.GetComponent<RectTransform>().anchoredPosition = new Vector2(anchor.x, -(_mainTaskPiePlace.TextRect.height + 0.01f));
 
         if (!IsMessageContainerActive || IsMessageLerping) return;
 
@@ -198,6 +220,7 @@ public class OrbMessageContainer : MonoBehaviour
     {
         UpdateAnchorInstant(_currentAnchor);
 
+        string tempName = "";
         foreach (string taskName in currentSelectedTasks.Keys)
         {
             if (_taskNameToOrbPie.ContainsKey(taskName))
@@ -223,7 +246,39 @@ public class OrbMessageContainer : MonoBehaviour
                     _taskNameToOrbPie[taskName].UpdateCurrentTaskStatus(ratio);
                 }
             }
+            tempName = taskName.ToString();
         }
+
+        // Only show the previous and next step at the orb if there is only one task
+        if (_taskNameToOrbPie.Count==1)
+        {
+            _prevText.text = "";
+            _nextText.text = "";
+            int prevIndex = currentSelectedTasks[tempName].PrevStepIndex;
+            int nextIndex = currentSelectedTasks[tempName].NextStepIndex;
+
+            if (prevIndex>=0)
+            {
+                string previous = currentSelectedTasks[tempName].Steps[prevIndex].StepDesc;
+                _prevText.text = "<b>DONE:</b> " + Utils.SplitTextIntoLines(previous, ARUISettings.OrbMessageMaxCharCountPerLine);
+            }
+            if (nextIndex>=0 && nextIndex < currentSelectedTasks[tempName].Steps.Count)
+            {
+                string next = currentSelectedTasks[tempName].Steps[nextIndex].StepDesc;
+                _nextText.text = "<b>Upcoming:</b> " + Utils.SplitTextIntoLines(next, ARUISettings.OrbNoteMaxCharCountPerLine);
+            }
+
+            if (currentSelectedTasks[tempName].CurrStepIndex == currentSelectedTasks[tempName].Steps.Count-1)
+            {
+                _nextText.text = "<b>Upcoming: All Done!</b> ";
+            }
+        }
+        else
+        {
+            _prevText.text = "";
+            _nextText.text = "";
+        }
+
     }
 
     #region Warning
@@ -232,7 +287,7 @@ public class OrbMessageContainer : MonoBehaviour
     {
         _currentWarning.SetMessage(message, ARUISettings.OrbNoteMaxCharCountPerLine);
         _currentWarning.gameObject.SetActive(true);
-        face.UpdateNotification(IsNoteActive);
+        face.UpdateNotification(IsWarningActive);
     }
 
     public void RemoveWarning(OrbFace face)
@@ -240,7 +295,7 @@ public class OrbMessageContainer : MonoBehaviour
         _currentWarning.SetMessage("", ARUISettings.OrbMessageMaxCharCountPerLine);
         _currentWarning.gameObject.SetActive(false);
         if (face)
-            face.UpdateNotification(IsNoteActive);
+            face.UpdateNotification(IsWarningActive);
     }
 
     #endregion
@@ -369,16 +424,16 @@ public class OrbMessageContainer : MonoBehaviour
                 step += Time.deltaTime;
             }
 
-            float XOffsetNote = _currentWarning.XOffset;
+            float XOffsetWarning = _currentWarning.XOffset;
             if (isLeft)
             {
-                XOffsetNote = -_currentWarning.XOffset-0.25f;
+                XOffsetWarning = -_currentWarning.XOffset-0.25f;
                 _currentWarning.Text.alignment = TMPro.TextAlignmentOptions.BottomRight;
             } else
                 _currentWarning.Text.alignment = TMPro.TextAlignmentOptions.BottomLeft;
 
             _currentWarning.gameObject.transform.localPosition = Vector2.Lerp(_currentWarning.gameObject.transform.localPosition,
-                                                                            new Vector3(XOffsetNote, _currentWarning.gameObject.transform.localPosition.y, 0), step + Time.deltaTime);
+                                                                            new Vector3(XOffsetWarning, _currentWarning.gameObject.transform.localPosition.y, 0), step + Time.deltaTime);
 
             yield return new WaitForEndOfFrame();
         }
