@@ -133,10 +133,10 @@ public class ExampleScript : MonoBehaviour
 
         AngelARUI.Instance.RemoveWarningMessage();
 
-        yield return new WaitForSeconds(2f);
+        yield return new WaitForSeconds(10f);
 
         //Show dialogue to user
-        AngelARUI.Instance.TryGetUserConfirmation("Did you mean Start Procedure?", () => { GoToNextStepConfirmation(); });
+        AngelARUI.Instance.TryGetUserConfirmation("Did you mean Start Procedure?", () => { GoToNextStepConfirmation(); }, null);
 
     }
     private void GoToNextStepConfirmation()
