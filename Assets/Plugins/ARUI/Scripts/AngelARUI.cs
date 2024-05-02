@@ -207,18 +207,6 @@ public class AngelARUI : Singleton<AngelARUI>
         NotificationManager.Instance.TryGetUserConfirmation(msg, actionOnConfirmation, actionOnTimeOut);
     }
 
-    /// <summary>
-    /// TODO
-    /// </summary>
-    /// <param name="msg"></param>
-    /// <param name="actionOnConfirmation"></param>
-    public void TryGetUserConfirmation(string msg, UnityAction actionOnConfirmation)
-    {
-        if (actionOnConfirmation == null || msg == null || msg.Length == 0) return;
-
-        DebugLogMessage("Future feature called. Not yet implemented.", true);
-    }
-
     #endregion
 
     #region Detected Physical Object Registration

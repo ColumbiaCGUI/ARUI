@@ -14,8 +14,7 @@ The Unity scene 'SampleScene' in folder 'Plugins/ARUI/Scenes' shows how one can 
 
 ## Scene Setup
 If you build your own scene using the AngelARUI script, there are a few things to note:
-1) The ARUI uses layers to detect various collisions (e.g. between eye gaze and UI elements). It is important that the layer "UI" exists in the
-Unity project and the layer index should be 5. Please reserve the layer for the ARUI and do not set your own objects with that layer
+1) The ARUI uses layers to detect various collisions (e.g., between eye gaze and UI elements). It is essential that the layer "UI" exists in the Unity project, and the layer index should be 5. Please reserve the layer for the ARUI and do not set your objects with that layer
 2) Make sure that the MRTK toolkit behavior in your scene is correctly set: (or use the AngelARUI settings file - AngelMRTKSettingsProfile)
     1) Tab 'Input' -> Pointers -> Eye-tracking has to be enabled
     2) Tab 'Input' -> Pointers -> Pointing Raycast Layer Masks -> There should be a layer called "UI"
@@ -27,56 +26,90 @@ Unity project and the layer index should be 5. Please reserve the layer for the 
 
 ## Functions, Testing and Debugging
 The ARUI can be customized as follows:
-* 'AngelARUI.Instance.ShowDebugEyeGazeTarget(..)' enable/disable an eye-gaze debug cube if the user is looking at a component in the ARUI. The default is false.
-* 'AngelARUI.Instance.ShowDebugMessagesInLogger(..)' enable/disable debugging messages in the logger window (see example scene), Default is true
+* 'AngelARUI.Instance.DebugShowEyeGazeTarget(..)' enable/disable an eye-gaze debug cube if the user is looking at a component in the ARUI. The default is false.
+* 'AngelARUI.Instance.DebugShowMessagesInLogger(..)' enable/disable debugging messages in the logger window (see example scene), Default is true
 * 'AngelARUI.Instance.SetViewManagement(..)' enable/disable view management. Default is true
 * 'AngelARUI.Instance.MuteAudio(..)' mute or unmute audio instructions
+* 'AngelARUI.Instance.SetAgentThinking(..)' enable/disable the 'thinking' animation at the virtual agent
+* 'AngelARUI.Instance.CallAgentToUser()' to force the agent to appear in front of the user
 * File 'ARUISettings.cs' contains some design variables (use with caution)
 
-All features with the exception of TTS (audio instructions) should work with holograhic remoting.
+All features with the exception of TTS (audio instructions) should work with holographic remoting.
 
-### Set task graph:
-The main part of the UI is the orb; the orb tells the user what task the user is currently on. In addition to the orb, there is also a task list in the scene. (Can be toggled using eye-gaze dwelling at the button above the orb)
+## Support for Multitasking
+The main part of the UI is the virtual agent; the virtual agent tells the user what task the user is currently on.
 
-For now, the ARUI supports a two-level task graph. To set the task graph, call 'AngelARUI.Instance.SetTasks(tasks);' where 'tasks' could look like this:
+For now, the ARUI supports multiple tasks. To set the tasks, call 'AngelARUI.Instance.InitManual(allJsonTasks);' 
+allJsonTasks is a Dictionary with string as key and value. The key represents the name of the task (e.g., 'Filter Inspection'), while the value represents the JSON data for the task. 
+
+Here is an example of a task called 'Filter Inspection' with 3 steps:
 ```
-    string[,] tasks =
+{"Name": "Filter Inspection", "Steps":[
     {
-        {"0", "Text example MainTask 1"},
-        {"1", "Text example Subtask 1 of MainTask 1"},
-        {"1", "Text example Subtask 2 of MainTask 1"},
-        {"1", "Text example Subtask 2 of MainTask 1"},
-        {"1", "Text example Subtask 2 of MainTask 1"},
-        {"0", "Text example MainTask 2"},
-        {"0", "Text example MainTask 3"},
-        {"1", "Text example Subtask 1 of MainTask 3"},
-        {"1", "Text example Subtask 2 of MainTask 3"},
-    };
- ```
+        "StepDesc": "Remove the nut.",
+        "RequiredItems": ["nut" ],
+        "SubSteps": [],
+        "CurrSubStepIndex": -1
+    },{
+        "StepDesc": "Remove the air clean cover.",
+        "RequiredItems": ["nut" ],
+        "SubSteps": [],
+        "CurrSubStepIndex": -1
+    },
+    {
+        "StepDesc": "Remove the wing nut and air filter assembly",
+        "RequiredItems": ["wing nut", "air filter assembly" ],
+        "SubSteps": [],
+        "CurrSubStepIndex": -1
+    }],
+    "CurrStepIndex":0,"PrevStepIndex":-1,"NextStepIndex":1}
+```
 
-The first column indicates if the row is a main task (0) or subtask (1) of the last main task. The second column provides the text of the task.
-To set the current task, the user has to do, call: 'AngelARUI.Instance.SetCurrentTaskID(index);' The integer value 'index' presents the row index in the 'tasks' array. (eg. Index 4 would be {"1", "Text example Subtask 2 of MainTask 1"}). If the index does not match the given task graph, the function call is ignored. Please note that a main task can not be set as a current task. If the function is called with an index of a main task, the next subtask will be set (e.g. index 0 would be {"1", "Text example Subtask 1 of MainTask 1"}). Also, for now, we assume that the tasks must be executed sequentially. If index 4 is set, then all tasks before 4 are assumed as done, and all tasks after 4 are assumed as not done.
+'StepDesc' is the description of the action the user has to execute and 'RequiredItems' is a list of items that we will emphasize in the UI.
 
-Examples can be found in "TapTestData.cs". The tasklist can be toggled via script using AngelARUI.Instance.ToggleTasklist();, but mostly the user is in charge.
+To set the first step in the task graph as the current one, call: 'AngelARUI.Instance.GoToStep("Filter Inspection", 0);' At the moment, there is NO support for subtasks.
 
-Overall, if you call 'AngelARUI.Instance.SetCurrentTaskID(index);' the orb message will change, the task list will refresh and the user will hear the instructions (only in build).
+Overall, if you call 'AngelARUI.Instance.GoToStep("Filter Inspection", 0);' the virutal agent message will change, the task list will refresh and the user will hear the instructions (only in build).
 
-### Notifications (beta)
-At the moment, the ARUI supports skip notifications and a confirmation dialogue. For the skip notification, The notification message can be changed, before building and running the project, in the AngelARUI behavior script in the Editor. As soon as a skip notification is called, it is removed if a new task was set (through SetCurrentTaskID(..) or by calling 'AngelARUI.Instance.ShowSkipNotification(false);'
+## Notifications (beta)
+At the moment, the ARUI supports warnings and a confirmation dialogue.
+
+#### Warnings
+The virutal agent will display a warning, if desired. The warning has to be removed manually. If a warning message is shown, the previous and next step will disappear temporarily. 
+```
+AngelARUI.Instance.SetWarningMessage("Be careful, the stove is hot.");
+AngelARUI.Instance.RemoveWarningMessage();
+```
 
 #### Confirmation Dialogue 
 Here is an example of how to call the confirmation dialogue (found in ExampleScript.cs). For now, the purpose of the confirmation dialogue is to ask the user for permission to execute an action if the NLP node of the system detected a certain user intent (e.g., the user wanted to go to the next task)
 ```
 int next = 2;
-//1) Set message (e.g., "Did you mean '{user intent}'?"
-InterpretedAudioUserIntentMsg intentMsg = new InterpretedAudioUserIntentMsg();
-intentMsg.user_intent = "Go to the next task";
+AngelARUI.Instance.TryGetUserFeedbackOnUserIntent(intentMsg, actionTriggeredOnUserConfirmation, actionTriggerdOnTimeOut);
+```
 
-//2) Set event that should be triggered if user confirms
-AngelARUI.Instance.SetUserIntentCallback((intent) => { AngelARUI.Instance.SetCurrentTaskID(next); });
+## MRTK Keyword Registration System
+Supporting voice-triggered callbacks. 
+There are two steps involved to add a new keyword:
 
-//4) Show dialogue to user
-AngelARUI.Instance.TryGetUserFeedbackOnUserIntent(intentMsg);
+1) In your scene, you have to manually add the keyword to the MixedRealityToolkit --> Input --> Speech --> Add new speech command. Type your keyword, e.g.: "Show Diagram"
+
+2) In the code, register a callback to the keyword. e.g.:
+```
+AngelARUI.Instance.RegisterKeyword("Show Diagram", () => { CallbackForKeyword(); });
+```
+
+## Support for QA
+If you want the virtual agent to say a message to the user, and display it too, call:
+```
+AngelARUI.Instance.PlayMessageAtAgent
+    ("", "Hello");
+```
+
+If you want the agent to e.g., repeat the user input AND display the message, call:
+```
+AngelARUI.Instance.PlayMessageAtAgent
+    ("How many apples do I need for this recipe?", "You need three apples");
 ```
 
 ## Build, Deploy and Run
@@ -88,7 +121,7 @@ The building process is the same as a regular HL2 application, except that befor
 After deployment, when you run the app for the first time, make sure to give permission to the eye-tracking and it is crucial that the calibration is done properly.
 
 # UI and Interactions
-* The UI uses eye gaze as input. The user can enable and disable the task list by looking at the button next to the white orb. The position of the orb and the tasklist can be adjusted using the tap gesture (near interactions) or the ray cast (far interactions).
+* The UI uses eye gaze as input. The user can enable and disable the task list by looking at the button next to the white virtual agent. The position of the virtual agent and the tasklist can be adjusted using the tap gesture (near interactions) or the ray cast (far interactions).
 * Audio task instructions can be stopped (just once) with keyword 'stop'. 
 * The confirmation button on the confirmation dialogue can be triggered using eye-gaze or touching (index finger)
 
@@ -107,12 +140,21 @@ Flat Icons - https://assetstore.unity.com/packages/2d/gui/icons/ux-flat-icons-fr
 Simple Hand Pose Detector - https://github.com/RobJellinghaus/MRTK_HL2_HandPose/tree/main
 
 ## Changelog
+5/2/24:
+* Next/Previous step disappears if there is a warning at the same time
+* Added speech to the virtual agent
+* Improved the fix/follow modes in regards to their visual appearance and audio feedback
+* The agent can be called to the user 
+* Implemented keyword registration system.
+* Bugfix of the audio system (the voice is sometimes not spatialised)
+* The system can show the current observed task at the task overview (if there are multiple tasks)
+* Removed the taskoverview button, but task overview can be enabled/disabled through the API - ShowTaskoverviewPanel(..) or ToggleTaskOverview(..) and it's position set with SetTaskOverviewPosition(..)
 
 10/5/23:
-* Show Next/Previous task at orb
-* Orb scales with distance to user, so the content is still legible if orb is further away
+* Show Next/Previous task at virtual agent
+* virtual agent scales with distance to user, so the content is still legible if virtual agent is further away
 * Warning and error notification + growing disc to get user's attention 
-* Fix vs. Follow Mode: If orb is dragged and hand is closed, the orb is fixed to a 3D position, Drag and pinch to undo
+* Fix vs. Follow Mode: If virtual agent is dragged and hand is closed, the virtual agent is fixed to a 3D position, Drag and pinch to undo
 
 6/1/23: 
 * Adding fall back options if eye gaze does not work: Enable/Disable attention-based task overview and allows users to 'touch' the task list button, in addition to dwelling
@@ -122,18 +164,18 @@ Simple Hand Pose Detector - https://github.com/RobJellinghaus/MRTK_HL2_HandPose/
 * Adding 'RegisterDetectedObject(..)' and 'DeRegisterDetectedObject(..)' so a 3D mesh can be added to the view management.
 * Small improvements confirmation dialogue
 * Notification indicator for task messages
-* Redesign orb face ('eyes', 'mouth')
+* Redesign virtual agent face ('eyes', 'mouth')
 
 3/11/23: 
 * Improvement confirmation dialogue (top of FOV, instead of the bottom, added audio feedback and touch input)
-* Added view management (for orb (controllable), tasklist, confirmation dialogue and hands (all non-controllables). The objective of view management is to avoid decreasing the legibility of virtual or real objects in the scene. Controllable will move away from non-controllable obejcts  (e.g., the orb should not overlap with hands if the user is busy working on a task)
+* Added view management (for virtual agent (controllable), tasklist, confirmation dialogue and hands (all non-controllables). The objective of view management is to avoid decreasing the legibility of virtual or real objects in the scene. Controllable will move away from non-controllable obejcts  (e.g., the virtual agent should not overlap with hands if the user is busy working on a task)
 * Code documentation 
-* Minor improvements (task list fixed with transparent items, fixed orb message not shown when looking at task list)
+* Minor improvements (task list fixed with transparent items, fixed virtual agent message not shown when looking at task list)
 * Added 'stop' keyword that immediately stops the audio task instructions
 * Audio task instructions can be muted
 
 2/19/23: 
-* Fixed issue with task id. If the taskID given in SetTaskID(..) is the same as the current one, the orb will not react anymore.
+* Fixed issue with task id. If the taskID given in SetTaskID(..) is the same as the current one, the virtual agent will not react anymore.
 * Added confirmation dialogue
 * Added option to mute text to speech for task instructions
 
@@ -143,7 +185,7 @@ Simple Hand Pose Detector - https://github.com/RobJellinghaus/MRTK_HL2_HandPose/
 * Added textToSpeech option
 * fixes with eye collisions with spatial mesh
 * fixes with task progress and 'all done' handling
-* fixed 'jitter' of orb in some situations by adding lazy orb reactions in the following solver
+* fixed 'jitter' of virtual agent in some situations by adding lazy virtual agent reactions in the following solver
 * Added halo, so user can find task list more easily
 * Disabled auto repositioning of task list (but allowing manual adjustments)
 
@@ -151,8 +193,8 @@ Simple Hand Pose Detector - https://github.com/RobJellinghaus/MRTK_HL2_HandPose/
 * Adding direct manipulation to task list
 * If the tasklistID is greater than the number if tasks, the user sees the message "All done". Alternatively, the recipe can be set as 
   done by calling AngelARUI.Instance.SetAllTasksDone();
-* The orb moves out of the way if the user reads the task list
-* The orb shows an indicator on the progress of the recipe
+* The virtual agent moves out of the way if the user reads the task list
+* The virtual agent shows an indicator on the progress of the recipe
 * The tasklist button is moved to the top 
 * Delayed task message activation to avoid accidental trigger
-* Both the task list and the orb can be moved using far (with ray) and near interactions with either hand
+* Both the task list and the virtual agent can be moved using far (with ray) and near interactions with either hand
