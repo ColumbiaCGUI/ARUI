@@ -44,6 +44,12 @@ public static class Utils
     public static int GetLayerInt(string layerName) => (int)Mathf.Log(LayerMask.GetMask(layerName), 2);
 
     /// <summary>
+    /// Check if given string is not null and longer than 0 characters
+    /// </summary>
+    /// <returns></returns>
+    public static bool StringValid(string input) => input!=null && input.Length>0;
+
+    /// <summary>
     /// Split the given text into lines.
     /// </summary>
     /// <param name="text"></param>

@@ -96,6 +96,14 @@ public class AudioManager : Singleton<AudioManager>, IMixedRealitySpeechHandler
             StartCoroutine(PlayTextLocalized(Orb.Instance.orbTransform.position, text));
     }
 
+    public void PlayTextIfNotPlaying(string text)
+    {
+        if (!_isMute && _currentlyPlayingText != null && _currentlyPlayingText == false && _tTos.AudioSource.isPlaying == false)
+        {
+            StartCoroutine(PlayTextLocalized(Orb.Instance.orbTransform.position, text));
+        }
+    }
+
     /// <summary>
     /// Plays a sound effect from a given position
     /// </summary>

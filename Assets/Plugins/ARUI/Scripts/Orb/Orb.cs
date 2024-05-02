@@ -242,6 +242,7 @@ public class Orb : Singleton<Orb>
         }
 
         _followSolver.MoveToCenter();
+        AudioManager.Instance.PlayTextIfNotPlaying("mhm");
     }
 
     #endregion

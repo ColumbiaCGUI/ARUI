@@ -47,4 +47,5 @@ public static class StringResources
     public static string audioManager_name = "AudioManager";
     public static string confirmationWindow_name = "ConfirmatioWindow";
     public static string HandPoseManager_name = "HandPoseManager";
+    public static string NotificationManager_name = "NotificationManager";
 }

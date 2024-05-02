@@ -27,9 +27,6 @@ public class AngelARUI : Singleton<AngelARUI>
     [HideInInspector]
     public bool IsVMActiv => ViewManagement.Instance != null && _useViewManagement;
 
-    ///****** Confirmation Dialogue
-    private GameObject _confirmationWindowPrefab = null;
-
     private void Awake() => StartCoroutine(InitProjectSettingsAndScene());
 
     private IEnumerator InitProjectSettingsAndScene()
@@ -94,13 +91,14 @@ public class AngelARUI : Singleton<AngelARUI>
         GameObject TaskOverview = Instantiate(Resources.Load(StringResources.Sid_Tasklist_path)) as GameObject;
         TaskOverview.gameObject.name = "***ARUI-" + StringResources.tasklist_name;
 
+        //Instantiate the Notification manager
+        NotificationManager notificationManager = new GameObject("NotificationManager").AddComponent<NotificationManager>();
+        notificationManager.gameObject.name = "***ARUI-" + StringResources.NotificationManager_name;
+
         //Start View Management, if enabled
         if (_useViewManagement)
             StartCoroutine(TryStartVM());
 
-        //Load resources for UI elements
-        _confirmationWindowPrefab = Resources.Load(StringResources.ConfNotification_path) as GameObject;
-        _confirmationWindowPrefab.gameObject.name = "***ARUI-" + StringResources.confirmationWindow_name;
 
         //Initialize components for the visibility computation of physical objects
         Camera zBufferCam = new GameObject("zBuffer").AddComponent<Camera>();
@@ -165,25 +163,15 @@ public class AngelARUI : Singleton<AngelARUI>
     /// Forward a text-base message to the orb, and the orb will output the message using audio.
     /// The message will be cut off after 50 words, which take around 25 seconds to speak on average. 
     /// 
-    /// Iterrupts the last message that was spoken
-    /// </summary>
-    /// <param name="message"></param>
-    public void PlayMessageAtAgent(string message)
-    {
-        if (message.Length == 0 || Orb.Instance == null || AudioManager.Instance == null) return;
-        AudioManager.Instance.PlayText(message);
-    }
-
-    /// <summary>
-    /// Forward a text-base message to the orb, and the orb will output the message using audio.
-    /// The message will be cut off after 50 words, which take around 25 seconds to speak on average. 
+    /// If 'utterance' is empty, the agent will still say the message
     /// 
     /// Iterrupts the last message that was spoken
     /// </summary>
+    /// <param name="utterance">THIS IS OPTIONAL</param>
     /// <param name="message"></param>
     public void PlayMessageAtAgent(string utterance,string message)
     {
-        if (message.Length == 0 || Orb.Instance == null || AudioManager.Instance == null) return;
+        if (!Utils.StringValid(message) || Orb.Instance == null || AudioManager.Instance == null) return;
         AudioManager.Instance.PlayText(utterance, message);
         Orb.Instance.SetOrbThinking(false);
     }
@@ -195,13 +183,29 @@ public class AngelARUI : Singleton<AngelARUI>
     /// //TODO
     /// </summary>
     /// <param name="show">if true, the orb will show a skip notification, if false, the notification will disappear</param>
-    public void SetWarningMessage(string message) => Orb.Instance.AddWarning(message);
+    public void SetWarningMessage(string message)
+    {
+        Orb.Instance.AddWarning(message);
+    }
 
     /// <summary>
     /// //TODO
     /// </summary>
     /// <param name="type"></param>
     public void RemoveWarningMessage() => Orb.Instance.RemoveWarning();
+
+    /// <summary>
+    /// If confirmation action is set - SetUserIntentCallback(...) - and no confirmation window is active at the moment, the user is shown a 
+    /// timed confirmation window. Recommended text: "Did you mean ...". If the user confirms the dialogue, the onUserIntentConfirmedAction action is invoked. 
+    /// </summary>
+    /// <param name="msg">Message that is shown in the Confirmation Dialogue</param>
+    /// <param name="actionOnConfirmation">Action triggerd if the user confirms the dialogue</param>
+    /// <param name="actionOnTimeOut">OPTIONAL - Action triggered if notification times out</param>
+    public void TryGetUserConfirmation(string msg, UnityAction actionOnConfirmation, UnityAction actionOnTimeOut)
+    {
+        if (!Utils.StringValid(msg) || actionOnConfirmation==null) return;
+        NotificationManager.Instance.TryGetUserConfirmation(msg, actionOnConfirmation, actionOnTimeOut);
+    }
 
     /// <summary>
     /// TODO

@@ -21,7 +21,7 @@ public class ConfirmationDialogue : MonoBehaviour
     private bool _delayedMoving = false;
 
     private UnityEvent _selectEvent;                 /// <Event that will be invoked if the user confirms the dialogue
-    private string _userIntent;
+    private UnityEvent _timeOutEvent;                /// <Event that will be invoked if the notification timesout
 
     private Shapes.Line _time;                       /// <Line that shows the user how much time is left to make a decision
     
@@ -43,6 +43,7 @@ public class ConfirmationDialogue : MonoBehaviour
         _movingBehavior.enabled = true;
 
         _selectEvent = new UnityEvent();
+        _timeOutEvent = new UnityEvent();
 
         transform.SetLayerAllChildren(StringResources.LayerToInt(StringResources.UI_layer));
     }
@@ -80,13 +81,15 @@ public class ConfirmationDialogue : MonoBehaviour
     /// </summary>
     /// <param name="intentMsg">Contains message that is shown to the user.</param>
     /// <param name="confirmedEvent">confirmation event, invoked when the user is triggering the okay button</param>
-    public void InitializeConfirmationNotification(string intentMsg, UnityAction confirmedEvent)
+    public void InitializeConfirmationNotification(string intentMsg, UnityAction confirmedEvent, UnityAction actionOnTimeOut)
     {
         if (intentMsg == null || intentMsg.Length == 0) return;
 
-        _userIntent = intentMsg;
         _textContainer.Text = intentMsg;
         _selectEvent.AddListener(confirmedEvent);
+        if (actionOnTimeOut != null)
+            _timeOutEvent.AddListener(actionOnTimeOut);
+
         _init = true;
     }
 
@@ -100,7 +103,12 @@ public class ConfirmationDialogue : MonoBehaviour
         if (isConfirmed)
             _selectEvent.Invoke();
         else
+        {
+            if (_timeOutEvent != null)
+                _timeOutEvent.Invoke();
+
             AngelARUI.Instance.DebugLogMessage("The user did not confirm the dialogue", true);
+        }
 
         StopCoroutine(DecreaseTime());
         Destroy(this.gameObject);

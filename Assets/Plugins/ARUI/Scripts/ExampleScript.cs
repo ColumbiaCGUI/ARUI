@@ -129,6 +129,8 @@ public class ExampleScript : MonoBehaviour
 
         yield return new WaitForSeconds(3f);
 
+        AngelARUI.Instance.TryGetUserConfirmation("Do you want to go to the next task?", () => DialogueTestConfirmed(), () => DialogueTestFailed());
+
         AngelARUI.Instance.RemoveWarningMessage();
 
         yield return new WaitForSeconds(2f);
@@ -147,6 +149,16 @@ public class ExampleScript : MonoBehaviour
     {
         _currentStepMap[_currentTask]--;
         AngelARUI.Instance.GoToStep(_currentTask, _currentStepMap[_currentTask]);
+    }
+
+    private void DialogueTestConfirmed()
+    {
+        GoToNextStepConfirmation();
+    }
+
+    private void DialogueTestFailed()
+    {
+        AngelARUI.Instance.PlayMessageAtAgent("", "okay, i wont");
     }
 
     private IEnumerator SpeechCommandRegistrationTest()
@@ -235,7 +247,7 @@ public class ExampleScript : MonoBehaviour
         }
         if (Input.GetKeyUp(KeyCode.F))
         {
-            AngelARUI.Instance.PlayMessageAtAgent("This is a test");
+            AngelARUI.Instance.PlayMessageAtAgent("","This is a test");
         }
 
         if (Input.GetKeyUp(KeyCode.Alpha9))

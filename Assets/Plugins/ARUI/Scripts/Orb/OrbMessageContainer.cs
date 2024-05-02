@@ -134,9 +134,9 @@ public class OrbMessageContainer : MonoBehaviour
         _currentWarning.gameObject.SetActive(false);
 
         _prevText = obMain.transform.GetChild(1).GetChild(0).GetChild(0).GetChild(0).GetChild(0).GetChild(1).gameObject.GetComponentInChildren<TMPro.TextMeshProUGUI>();
-        _prevText.text = "You got me";
+        _prevText.text = "";
         _nextText = obMain.transform.GetChild(1).GetChild(0).GetChild(0).GetChild(0).GetChild(0).GetChild(2).gameObject.GetComponentInChildren<TMPro.TextMeshProUGUI>();
-        _nextText.text = "You got me";
+        _nextText.text = "";
     }
 
     public void Update()
@@ -154,10 +154,11 @@ public class OrbMessageContainer : MonoBehaviour
             _isLookingAtMessage = true;
 
         _currentWarning.UpdateSize(_mainTaskPiePlace.TextRect.width / 2);
-        _currentWarning.UpdateYPos(_mainTaskPiePlace.TextRect.height, _prevText.gameObject.activeSelf);
 
-        //_prevText.gameObject.transform.SetLocalYPos(_mainTaskPiePlace.TextRect.height);
-        Vector2 anchor = _prevText.transform.parent.GetComponent<RectTransform>().anchoredPosition;
+        Vector2 anchor = _currentWarning.transform.GetComponent<RectTransform>().anchoredPosition;
+        _currentWarning.transform.GetComponent<RectTransform>().anchoredPosition = new Vector2(anchor.x, _mainTaskPiePlace.TextRect.height + 0.01f);
+
+        anchor = _prevText.transform.parent.GetComponent<RectTransform>().anchoredPosition;
         _prevText.transform.parent.GetComponent<RectTransform>().anchoredPosition = new Vector2(anchor.x, _mainTaskPiePlace.TextRect.height+0.01f);
 
         anchor = _nextText.transform.parent.GetComponent<RectTransform>().anchoredPosition;
@@ -287,6 +288,9 @@ public class OrbMessageContainer : MonoBehaviour
     {
         _currentWarning.SetMessage(message, ARUISettings.OrbNoteMaxCharCountPerLine);
         _currentWarning.gameObject.SetActive(true);
+        _prevText.gameObject.SetActive(false);
+        _nextText.gameObject.SetActive(false);
+
         face.UpdateNotification(IsWarningActive);
     }
 
@@ -294,6 +298,9 @@ public class OrbMessageContainer : MonoBehaviour
     {
         _currentWarning.SetMessage("", ARUISettings.OrbMessageMaxCharCountPerLine);
         _currentWarning.gameObject.SetActive(false);
+        _prevText.gameObject.SetActive(true);
+        _nextText.gameObject.SetActive(true);
+
         if (face)
             face.UpdateNotification(IsWarningActive);
     }
