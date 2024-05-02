@@ -144,7 +144,7 @@ Simple Hand Pose Detector - https://github.com/RobJellinghaus/MRTK_HL2_HandPose/
 * Next/Previous step disappears if there is a warning at the same time
 * Added speech to the virtual agent
 * Improved the fix/follow modes in regards to their visual appearance and audio feedback
-* The agent can be called to the user 
+* The agent can be called to the user via CallAgentToUser()
 * Implemented keyword registration system.
 * Bugfix of the audio system (the voice is sometimes not spatialised)
 * The system can show the current observed task at the task overview (if there are multiple tasks)
