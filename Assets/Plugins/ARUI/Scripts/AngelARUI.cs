@@ -5,6 +5,10 @@ using Shapes;
 using System;
 using UnityEngine.Events;
 
+#if ENABLE_WINMD_SUPPORT
+using Windows.Foundation.Diagnostics;
+#endif
+
 /// <summary>
 /// Interface to the ARUI Components - a floating assistant in the shape as an orb and a task overview panel.
 /// </summary>
@@ -105,6 +109,7 @@ public class AngelARUI : Singleton<AngelARUI>
         zBufferCam.transform.parent = _arCamera.transform;
         zBufferCam.transform.position = Vector3.zero;
         zBufferCam.gameObject.AddComponent<ZBufferCamera>();
+
     }
 
     #region Task Guidance
@@ -257,6 +262,8 @@ public class AngelARUI : Singleton<AngelARUI>
 
     public void CallAgentToUser() => Orb.Instance.MoveToUser();
 
+    public void SetAgentMessageAlignment(MessageAlignment newAlignment) => Orb.Instance.SetMessageAlignmentTo(newAlignment);
+
     #endregion
 
     #region Voice Activation
@@ -351,6 +358,11 @@ public class AngelARUI : Singleton<AngelARUI>
             if (showInLogger && FindObjectOfType<Logger>() != null)
                 Logger.Instance.LogInfo("***ARUI: " + message);
             Debug.Log("***ARUI: " + message);
+
+#if ENABLE_WINMD_SUPPORT
+        LoggingChannel lc = new LoggingChannel("ARUI", null, new Guid("2df964bb-cd29-4ac0-a462-59b4c484ae3d"));
+        lc.LogMessage("***ARUI: " + message);
+#endif
         }
     }
 

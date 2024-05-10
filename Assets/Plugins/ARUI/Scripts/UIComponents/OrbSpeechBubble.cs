@@ -3,7 +3,7 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class GPTDialogue : MonoBehaviour
+public class OrbSpeechBubble : MonoBehaviour
 {
     private TMPro.TextMeshProUGUI _textComponent;
 

@@ -1,13 +1,12 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Rendering;
 
-public enum MessageAnchor
+public enum MessageAlignment
 {
-    left = 1, //message is left from the orb
-    right = 2, //message is right from the orb
+    LockLeft = 1,       //message stays on the left side of agent
+    LockRight = 2,      //message stays on the right side of the agent
+    Auto = 3,           //message adjust dynamically based on agent position in view space
 }
 
 public class OrbMessageContainer : MonoBehaviour
@@ -19,7 +18,8 @@ public class OrbMessageContainer : MonoBehaviour
     private Dictionary<string, OrbTask> _taskNameToOrbPie;
 
     //** Layout
-    private MessageAnchor _currentAnchor = MessageAnchor.right;
+    private MessageAlignment _currentAlignment = MessageAlignment.Auto;
+    private bool _currentAlignmentIsRight = true;
 
     //** States
     private bool _isLookingAtMessage = false;
@@ -56,7 +56,7 @@ public class OrbMessageContainer : MonoBehaviour
                 
             if (value)
             {
-                UpdateAnchorInstant(_currentAnchor);
+                UpdateAnchorInstant();
             } else
             {
                 _isMessageFading = false;
@@ -166,12 +166,15 @@ public class OrbMessageContainer : MonoBehaviour
 
         if (!IsMessageContainerActive || IsMessageLerping) return;
 
-        // Update messagebox anchor
-        if (ChangeMessageBoxToRight(100))
-            UpdateAnchorLerp(MessageAnchor.right);
+        if (_currentAlignment.Equals(MessageAlignment.Auto))
+        {
+            // Update messagebox anchor
+            if (ChangeMessageBoxToRight(100))
+                UpdateAnchorLerp(true);
 
-        else if (ChangeMessageBoxToLeft(100))
-            UpdateAnchorLerp(MessageAnchor.left);
+            else if (ChangeMessageBoxToLeft(100))
+                UpdateAnchorLerp(false);
+        }
     }
 
     /// <summary>
@@ -219,7 +222,7 @@ public class OrbMessageContainer : MonoBehaviour
 
     public void UpdateAllTaskMessages(Dictionary<string, TaskList> currentSelectedTasks)
     {
-        UpdateAnchorInstant(_currentAnchor);
+        UpdateAnchorInstant();
 
         string tempName = "";
         foreach (string taskName in currentSelectedTasks.Keys)
@@ -367,16 +370,16 @@ public class OrbMessageContainer : MonoBehaviour
     /// Updates the anchor of the messagebox smoothly
     /// </summary>
     /// <param name="MessageAnchor">The new anchor</param>
-    private void UpdateAnchorLerp(MessageAnchor newMessageAnchor)
+    private void UpdateAnchorLerp(bool shouldBeRight)
     {
         if (IsMessageLerping) return;
 
-        if (newMessageAnchor != _currentAnchor)
+        if (shouldBeRight != _currentAlignmentIsRight)
         {
             IsMessageLerping = true;
-            _currentAnchor = newMessageAnchor;
+            _currentAlignmentIsRight = shouldBeRight;
 
-            StartCoroutine(MoveMessageBox(newMessageAnchor != MessageAnchor.right, false));
+            StartCoroutine(MoveMessageBox(!_currentAlignmentIsRight, false));
         }
     }
 
@@ -384,13 +387,34 @@ public class OrbMessageContainer : MonoBehaviour
     /// Updates the anchor of the messagebox instantly
     /// </summary>
     /// <param name="anchor"></param>
-    public void UpdateAnchorInstant(MessageAnchor anchor)
+    public void UpdateAnchorInstant()
     {
-        _currentAnchor = anchor;
         foreach (OrbTask ob in _taskNameToOrbPie.Values)
             ob.UpdateAnchor();
 
-        StartCoroutine(MoveMessageBox(anchor.Equals(MessageAnchor.left), true));
+        StartCoroutine(MoveMessageBox(!_currentAlignmentIsRight, true));
+    }
+
+    public void ChangeAlignmentTo(MessageAlignment newAlignment)
+    {
+        _currentAlignment = newAlignment;
+
+        StartCoroutine(DelayedLerping());
+    }
+
+    private IEnumerator DelayedLerping()
+    {
+        while (IsMessageLerping)
+            yield return null;
+
+        if (_currentAlignment.Equals(MessageAlignment.LockRight))
+        {
+            UpdateAnchorLerp(true);
+        }
+        else if (_currentAlignment.Equals(MessageAlignment.LockLeft))
+        {
+            UpdateAnchorLerp(false);
+        }
     }
 
     /// <summary>

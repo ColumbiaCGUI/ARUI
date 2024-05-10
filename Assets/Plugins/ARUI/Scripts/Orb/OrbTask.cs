@@ -51,8 +51,6 @@ public class OrbTask : MonoBehaviour
 
     private Color _activeColorText = Color.white;
 
-    private bool _textIsFadingOut = false;
-
     public void InitializeComponents(TaskType currenType)
     {
         _taskType = currenType;

@@ -49,7 +49,7 @@ public class Orb : Singleton<Orb>
     private bool _lazyLookAtRunning = false;                 /// <used for lazy look at disable
     private bool _lazyFollowStarted = false;                 /// <used for lazy following
 
-    private GPTDialogue _dialogue;
+    private OrbSpeechBubble _dialogue;
     private OrbHandle _orbHandle;
 
     /// <summary>
@@ -71,7 +71,7 @@ public class Orb : Singleton<Orb>
 
         BoxCollider taskListBtnCol = transform.GetChild(0).GetComponent<BoxCollider>();
 
-        _dialogue = transform.GetChild(0).GetChild(2).gameObject.AddComponent<GPTDialogue>();
+        _dialogue = transform.GetChild(0).GetChild(2).gameObject.AddComponent<OrbSpeechBubble>();
         _dialogue.Init();
         _dialogue.SetText("", "");
         _dialogue.gameObject.SetActive(false);
@@ -337,6 +337,12 @@ public class Orb : Singleton<Orb>
         else
             return _isLookingAtOrb || _messageContainer.IsLookingAtMessage;
     }
+
+    /// <summary>
+    /// Change alignment of message container next to orb. 
+    /// </summary>
+    /// <param name="newAlignment"></param>
+    public void SetMessageAlignmentTo(MessageAlignment newAlignment) => _messageContainer.ChangeAlignmentTo(newAlignment);
 
     #endregion
 

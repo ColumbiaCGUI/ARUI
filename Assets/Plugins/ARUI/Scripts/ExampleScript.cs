@@ -116,6 +116,10 @@ public class ExampleScript : MonoBehaviour
         AngelARUI.Instance.RegisterKeyword("Previous Step", () => { GoToPreviousStepConfirmation(); });
         AngelARUI.Instance.RegisterKeyword("Coach", () => { AngelARUI.Instance.CallAgentToUser(); });
 
+        AngelARUI.Instance.RegisterKeyword("Right", () => { AlignToRight(); });
+        AngelARUI.Instance.RegisterKeyword("Left", () => { AlignToLeft(); });
+        AngelARUI.Instance.RegisterKeyword("Automatic", () => { AlignToAuto(); });
+
         AngelARUI.Instance.RegisterDetectedObject(transform.GetChild(0).gameObject, "test");
 
         yield return new WaitForSeconds(4f);
@@ -141,12 +145,38 @@ public class ExampleScript : MonoBehaviour
     }
     private void GoToNextStepConfirmation()
     {
+        if (_currentStepMap == null)
+        {
+            AngelARUI.Instance.PlayMessageAtAgent("", "No manual is set yet.");
+            return;
+        }
+
         _currentStepMap[_currentTask]++;
         AngelARUI.Instance.GoToStep(_currentTask, _currentStepMap[_currentTask]);
+    }
+    private void AlignToLeft()
+    {
+        AngelARUI.Instance.SetAgentMessageAlignment(MessageAlignment.LockLeft);
+    }
+
+    private void AlignToRight()
+    {
+        AngelARUI.Instance.SetAgentMessageAlignment(MessageAlignment.LockRight);
+    }
+
+    private void AlignToAuto()
+    {
+        AngelARUI.Instance.SetAgentMessageAlignment(MessageAlignment.Auto);
     }
 
     private void GoToPreviousStepConfirmation()
     {
+        if (_currentStepMap == null)
+        {
+            AngelARUI.Instance.PlayMessageAtAgent("", "No manual is set yet.");
+            return;
+        }
+
         _currentStepMap[_currentTask]--;
         AngelARUI.Instance.GoToStep(_currentTask, _currentStepMap[_currentTask]);
     }

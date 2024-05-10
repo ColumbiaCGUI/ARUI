@@ -58,3 +58,24 @@ MonoBehaviour:
       id: 0
       description: 
       axisConstraint: 0
+  - localizationKey: 
+    keyword: right
+    keyCode: 0
+    action:
+      id: 0
+      description: 
+      axisConstraint: 0
+  - localizationKey: 
+    keyword: left
+    keyCode: 0
+    action:
+      id: 0
+      description: 
+      axisConstraint: 0
+  - localizationKey: 
+    keyword: Automatic
+    keyCode: 0
+    action:
+      id: 0
+      description: 
+      axisConstraint: 0
