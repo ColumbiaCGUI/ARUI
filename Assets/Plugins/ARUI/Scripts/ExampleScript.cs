@@ -227,14 +227,24 @@ public class ExampleScript : MonoBehaviour
     {
         CheckForRecipeChange();
 
-        if (Input.GetKeyUp(KeyCode.O) &&  multipleTasks)
+        if (Input.GetKeyUp(KeyCode.O))
         {
-            //test with dummy data
-            var taskIDs = new List<string> { "Pinwheels", "Coffee", "Oatmeal", "Quesadilla", "Tea" };
-            _currentStepMap = new Dictionary<string, int> {
+            var taskIDs= new List<string>();
+            if (multipleTasks)
+            {
+                //test with dummy data
+                taskIDs = new List<string> { "Pinwheels", "Coffee", "Oatmeal", "Quesadilla", "Tea" };
+                _currentStepMap = new Dictionary<string, int> {
             { "Pinwheels", 0 }, { "Coffee", 0 },
             { "Oatmeal", 0 }, { "Quesadilla", 0 }, { "Tea", 0 }};
-            _currentTask = "Pinwheels";
+                _currentTask = "Pinwheels";
+            } else
+            {
+                taskIDs = new List<string> { "Filter Inspection" };
+                _currentStepMap = new Dictionary<string, int> {
+            { "Filter Inspection", 0 }};
+                _currentTask = "Filter Inspection";
+            }
 
             var allJsonTasks = new Dictionary<string, string>();
             foreach (string taskID in taskIDs)
@@ -244,7 +254,7 @@ public class ExampleScript : MonoBehaviour
             }
 
             AngelARUI.Instance.InitManual(allJsonTasks);
-        }
+        } 
 
         // Example how to step forward/backward in tasklist. 
         if (Input.GetKeyUp(KeyCode.RightArrow))
