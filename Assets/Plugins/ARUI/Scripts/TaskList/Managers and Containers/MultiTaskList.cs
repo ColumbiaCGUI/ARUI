@@ -49,8 +49,12 @@ public class MultiTaskList : Singleton<MultiTaskList>
     {
         if (!_isActive) return;
 
+        var isLookingAtAnyTask = false;
+
+
+
         //if eye gaze not on task objects then do fade out currentindex
-        if (EyeGazeManager.Instance != null && EyeGazeManager.Instance.CurrentHit != EyeTarget.listmenuButton_tasks)
+        if (EyeGazeManager.Instance != null && EyeGazeManager.Instance.CurrentHitID != gameObject.GetInstanceID())
         {
             if (delta > disableDelay)
                 StartCoroutine(FadeOut());
@@ -80,7 +84,7 @@ public class MultiTaskList : Singleton<MultiTaskList>
             tasklist.multiListInstance.Text.gameObject.SetActive(!anyMenuActive);
 
         // Snap orb
-        Orb.Instance.SetSticky(!anyMenuActive || (EyeGazeManager.Instance != null && EyeGazeManager.Instance.CurrentHit == EyeTarget.listmenuButton_tasks));
+        Orb.Instance.SetSticky(!anyMenuActive || (EyeGazeManager.Instance != null && EyeGazeManager.Instance.CurrentHitID == gameObject.GetInstanceID()));
     }
 
     #region Setting inidvidual recipe menus active/inative
@@ -240,7 +244,7 @@ public class MultiTaskList : Singleton<MultiTaskList>
             bool broken = false;
             while (counter < duration)
             {
-                if (EyeGazeManager.Instance.CurrentHit == EyeTarget.listmenuButton_tasks)
+                if (EyeGazeManager.Instance.CurrentHitID == gameObject.GetInstanceID())
                 {
                     broken = true;
                     break;

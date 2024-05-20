@@ -36,7 +36,6 @@ public class OrbWarning : MonoBehaviour
 
             _notificationMessageRect.rotation = Quaternion.identity;
             _notificationMessageRect.localRotation = Quaternion.identity;
-            _notificationMessageRect.SetLocalXPos(0);
             UpdateYPos(containerHeight, false);
             _notificationMessageRect.SetLocalZPos(0);
 

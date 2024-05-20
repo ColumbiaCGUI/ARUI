@@ -52,16 +52,25 @@ public static class Utils
     /// <summary>
     /// Split the given text into lines.
     /// </summary>
-    /// <param name="text"></param>
+    /// <param name="segment"></param>
     /// <param name="maxCharCountPerLine">maximum allowed characters per line</param>
     /// <returns></returns>
-    public static string SplitTextIntoLines(string text, int maxCharCountPerLine)
+    public static string SplitTextIntoLines(string segment, int maxCharCountPerLine)
     {
-        var charCount = 0;
-        var lines = text.Split(new string[] { " " }, StringSplitOptions.RemoveEmptyEntries)
-                        .GroupBy(w => (charCount += w.Length + 1) / maxCharCountPerLine)
-                        .Select(g => string.Join(" ", g));
-        return String.Join("\n", lines.ToArray());
+        var allBlocks = segment.Split('\n');
+        List<String> outputBlocks = new List<String>();
+
+        foreach (var text in allBlocks)
+        {
+            var charCount = 0;
+            var lines = text.Split(new string[] { " " }, StringSplitOptions.RemoveEmptyEntries)
+                            .GroupBy(w => (charCount += w.Length + 1) / maxCharCountPerLine)
+                            .Select(g => string.Join(" ", g));
+            string output = String.Join("\n", lines.ToArray());
+            outputBlocks.Add(output);
+        }
+
+        return String.Join("\n", outputBlocks.ToArray());
     }
 
     private static Vector2[] GetScreenCorners(Camera cam, List<BoxCollider> bxcols, ref Vector3[] worldCorners)

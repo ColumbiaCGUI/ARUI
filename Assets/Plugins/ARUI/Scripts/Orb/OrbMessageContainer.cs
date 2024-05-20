@@ -1,6 +1,9 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
+using UnityEngine.UI;
 
 public enum MessageAlignment
 {
@@ -11,6 +14,8 @@ public enum MessageAlignment
 
 public class OrbMessageContainer : MonoBehaviour
 {
+    private OrbNotificationManager _orbNotificationManager;
+
     private List<OrbTask> _allTasksPlaceholder = new List<OrbTask>();
 
     //** OrbTasks after manual is set
@@ -34,6 +39,7 @@ public class OrbMessageContainer : MonoBehaviour
 
     private TMPro.TextMeshProUGUI _prevText;
     private TMPro.TextMeshProUGUI _nextText;
+    private Color _textColor = new Color(0.8f,0.8f,0.8f,1.0f);
 
 
     private bool _isMessageContainerActive = false;
@@ -51,6 +57,7 @@ public class OrbMessageContainer : MonoBehaviour
                 {
                     op.Text.BackgroundColor = ARUISettings.OrbMessageBGColor;
                     op.SetTextAlpha(1f);
+                    SetTextAlphaOthers(1f);
                 }
             }
                 
@@ -87,18 +94,6 @@ public class OrbMessageContainer : MonoBehaviour
     }
     
     public bool IsInteractingWithBtn => TaskListToggle != null && TaskListToggle.IsInteractingWithBtn;
-
-    public List<BoxCollider> AllColliders
-    {
-        get 
-        {
-            var pieColliders = new List<BoxCollider>();
-            foreach (OrbTask pie in _taskNameToOrbPie.Values)
-                pieColliders.AddRange(pie.GetComponentsInChildren<BoxCollider>());
-
-            return pieColliders;
-        }
-    }
 
     /// <summary>
     /// Init component, get reference to gameobjects from children
@@ -137,20 +132,52 @@ public class OrbMessageContainer : MonoBehaviour
         _prevText.text = "";
         _nextText = obMain.transform.GetChild(1).GetChild(0).GetChild(0).GetChild(0).GetChild(0).GetChild(2).gameObject.GetComponentInChildren<TMPro.TextMeshProUGUI>();
         _nextText.text = "";
+
+        //Init the notification manager at orb
+        _orbNotificationManager = transform.GetChild(1).GetChild(0).GetChild(0).GetChild(2).GetComponentInChildren<VerticalLayoutGroup>().gameObject.AddComponent<OrbNotificationManager>();
+        _orbNotificationManager.gameObject.name = "***ARUI-" + StringResources.NotificationManager_name;
+    }
+
+    /// <summary>
+    /// If confirmation action is set - SetUserIntentCallback(...) - and no confirmation window is active at the moment, the user is shown a 
+    /// timed confirmation window. Recommended text: "Did you mean ...". If the user confirms the dialogue, the onUserIntentConfirmedAction action is invoked. 
+    /// </summary>
+    /// <param name="msg">Message that is shown in the Confirmation Dialogue</param>
+    /// <param name="actionOnConfirmation">Actions triggerd if the user confirms the dialogue</param>
+    /// <param name="actionOnTimeOut">OPTIONAL - Action triggered if notification times out</param>
+    public void TryGetUserConfirmation(string msg, List<UnityAction> actionOnConfirmation, UnityAction actionOnTimeOut, float timeout)
+    {
+        _orbNotificationManager.TryGetUserConfirmation(msg, actionOnConfirmation, actionOnTimeOut, timeout);
+    }
+
+    /// <summary>
+    /// TODO
+    /// </summary>
+    /// <param name="selectionMsg"></param>
+    /// <param name="choices"></param>
+    /// <param name="actionOnSelection"></param>
+    /// <param name="actionOnTimeOut"></param>
+    /// <param name="timeout"></param>
+    public void TryGetUserChoice(string selectionMsg, List<string> choices, List<UnityAction> actionOnSelection, UnityAction actionOnTimeOut, float timeout)
+    {
+        _orbNotificationManager.TryGetUserChoice(selectionMsg, choices, actionOnSelection, actionOnTimeOut, timeout);
     }
 
     public void Update()
     {
         // Update eye tracking flag
-        if (_isLookingAtMessage && EyeGazeManager.Instance.CurrentHit != EyeTarget.orbMessage
-            && EyeGazeManager.Instance.CurrentHit != EyeTarget.orbtasklistButton 
-            && EyeGazeManager.Instance.CurrentHit != EyeTarget.pieCollider
-            )
+        var lookingAtAnyTask = false;
+
+        foreach (var orbtask in _taskNameToOrbPie.Values)
+        {
+            if (orbtask != null && orbtask.EyeGazeTarget.GetInstanceID()==EyeGazeManager.Instance.CurrentHitID)
+                lookingAtAnyTask = true;
+        }
+
+        if (_isLookingAtMessage && lookingAtAnyTask == false)
             _isLookingAtMessage = false;
 
-        else if (!_isLookingAtMessage && (EyeGazeManager.Instance.CurrentHit == EyeTarget.orbMessage
-            || EyeGazeManager.Instance.CurrentHit == EyeTarget.orbtasklistButton || EyeGazeManager.Instance.CurrentHit == EyeTarget.pieCollider))
-            
+        else if (!_isLookingAtMessage && lookingAtAnyTask)
             _isLookingAtMessage = true;
 
         _currentWarning.UpdateSize(_mainTaskPiePlace.TextRect.width / 2);
@@ -357,6 +384,7 @@ public class OrbMessageContainer : MonoBehaviour
             {
                 op.Text.BackgroundColor = new Color(shade, shade, shade, shade);
                 op.SetTextAlpha(alpha);
+                SetTextAlphaOthers(alpha);
             }
 
             yield return new WaitForEndOfFrame();
@@ -364,6 +392,20 @@ public class OrbMessageContainer : MonoBehaviour
 
         IsMessageFading = false;
         IsMessageContainerActive = !(shade <= 0);
+    }
+
+    private void SetTextAlphaOthers(float alpha)
+    {
+        if (alpha == 0)
+        {
+            _prevText.color = new Color(0, 0, 0, 0);
+            _nextText.color = new Color(0, 0, 0, 0);
+        }
+        else
+        {
+            _prevText.color = new Color(_textColor.r, _textColor.g, _textColor.b, alpha);
+            _nextText.color = new Color(_textColor.r, _textColor.g, _textColor.b, alpha);
+        }
     }
 
     /// <summary>

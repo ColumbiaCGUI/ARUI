@@ -1,16 +1,19 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 public class OrbSpeechBubble : MonoBehaviour
 {
     private TMPro.TextMeshProUGUI _textComponent;
 
-    //*** Flexible Textbox for taskmessage
-    private RectTransform _HGroupTaskMessage;
+    private bool _isFading = false;
 
-    private bool _isFading;
+    private float _currentTimeOut = 0;
+
+    private GameObject _eyeGazeTarget;
 
     // Start is called before the first frame update
     public void Init()
@@ -22,6 +25,9 @@ public class OrbSpeechBubble : MonoBehaviour
 
         _textComponent = allText[0];
         _textComponent.text = "";
+
+        _eyeGazeTarget = gameObject.GetComponentInChildren<BoxCollider>().gameObject;
+        EyeGazeManager.Instance.RegisterEyeTargetID(_eyeGazeTarget);
     }
 
     public void Update()
@@ -29,36 +35,16 @@ public class OrbSpeechBubble : MonoBehaviour
         var lookPos = transform.position - AngelARUI.Instance.ARCamera.transform.position;
         lookPos.y = 0;
         transform.rotation = Quaternion.LookRotation(lookPos, Vector3.up);
-
-        if (!_isFading && EyeGazeManager.Instance.CurrentHit.Equals(EyeTarget.gptDialogue))
-        {
-            _isFading = true;
-            StartCoroutine(FadeGPTDialogue());
-        }
-    }
-
-    private IEnumerator FadeGPTDialogue()
-    {
-        float counter = 15;
-        while (_isFading && counter>0)
-        {
-            counter -= Time.deltaTime;
-            yield return new WaitForEndOfFrame();
-        }
-
-        if (counter<=0)
-            Orb.Instance.SetDialogueActive(false);
-
-        _isFading = false;
     }
 
     public void OnDisable()
     {
         _isFading = false;
         StopCoroutine(FadeGPTDialogue());
+        Orb.Instance.SetDialogueActive(false);
     }
 
-    public void SetText(string utterance, string response)
+    public void SetText(string utterance, string response, float timeout)
     {
         string res_short = Utils.SplitTextIntoLines(response, ARUISettings.OrbMessageMaxCharCountPerLine);
 
@@ -71,5 +57,31 @@ public class OrbSpeechBubble : MonoBehaviour
 
             _textComponent.text = "<b>You:</b> " + utt_short + "\n\n" + "<b>Angel:</b> " + res_short;
         }
+
+        _currentTimeOut = Mathf.Max(timeout, _currentTimeOut);
+
+        if (!_isFading)
+        {
+            StartCoroutine(FadeGPTDialogue());
+        }
+    }
+
+    private IEnumerator FadeGPTDialogue()
+    {
+        _isFading = true;
+        while (_isFading && _currentTimeOut > 0)
+        {
+            if (EyeGazeManager.Instance.CurrentHitID!= _eyeGazeTarget.GetInstanceID())
+            {
+                _currentTimeOut -= Time.deltaTime;
+            }
+
+            yield return new WaitForEndOfFrame();
+        }
+
+        if (_currentTimeOut <= 0)
+            Orb.Instance.SetDialogueActive(false);
+
+        _isFading = false;
     }
 }

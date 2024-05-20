@@ -142,7 +142,7 @@ GameObject:
   - component: {fileID: 7757417004120325016}
   - component: {fileID: 6737309401687996402}
   m_Layer: 5
-  m_Name: listmenubutton_tasks_Next
+  m_Name: overview_next_step
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

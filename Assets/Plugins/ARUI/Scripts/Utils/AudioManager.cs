@@ -78,10 +78,15 @@ public class AudioManager : Singleton<AudioManager>, IMixedRealitySpeechHandler
     /// NOTE: THIS ONLY WORKS IN BUILD (NOT HOLOGRAPHIC REMOTING)
     /// </summary>
     /// <param name="text">The text that is turned into audion and played</param>
-    public void PlayText(string utterance, string answer)
+    public void PlayAndShowDialogue(string utterance, string answer, float timeout = 30)
     {
+        if (utterance==null)
+        {
+            utterance = string.Empty;
+        }
+
         if (!_isMute)
-            StartCoroutine(PlayTextDialogue(Orb.Instance.orbTransform.position, utterance, answer));
+            StartCoroutine(PlayTextDialogue(Orb.Instance.orbTransform.position, utterance, answer, timeout));
     }
 
     /// <summary>
@@ -90,7 +95,19 @@ public class AudioManager : Singleton<AudioManager>, IMixedRealitySpeechHandler
     /// NOTE: THIS ONLY WORKS IN BUILD (NOT HOLOGRAPHIC REMOTING)
     /// </summary>
     /// <param name="text">The text that is turned into audion and played</param>
-    public void PlayText(string text)
+    public void PlayAndShowMessage(string message, float timeout = 30)
+    {
+        if (!_isMute)
+            StartCoroutine(PlayTextDialogue(Orb.Instance.orbTransform.position, "", message, timeout));
+    }
+
+    /// <summary>
+    /// Speech-To-Text for the task. Plays the text at the orb's position 
+    /// and stops any other currently playing text instructions
+    /// NOTE: THIS ONLY WORKS IN BUILD (NOT HOLOGRAPHIC REMOTING)
+    /// </summary>
+    /// <param name="text">The text that is turned into audion and played</param>
+    public void PlayMessage(string text, float timeout = 30)
     {
         if (!_isMute)
             StartCoroutine(PlayTextLocalized(Orb.Instance.orbTransform.position, text));
@@ -238,7 +255,7 @@ public class AudioManager : Singleton<AudioManager>, IMixedRealitySpeechHandler
     /// <param name="utterance"></param>
     /// <param name="answer"></param>
     /// <returns></returns>
-    private IEnumerator PlayTextDialogue(Vector3 pos, String utterance, string answer)
+    private IEnumerator PlayTextDialogue(Vector3 pos, String utterance, string answer, float timeout)
     {
         if (_currentlyPlayingText!= null)
         {
@@ -252,7 +269,7 @@ public class AudioManager : Singleton<AudioManager>, IMixedRealitySpeechHandler
 
         _tTos.gameObject.transform.position = pos;
         Orb.Instance.SetDialogueActive(true);
-        Orb.Instance.SetDialogueText(utterance, answer);
+        Orb.Instance.SetDialogueText(utterance, answer, timeout);
 
         yield return new WaitForEndOfFrame();
 

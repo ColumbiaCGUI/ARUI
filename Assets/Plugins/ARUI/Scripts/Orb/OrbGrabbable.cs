@@ -48,11 +48,11 @@ public class OrbGrabbable : MonoBehaviour, IMixedRealityPointerHandler
         {
             //start countdown for or fix
             _isProcessingClosedHand = true;
-            StartCoroutine(transitionToFixedMovement());
+            StartCoroutine(TransitionToFixedMovement());
         } else if (_isProcessingClosedHand && !isUsedHandClosed(eventData))
         {
             _isProcessingClosedHand = false;
-            StopCoroutine(transitionToFixedMovement());
+            StopCoroutine(TransitionToFixedMovement());
 
             Orb.Instance.UpdateMovementbehavior(MovementBehavior.Follow);
 
@@ -62,7 +62,7 @@ public class OrbGrabbable : MonoBehaviour, IMixedRealityPointerHandler
         }
     }
 
-    private IEnumerator transitionToFixedMovement()
+    public IEnumerator TransitionToFixedMovement()
     {
         Orb.Instance.UpdateMovementbehavior(MovementBehavior.Fixed);
 

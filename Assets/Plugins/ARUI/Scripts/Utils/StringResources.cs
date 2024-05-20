@@ -21,11 +21,12 @@ public static class StringResources
     public static string POIHalo_path = "Prefabs/Halo3D";
     public static string Orb_path = "Prefabs/Orb";
     public static string EyeTarget_path = "Prefabs/EyeTarget";
-    public static string ConfNotification_path = "Prefabs/ConfirmationNotification";
+    public static string ConfNotificationOrb_path = "Prefabs/ConfirmationNotificationOrb";
+    public static string MultiSelectNotificationOrb_path = "Prefabs/MultipleSelectNotificationOrb";
     public static string HandPoseManager_path = "Prefabs/HandPoseManager";
     public static string Sid_Tasklist_path = "Prefabs/Sid_Tasklist/Task_Overview";
-    public static string Sid_TaskListComponent_path = "Prefabs/Sid_Tasklist/Flashcards/TaskListComponent";
     public static string TaskOverview_template_path = "Prefabs/Sid_Tasklist/TaskOverview_template";
+
     public static string dialogue_path = "Prefabs/Dialogue";
 
     //Textures
@@ -45,7 +46,6 @@ public static class StringResources
     public static string eyeGazeManager_name = "EyeGazeManager";
     public static string dataManager_name = "DataManager";
     public static string audioManager_name = "AudioManager";
-    public static string confirmationWindow_name = "ConfirmatioWindow";
     public static string HandPoseManager_name = "HandPoseManager";
     public static string NotificationManager_name = "NotificationManager";
 }

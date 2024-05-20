@@ -1,51 +1,58 @@
+using Microsoft.MixedReality.Toolkit.Input;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
-using Microsoft.MixedReality.Toolkit.Utilities.Solvers;
-using System;
-using TMPro;
 
 /// <summary>
 /// Dialogue that asks for user confirmation of a given action. Used for the Natural Language Interface.
 /// The user has timeInSeconds seconds to decide if the given action should be executed. Confirmation can be done by
 /// looking at the button or touching it.
 /// </summary>
-public class ConfirmationDialogue : MonoBehaviour
+public class SelectNotificationOrb : MonoBehaviour
 {
     private bool _init = false;                      /// <true if dialogue was initialized (e.g. message, event)
     private bool _timerStarted = false;              /// <true if timer started already
 
     private FlexibleTextContainer _textContainer;
-    private DwellButton _okBtn;                      /// <Dialogue button
-    private Orbital _movingBehavior;
-    private bool _delayedMoving = false;
+    private List<DwellButton> _buttons = new List<DwellButton>();
+    private List<UnityEvent> _choiceEvents = new List<UnityEvent>();
+    private List<string> _choiceLabels;
 
-    private UnityEvent _selectEvent;                 /// <Event that will be invoked if the user confirms the dialogue
     private UnityEvent _timeOutEvent;                /// <Event that will be invoked if the notification timesout
+    private UnityEvent _selfDestruct;
 
     private Shapes.Line _time;                       /// <Line that shows the user how much time is left to make a decision
-    
+
+    private float _timeOutInSeconds = 10;
+    private int _maxChoices = 5;
     private void Awake()
     {
         _textContainer = transform.GetChild(1).GetChild(0).gameObject.AddComponent<FlexibleTextContainer>();
-        //_textContainer.AddVMNC();
 
-        GameObject btn = transform.GetChild(0).gameObject;
-        _okBtn = btn.AddComponent<DwellButton>();
-        _okBtn.InitializeButton(EyeTarget.okButton, () => Confirmed(true), null, true, DwellButtonType.Select);
-        _okBtn.gameObject.SetActive(false);
+        var allButtons = transform.GetChild(0);
+        int i = 0;
+        for (i = 0; i<_maxChoices; i++)
+        {
+            UnityEvent current = new UnityEvent();
+            _choiceEvents.Add(current);
 
-        _time = transform.GetComponentInChildren<Shapes.Line>();
+            DwellButton dwell = allButtons.GetChild(i).gameObject.AddComponent<DwellButton>();
+            dwell.InitializeButton(dwell.gameObject, () => Confirmed(true, current), null, true, DwellButtonType.Select, true);
+            dwell.gameObject.SetActive(false);
+
+            _buttons.Add(dwell);
+        }
+        
+        _time = _textContainer.transform.GetComponentInChildren<Shapes.Line>();
         _time.enabled = false;
 
-        transform.position = AngelARUI.Instance.ARCamera.ViewportToWorldPoint(new Vector3(0.5f, 0.7f, 1f), Camera.MonoOrStereoscopicEye.Left);
-        _movingBehavior = gameObject.GetComponent<Orbital>();
-        _movingBehavior.enabled = true;
-
-        _selectEvent = new UnityEvent();
         _timeOutEvent = new UnityEvent();
+        _selfDestruct = new UnityEvent();
 
         transform.SetLayerAllChildren(StringResources.LayerToInt(StringResources.UI_layer));
+
+        _choiceLabels = new List<string> { "A", "B", "C", "D", "E"};
     }
 
 
@@ -56,24 +63,6 @@ public class ConfirmationDialogue : MonoBehaviour
     {
         if (_init & !_timerStarted && _textContainer.TextRect.width > 0.001f)
             StartCoroutine(DecreaseTime());
-
-        if (_okBtn.IsInteractingWithBtn && _movingBehavior.enabled)
-            _movingBehavior.enabled = false;
-        else if (!_okBtn.IsInteractingWithBtn && !_movingBehavior.enabled && !_delayedMoving)
-            StartCoroutine(DelayedStartMoving());
-
-    }
-
-    private IEnumerator DelayedStartMoving()
-    {
-        _delayedMoving = true;
-
-        yield return new WaitForSeconds(0.5f);
-
-        if (!_okBtn.IsInteractingWithBtn)
-            _movingBehavior.enabled = true;
-
-        _delayedMoving = false;
     }
 
     /// <summary>
@@ -81,12 +70,33 @@ public class ConfirmationDialogue : MonoBehaviour
     /// </summary>
     /// <param name="intentMsg">Contains message that is shown to the user.</param>
     /// <param name="confirmedEvent">confirmation event, invoked when the user is triggering the okay button</param>
-    public void InitializeConfirmationNotification(string intentMsg, UnityAction confirmedEvent, UnityAction actionOnTimeOut)
+    public void InitNotification(string selectionMsg, List<string> choiceMsg, List<UnityAction> confirmedEventPerChoice, UnityAction actionOnTimeOut, UnityAction selfDestruct, float timeout)
     {
-        if (intentMsg == null || intentMsg.Length == 0) return;
+        if (choiceMsg.Count!=confirmedEventPerChoice.Count) return;
 
-        _textContainer.Text = intentMsg;
-        _selectEvent.AddListener(confirmedEvent);
+        _timeOutInSeconds = timeout;
+        string dialogText = selectionMsg + "\n";
+        int i = 0;
+        foreach (string choice in choiceMsg)
+        {
+            dialogText += _choiceLabels[i]+" : "+ choice + ", ";
+            _choiceEvents[i].AddListener(confirmedEventPerChoice[i]);
+            _buttons[i].gameObject.SetActive(true);
+            i++;
+        }
+        _textContainer.Text = dialogText;
+
+        if (i<_maxChoices)
+        {
+            int j = i;
+            while (j < _maxChoices)
+            {
+                _buttons[j].gameObject.SetActive(false);
+                j++;
+            }
+        }
+
+        _selfDestruct.AddListener(selfDestruct);
         if (actionOnTimeOut != null)
             _timeOutEvent.AddListener(actionOnTimeOut);
 
@@ -98,20 +108,23 @@ public class ConfirmationDialogue : MonoBehaviour
     /// if isConfirmed is true, the event assigned to the dialogue during initialization is triggered
     /// </summary>
     /// <param name="isConfirmed">true if confirmed by user, else false</param>
-    private void Confirmed(bool isConfirmed)
+    private void Confirmed(bool isConfirmed, UnityEvent confirmationEvent)
     {
         if (isConfirmed)
-            _selectEvent.Invoke();
+        {
+            AngelARUI.Instance.DebugLogMessage("The user selected.", true);
+            confirmationEvent.Invoke();
+        }
         else
         {
+            AngelARUI.Instance.DebugLogMessage("The user did not confirm the mulitple choice", true);
+
             if (_timeOutEvent != null)
                 _timeOutEvent.Invoke();
-
-            AngelARUI.Instance.DebugLogMessage("The user did not confirm the dialogue", true);
         }
 
         StopCoroutine(DecreaseTime());
-        Destroy(this.gameObject);
+        _selfDestruct.Invoke();
     }
 
     private IEnumerator DecreaseTime()
@@ -120,10 +133,9 @@ public class ConfirmationDialogue : MonoBehaviour
 
         _timerStarted = true;
 
-        _okBtn.gameObject.SetActive(true);
         _time.enabled = true;
 
-        _okBtn.transform.localPosition = _textContainer.transform.localPosition + new Vector3(_textContainer.TextRect.width + _okBtn.Width/2, 0, 0);
+        //_okBtn.transform.localPosition = _textContainer.transform.localPosition + new Vector3(_textContainer.TextRect.width + _okBtn.Width/2, 0, 0);
 
         _time.Start = new Vector3(0, _textContainer.TextRect.height/2, 0);
         _time.End = new Vector3(_textContainer.TextRect.width, _textContainer.TextRect.height / 2, 0);
@@ -131,20 +143,26 @@ public class ConfirmationDialogue : MonoBehaviour
 
         yield return new WaitForFixedUpdate();
         float timeElapsed= 0.00001f;
-        float lerpDuration = ARUISettings.DialogueTimeInSeconds;
+        float lerpDuration = _timeOutInSeconds;
+
         while (timeElapsed < lerpDuration)
         {
             yield return new WaitForEndOfFrame();
 
-            if (!_okBtn.IsInteractingWithBtn)
+            bool isInteractingWithAnyChoice = false;
+
+            foreach (var btn in _buttons)
+            {
+                isInteractingWithAnyChoice = btn.IsInteractingWithBtn || isInteractingWithAnyChoice;
+            }
+
+            if (!isInteractingWithAnyChoice)
             {
                 _time.End = Vector3.Lerp(_time.Start, xEnd, 1 - (timeElapsed / lerpDuration));
                 timeElapsed += Time.deltaTime;
             }
-
-
         }
 
-        Confirmed(false);
+        Confirmed(false, null);
     }
 }

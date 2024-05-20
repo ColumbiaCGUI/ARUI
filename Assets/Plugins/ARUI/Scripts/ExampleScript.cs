@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections;
 using System;
 using UnityEditor;
+using UnityEngine.Events;
 
 public class ExampleScript : MonoBehaviour
 {
@@ -55,7 +56,7 @@ public class ExampleScript : MonoBehaviour
 
         yield return new WaitForSeconds(4f);
 
-        AngelARUI.Instance.PlayMessageAtAgent
+        AngelARUI.Instance.PlayDialogueAtAgent
             ("What is this in front of me?", "A grinder.");
 
         yield return new WaitForSeconds(5f);
@@ -116,16 +117,18 @@ public class ExampleScript : MonoBehaviour
         AngelARUI.Instance.RegisterKeyword("Previous Step", () => { GoToPreviousStepConfirmation(); });
         AngelARUI.Instance.RegisterKeyword("Coach", () => { AngelARUI.Instance.CallAgentToUser(); });
 
-        AngelARUI.Instance.RegisterKeyword("Right", () => { AlignToRight(); });
-        AngelARUI.Instance.RegisterKeyword("Left", () => { AlignToLeft(); });
-        AngelARUI.Instance.RegisterKeyword("Automatic", () => { AlignToAuto(); });
+        AngelARUI.Instance.RegisterKeyword("Right", () => { AngelARUI.Instance.SetAgentMessageAlignment(MessageAlignment.LockRight); });
+        AngelARUI.Instance.RegisterKeyword("Left", () => { AngelARUI.Instance.SetAgentMessageAlignment(MessageAlignment.LockLeft); });
+        AngelARUI.Instance.RegisterKeyword("Automatic", () => { AngelARUI.Instance.SetAgentMessageAlignment(MessageAlignment.Auto); });
+
+        AngelARUI.Instance.RegisterKeyword("Hello", () => { AngelARUI.Instance.PlayMessageAtAgent("How can I help you?"); });
 
         AngelARUI.Instance.RegisterDetectedObject(transform.GetChild(0).gameObject, "test");
 
         yield return new WaitForSeconds(4f);
 
         AngelARUI.Instance.PlayMessageAtAgent
-            ("", "This is a very long message the user asked. to test how a very very very very long message with verrrrrrrryyyylooooonngg words would look like");
+            ("This is a very long message the user asked. to test how a very very very very long message with verrrrrrrryyyylooooonngg words would look like");
 
         yield return new WaitForSeconds(5f);
 
@@ -133,47 +136,25 @@ public class ExampleScript : MonoBehaviour
 
         yield return new WaitForSeconds(3f);
 
-        AngelARUI.Instance.TryGetUserConfirmation("Do you want to go to the next task?", () => DialogueTestConfirmed(), () => DialogueTestFailed());
-
         AngelARUI.Instance.RemoveWarningMessage();
-
-        yield return new WaitForSeconds(10f);
-
-        //Show dialogue to user
-        AngelARUI.Instance.TryGetUserConfirmation("Did you mean Start Procedure?", () => { GoToNextStepConfirmation(); }, null);
-
     }
+
     private void GoToNextStepConfirmation()
     {
         if (_currentStepMap == null)
         {
-            AngelARUI.Instance.PlayMessageAtAgent("", "No manual is set yet.");
+            AngelARUI.Instance.PlayMessageAtAgent("No manual is set yet.");
             return;
         }
 
-        _currentStepMap[_currentTask]++;
-        AngelARUI.Instance.GoToStep(_currentTask, _currentStepMap[_currentTask]);
-    }
-    private void AlignToLeft()
-    {
-        AngelARUI.Instance.SetAgentMessageAlignment(MessageAlignment.LockLeft);
-    }
-
-    private void AlignToRight()
-    {
-        AngelARUI.Instance.SetAgentMessageAlignment(MessageAlignment.LockRight);
-    }
-
-    private void AlignToAuto()
-    {
-        AngelARUI.Instance.SetAgentMessageAlignment(MessageAlignment.Auto);
+        AngelARUI.Instance.TryGetUserConfirmation("Do you want to go to the next task?", () => DialogueTestConfirmed(), () => DialogueTestFailed());
     }
 
     private void GoToPreviousStepConfirmation()
     {
         if (_currentStepMap == null)
         {
-            AngelARUI.Instance.PlayMessageAtAgent("", "No manual is set yet.");
+            AngelARUI.Instance.PlayMessageAtAgent("No manual is set yet.");
             return;
         }
 
@@ -183,12 +164,19 @@ public class ExampleScript : MonoBehaviour
 
     private void DialogueTestConfirmed()
     {
-        GoToNextStepConfirmation();
+        if (_currentStepMap == null)
+        {
+            AngelARUI.Instance.PlayMessageAtAgent("No manual is set yet.");
+            return;
+        }
+
+        _currentStepMap[_currentTask]++;
+        AngelARUI.Instance.GoToStep(_currentTask, _currentStepMap[_currentTask]);
     }
 
     private void DialogueTestFailed()
     {
-        AngelARUI.Instance.PlayMessageAtAgent("", "okay, i wont");
+        AngelARUI.Instance.PlayMessageAtAgent("okay, i wont");
     }
 
     private IEnumerator SpeechCommandRegistrationTest()
@@ -259,8 +247,7 @@ public class ExampleScript : MonoBehaviour
         // Example how to step forward/backward in tasklist. 
         if (Input.GetKeyUp(KeyCode.RightArrow))
         {
-            _currentStepMap[_currentTask]++;
-            AngelARUI.Instance.GoToStep(_currentTask, _currentStepMap[_currentTask]);
+            GoToNextStepConfirmation();
         }
         else if (Input.GetKeyUp(KeyCode.LeftArrow))
         {
@@ -271,6 +258,24 @@ public class ExampleScript : MonoBehaviour
         if (Input.GetKeyUp(KeyCode.V))
         {
             AngelARUI.Instance.SetViewManagement(!AngelARUI.Instance.IsVMActiv);
+        }
+
+        if (Input.GetKeyUp(KeyCode.M))
+        {
+            AngelARUI.Instance.PlayMessageAtAgent("Hello",10);
+        }
+
+        if (Input.GetKeyUp(KeyCode.N))
+        {
+            AngelARUI.Instance.TryGetUserChoice("Please select your preferred instruction alignment:",
+                new List<string> { "Right", "Left", "Automatic" },
+                new List<UnityAction>()
+                {
+                    () => AngelARUI.Instance.SetAgentMessageAlignment(MessageAlignment.LockRight),
+                    () => AngelARUI.Instance.SetAgentMessageAlignment(MessageAlignment.LockLeft),
+                    () => AngelARUI.Instance.SetAgentMessageAlignment(MessageAlignment.Auto),
+                }, null, 30);
+
         }
 
         if (Input.GetKeyUp(KeyCode.A))
@@ -287,7 +292,7 @@ public class ExampleScript : MonoBehaviour
         }
         if (Input.GetKeyUp(KeyCode.F))
         {
-            AngelARUI.Instance.PlayMessageAtAgent("","This is a test");
+            AngelARUI.Instance.PlayMessageAtAgent("This is a test");
         }
 
         if (Input.GetKeyUp(KeyCode.Alpha9))

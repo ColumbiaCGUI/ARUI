@@ -4,7 +4,6 @@
 using Microsoft.MixedReality.Toolkit.Utilities.Solvers;
 using UnityEngine;
 using System.Collections;
-using System;
 
 /// <summary>
 /// Provides a solver for the Orb, using MRTK solver

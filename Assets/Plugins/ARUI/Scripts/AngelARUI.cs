@@ -95,10 +95,6 @@ public class AngelARUI : Singleton<AngelARUI>
         GameObject TaskOverview = Instantiate(Resources.Load(StringResources.Sid_Tasklist_path)) as GameObject;
         TaskOverview.gameObject.name = "***ARUI-" + StringResources.tasklist_name;
 
-        //Instantiate the Notification manager
-        NotificationManager notificationManager = new GameObject("NotificationManager").AddComponent<NotificationManager>();
-        notificationManager.gameObject.name = "***ARUI-" + StringResources.NotificationManager_name;
-
         //Start View Management, if enabled
         if (_useViewManagement)
             StartCoroutine(TryStartVM());
@@ -109,7 +105,6 @@ public class AngelARUI : Singleton<AngelARUI>
         zBufferCam.transform.parent = _arCamera.transform;
         zBufferCam.transform.position = Vector3.zero;
         zBufferCam.gameObject.AddComponent<ZBufferCamera>();
-
     }
 
     #region Task Guidance
@@ -134,19 +129,13 @@ public class AngelARUI : Singleton<AngelARUI>
     /// </summary>
     /// <param name="taskID">ID of the task that should be updated</param>
     /// <param name="stepIndex">index of the current task that should be highlighted in the UI</param>
-    public void GoToStep(string taskID, int stepIndex)
-    {
-        DataProvider.Instance.SetCurrentStep(taskID, stepIndex);   
-    }
+    public void GoToStep(string taskID, int stepIndex) => DataProvider.Instance.SetCurrentStep(taskID, stepIndex);
 
     /// <summary>
     /// Set the 
     /// </summary>
     /// <param name="taskID"></param>
-    public void SetCurrentObservedTask(string taskID)
-    {
-        DataProvider.Instance.SetCurrentObservedTask(taskID);
-    }
+    public void SetCurrentObservedTask(string taskID) => DataProvider.Instance.SetCurrentObservedTask(taskID);
 
     /// <summary>
     /// Mute voice feedback for task guidance. ONLY influences task guidance.
@@ -154,30 +143,59 @@ public class AngelARUI : Singleton<AngelARUI>
     /// <param name="mute">if true, the user will hear the tasks, in addition to text.</param>
     public void MuteAudio(bool mute) => AudioManager.Instance.MuteAudio(mute);
 
+    #endregion
+
+    #region Taskoverview Panel
+
+    /// <summary>
+    /// Turn the task overview panel on or off. If 'show' is true, the task overview panel will appear in front of the user
+    /// </summary>
+    /// <param name="show"></param>
     public void ShowTaskoverviewPanel(bool show) => MultiTaskList.Instance.SetTaskOverViewVisibility(show);
 
+    /// <summary>
+    /// Change the position of the task overview panel 
+    /// </summary>
+    /// <param name="worldSpacePos"></param>
     public void SetTaskOverviewPosition(Vector3 worldSpacePos) => MultiTaskList.Instance.SetPosition(worldSpacePos);
 
+    /// <summary>
+    /// Toggle the visibiliy of the task overview panel
+    /// </summary>
     public void ToggleTaskOverview() => MultiTaskList.Instance.ToggleOverview();
+
 
     #endregion
 
     #region Notifications
 
     /// <summary>
-    /// Forward a text-base message to the orb, and the orb will output the message using audio.
+    /// Forward a message to the orb, and the orb will output the message using audio.
     /// The message will be cut off after 50 words, which take around 25 seconds to speak on average. 
     /// 
-    /// If 'utterance' is empty, the agent will still say the message
+    /// The utterance string will not be spoken, but visually appear for the user. This is used to provide the user feedback
+    /// for what voice command was recognized.
     /// 
-    /// Iterrupts the last message that was spoken
+    /// Iterrupts the last message that was spoken.
     /// </summary>
     /// <param name="utterance">THIS IS OPTIONAL</param>
     /// <param name="message"></param>
-    public void PlayMessageAtAgent(string utterance,string message)
+    public void PlayDialogueAtAgent(string utterance,string message, float timeout = 30)
     {
         if (!Utils.StringValid(message) || Orb.Instance == null || AudioManager.Instance == null) return;
-        AudioManager.Instance.PlayText(utterance, message);
+        AudioManager.Instance.PlayAndShowDialogue(utterance, message, timeout);
+        Orb.Instance.SetOrbThinking(false);
+    }
+
+    /// <summary>
+    /// Forward a message to the orb, and the orb will output the message using audio..
+    /// The message will be cut off after 50 words, which take around 25 seconds to speak on average.
+    /// </summary>
+    /// <param name="message"></param>
+    public void PlayMessageAtAgent(string message, float timeout = 30)
+    {
+        if (!Utils.StringValid(message) || Orb.Instance == null || AudioManager.Instance == null) return;
+        AudioManager.Instance.PlayAndShowMessage(message, timeout);
         Orb.Instance.SetOrbThinking(false);
     }
 
@@ -188,10 +206,7 @@ public class AngelARUI : Singleton<AngelARUI>
     /// //TODO
     /// </summary>
     /// <param name="show">if true, the orb will show a skip notification, if false, the notification will disappear</param>
-    public void SetWarningMessage(string message)
-    {
-        Orb.Instance.AddWarning(message);
-    }
+    public void SetWarningMessage(string message) => Orb.Instance.AddWarning(message);
 
     /// <summary>
     /// //TODO
@@ -206,10 +221,27 @@ public class AngelARUI : Singleton<AngelARUI>
     /// <param name="msg">Message that is shown in the Confirmation Dialogue</param>
     /// <param name="actionOnConfirmation">Action triggerd if the user confirms the dialogue</param>
     /// <param name="actionOnTimeOut">OPTIONAL - Action triggered if notification times out</param>
-    public void TryGetUserConfirmation(string msg, UnityAction actionOnConfirmation, UnityAction actionOnTimeOut)
+    public void TryGetUserConfirmation(string msg, UnityAction actionOnConfirmation, UnityAction actionOnTimeOut, float timeout = 10)
     {
         if (!Utils.StringValid(msg) || actionOnConfirmation==null) return;
-        NotificationManager.Instance.TryGetUserConfirmation(msg, actionOnConfirmation, actionOnTimeOut);
+        List<UnityAction> allConfirmationActions = new List<UnityAction>() { actionOnConfirmation };
+        AngelARUI.Instance.CallAgentToUser();
+        Orb.Instance.TryGetUserConfirmation(msg, allConfirmationActions, actionOnTimeOut, timeout);
+    }
+
+    /// <summary>
+    /// TODO
+    /// </summary>
+    /// <param name="selectionMsg"></param>
+    /// <param name="choices"></param>
+    /// <param name="actionOnSelection"></param>
+    /// <param name="actionOnTimeOut"></param>
+    /// <param name="timeout"></param>
+    public void TryGetUserChoice(string selectionMsg, List<string> choices, List<UnityAction> actionOnSelection, UnityAction actionOnTimeOut, float timeout = 10)
+    {
+        if (actionOnSelection == null || choices.Count!= actionOnSelection.Count) return;
+        AngelARUI.Instance.CallAgentToUser();
+        Orb.Instance.TryGetUserChoice(selectionMsg,choices, actionOnSelection, actionOnTimeOut, timeout);
     }
 
     #endregion

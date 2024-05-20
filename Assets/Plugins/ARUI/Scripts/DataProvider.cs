@@ -196,7 +196,7 @@ public class DataProvider : Singleton<DataProvider>
 
             if (stepIndex==0)
             {
-                AudioManager.Instance.PlayText("For "+ taskID+", "+_currentSelectedTasks[taskID].Steps[stepIndex].StepDesc);
+                AudioManager.Instance.PlayMessage("For "+ taskID+", "+_currentSelectedTasks[taskID].Steps[stepIndex].StepDesc);
             }
 
         } else if (stepIndex == _currentSelectedTasks[taskID].Steps.Count - 1)
@@ -204,7 +204,7 @@ public class DataProvider : Singleton<DataProvider>
             _currentSelectedTasks[taskID].PrevStepIndex = _currentSelectedTasks[taskID].Steps.Count-2;
             _currentSelectedTasks[taskID].CurrStepIndex = _currentSelectedTasks[taskID].Steps.Count-1;
             _currentSelectedTasks[taskID].NextStepIndex = -1;
-            AudioManager.Instance.PlayText("For " + taskID + ", " + _currentSelectedTasks[taskID].Steps[stepIndex].StepDesc);
+            AudioManager.Instance.PlayMessage("For " + taskID + ", " + _currentSelectedTasks[taskID].Steps[stepIndex].StepDesc);
         }
         else if (stepIndex > _currentSelectedTasks[taskID].Steps.Count - 1)
         {
@@ -219,7 +219,7 @@ public class DataProvider : Singleton<DataProvider>
             _currentSelectedTasks[taskID].CurrStepIndex = stepIndex;
             _currentSelectedTasks[taskID].NextStepIndex = stepIndex + 1;
 
-            AudioManager.Instance.PlayText("For " + taskID + ", " + _currentSelectedTasks[taskID].Steps[stepIndex].StepDesc);
+            AudioManager.Instance.PlayMessage("For " + taskID + ", " + _currentSelectedTasks[taskID].Steps[stepIndex].StepDesc);
         }
 
         AudioManager.Instance.PlaySound(Orb.Instance.transform.position,SoundType.taskDone);

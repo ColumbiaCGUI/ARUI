@@ -16,7 +16,7 @@ GameObject:
   - component: {fileID: 7817718346021929786}
   - component: {fileID: 5601470322353805520}
   m_Layer: 5
-  m_Name: listmenubutton_tasks_Previous
+  m_Name: overview_previous_step
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

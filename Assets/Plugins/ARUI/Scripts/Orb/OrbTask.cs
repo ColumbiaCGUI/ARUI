@@ -51,6 +51,8 @@ public class OrbTask : MonoBehaviour
 
     private Color _activeColorText = Color.white;
 
+    public GameObject EyeGazeTarget;
+
     public void InitializeComponents(TaskType currenType)
     {
         _taskType = currenType;
@@ -90,6 +92,9 @@ public class OrbTask : MonoBehaviour
         _taskname = gameObject.name;
 
         SetPieActive(false);
+
+        EyeGazeTarget = _textContainer.gameObject;
+        EyeGazeManager.Instance.RegisterEyeTargetID(EyeGazeTarget);
     }
 
     public void ResetPie()
@@ -106,8 +111,7 @@ public class OrbTask : MonoBehaviour
 
     private void Update()
     {
-        _textContainer.IsLookingAtText = EyeGazeManager.Instance.CurrentHitObj != null &&
-            EyeGazeManager.Instance.CurrentHitObj.GetInstanceID() == _textContainer.gameObject.GetInstanceID();
+        _textContainer.IsLookingAtText = EyeGazeManager.Instance.CurrentHitID == EyeGazeTarget.GetInstanceID();
     }
 
     public void SetPieActive(bool active)

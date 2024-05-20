@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 public enum MovementBehavior
 {
@@ -22,6 +23,7 @@ public class Orb : Singleton<Orb>
     {
         get => _orbBehavior;
     }
+    private Vector3 _lastFixedPosition = Vector3.zero;
 
     ///** Reference to parts of the orb
     private OrbFace _face;                                   /// <the orb shape itself (part of prefab)
@@ -43,6 +45,7 @@ public class Orb : Singleton<Orb>
     {
         get => _followSolver.transform;
     }
+    private GameObject _eyeGazeTargetBody;
 
     ///** Flags
     private bool _isLookingAtOrb = false;                    /// <true if the user is currently looking at the orb shape or orb message
@@ -59,7 +62,7 @@ public class Orb : Singleton<Orb>
     {
         gameObject.name = "***ARUI-Orb";
         _face = transform.GetChild(0).GetChild(0).gameObject.AddComponent<OrbFace>();
-        
+
         // Get message object in orb prefab
         GameObject messageObj = transform.GetChild(0).GetChild(1).gameObject;
         _messageContainer = messageObj.AddComponent<OrbMessageContainer>();
@@ -67,13 +70,16 @@ public class Orb : Singleton<Orb>
 
         // Get grabbable and following scripts
         _followSolver = gameObject.GetComponentInChildren<OrbFollowerSolver>();
+        _eyeGazeTargetBody = _followSolver.gameObject;
+        EyeGazeManager.Instance.RegisterEyeTargetID(_eyeGazeTargetBody);
+
         _grabbable = gameObject.GetComponentInChildren<OrbGrabbable>();
 
         BoxCollider taskListBtnCol = transform.GetChild(0).GetComponent<BoxCollider>();
 
         _dialogue = transform.GetChild(0).GetChild(2).gameObject.AddComponent<OrbSpeechBubble>();
         _dialogue.Init();
-        _dialogue.SetText("", "");
+        _dialogue.SetText("", "Hello there! How can I help you?", 0);
         _dialogue.gameObject.SetActive(false);
 
         GameObject handleObj = transform.GetChild(0).GetChild(3).gameObject;
@@ -91,9 +97,9 @@ public class Orb : Singleton<Orb>
     private void Update()
     {
         // Update eye tracking flag
-        if (_isLookingAtOrb && EyeGazeManager.Instance.CurrentHit != EyeTarget.orbFace)
+        if (_isLookingAtOrb && EyeGazeManager.Instance.CurrentHitID != _eyeGazeTargetBody.GetInstanceID())
             SetIsLookingAtFace(false);
-        else if (!_isLookingAtOrb && EyeGazeManager.Instance.CurrentHit == EyeTarget.orbFace)
+        else if (!_isLookingAtOrb && EyeGazeManager.Instance.CurrentHitID == _eyeGazeTargetBody.GetInstanceID())
             SetIsLookingAtFace(true);
 
         if (_isLookingAtOrb || _messageContainer.IsLookingAtMessage)
@@ -179,10 +185,14 @@ public class Orb : Singleton<Orb>
     {
         _orbBehavior = newBehavior;
 
-        if (newBehavior==MovementBehavior.Fixed)
+        if (newBehavior==MovementBehavior.Fixed) 
             Orb.Instance.SetHandleProgress(1);
         else
+        {
             Orb.Instance.SetHandleProgress(0);
+            _lastFixedPosition = _followSolver.transform.position;
+        }
+            
     }
 
     /// <summary>
@@ -245,9 +255,21 @@ public class Orb : Singleton<Orb>
         AudioManager.Instance.PlayTextIfNotPlaying("mhm");
     }
 
+    
+    /// <summary>
+    /// 
+    /// </summary>
+    public void MoveToLastFixedLocation()
+    {
+        if (_lastFixedPosition.Equals(Vector3.zero)) return;
+
+        _followSolver.transform.position = _lastFixedPosition;
+        _grabbable.TransitionToFixedMovement();
+    }
+
     #endregion
 
-    #region Task Messages and Warnings
+    #region Task Message, Warning and Notifications
 
     public void AddWarning(string message)
     {
@@ -268,8 +290,17 @@ public class Orb : Singleton<Orb>
         if (_allOrbColliders.Count == 0)
         {
             _allOrbColliders.Add(transform.GetChild(0).GetComponent<BoxCollider>());
-            _allOrbColliders.AddRange(_messageContainer.AllColliders);
         }
+    }
+
+    public void TryGetUserConfirmation(string msg, List<UnityAction> actionOnConfirmation, UnityAction actionOnTimeOut, float timeout)
+    {
+        _messageContainer.TryGetUserConfirmation(msg, actionOnConfirmation, actionOnTimeOut, timeout);
+    }
+
+    public void TryGetUserChoice(string selectionMsg, List<string> choices, List<UnityAction> actionOnSelection, UnityAction actionOnTimeOut, float timeout)
+    {
+        _messageContainer.TryGetUserChoice(selectionMsg,choices, actionOnSelection, actionOnTimeOut, timeout);
     }
 
     #endregion
@@ -317,7 +348,7 @@ public class Orb : Singleton<Orb>
     /// </summary>
     /// <param name="utterance"></param>
     /// <param name="answer"></param>
-    public void SetDialogueText(string utterance, string answer) => _dialogue.SetText(utterance, answer);
+    public void SetDialogueText(string utterance, string answer, float timeout) => _dialogue.SetText(utterance, answer, timeout);
 
     /// <summary>
     /// Change the visual appearance of the orb handle. 0% is black, 100% progress is white
