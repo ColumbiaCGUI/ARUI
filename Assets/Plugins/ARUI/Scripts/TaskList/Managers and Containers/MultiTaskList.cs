@@ -42,7 +42,7 @@ public class MultiTaskList : Singleton<MultiTaskList>
     /// </summary>
     public void HandleDataUpdateEvent()
     {
-        MultiTaskList.Instance.UpdateAllSteps(DataProvider.Instance.CurrentSelectedTasks, DataProvider.Instance.CurrentObservedTask);
+        MultiTaskList.Instance.UpdateAllSteps(DataProvider.Instance.CurrentActiveTasks, DataProvider.Instance.CurrentObservedTask);
     }
 
     private void Update()
@@ -194,7 +194,7 @@ public class MultiTaskList : Singleton<MultiTaskList>
             TasklistPositionManager.Instance.SnapToCentroid();
             _isActive = true;
 
-            MultiTaskList.Instance.UpdateAllSteps(DataProvider.Instance.CurrentSelectedTasks, DataProvider.Instance.CurrentObservedTask);
+            MultiTaskList.Instance.UpdateAllSteps(DataProvider.Instance.CurrentActiveTasks, DataProvider.Instance.CurrentObservedTask);
         } else
         {
             _taskOverviewContainer.SetActive(false);
@@ -213,7 +213,7 @@ public class MultiTaskList : Singleton<MultiTaskList>
         if (visible)
         {
             TasklistPositionManager.Instance.SnapToCentroid();
-            MultiTaskList.Instance.UpdateAllSteps(DataProvider.Instance.CurrentSelectedTasks, DataProvider.Instance.CurrentObservedTask);
+            MultiTaskList.Instance.UpdateAllSteps(DataProvider.Instance.CurrentActiveTasks, DataProvider.Instance.CurrentObservedTask);
         }
     }
 

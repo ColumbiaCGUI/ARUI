@@ -35,7 +35,7 @@ public class EyeGazeManager : Singleton<EyeGazeManager>
                 float dist = (hitInfo.point - AngelARUI.Instance.ARCamera.transform.position).magnitude;
                 gameObject.transform.position = eyeGazeProvider.GazeOrigin + eyeGazeProvider.GazeDirection.normalized * dist;
 
-                UnityEngine.Debug.Log("Currently looking at:" + hitInfo.collider.gameObject.name+" with ID"+ hitInfo.collider.gameObject.GetInstanceID());
+                //UnityEngine.Debug.Log("Currently looking at:" + hitInfo.collider.gameObject.name+" with ID"+ hitInfo.collider.gameObject.GetInstanceID());
                 
                 if (_eyeTargetIDs.Contains(hitInfo.collider.gameObject.GetInstanceID()))
                 {

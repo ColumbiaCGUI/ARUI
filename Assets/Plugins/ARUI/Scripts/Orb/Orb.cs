@@ -111,7 +111,7 @@ public class Orb : Singleton<Orb>
         float scaleValue = Mathf.Max(1f, distance * 1.2f);
         _followSolver.transform.localScale = new Vector3(scaleValue, scaleValue, scaleValue);
 
-        if (DataProvider.Instance.CurrentSelectedTasks.Keys.Count > 0)
+        if (DataProvider.Instance.CurrentActiveTasks.Keys.Count > 0)
             UpdateMessageVisibility();
     }
 
@@ -123,7 +123,8 @@ public class Orb : Singleton<Orb>
     /// </summary>
     private void UpdateMessageVisibility()
     {
-        if ((IsLookingAtOrb(false) && !_messageContainer.IsMessageContainerActive && !_messageContainer.IsMessageFading))
+        if ((IsLookingAtOrb(false) && !_messageContainer.IsMessageContainerActive && !_messageContainer.IsMessageFading) 
+            || _orbBehavior.Equals(MovementBehavior.Fixed))
         { //Set the message visible!
             _messageContainer.SetFadeOutMessageContainer(false);
             _messageContainer.IsMessageContainerActive = true;
@@ -283,9 +284,9 @@ public class Orb : Singleton<Orb>
     /// Set the task messages the orb communicates, if 'message' is less than 2 char, the message is deactivated
     /// </summary>
     /// <param name="message"></param>
-    private void SetTaskMessage(Dictionary<string, TaskList> currentSelectedTasks)
+    private void SetTaskMessage(Dictionary<string, TaskList> currentActiveTasks)
     {
-        _messageContainer.UpdateAllTaskMessages(currentSelectedTasks);
+        _messageContainer.UpdateAllTaskMessages(currentActiveTasks);
 
         if (_allOrbColliders.Count == 0)
         {
@@ -301,6 +302,11 @@ public class Orb : Singleton<Orb>
     public void TryGetUserChoice(string selectionMsg, List<string> choices, List<UnityAction> actionOnSelection, UnityAction actionOnTimeOut, float timeout)
     {
         _messageContainer.TryGetUserChoice(selectionMsg,choices, actionOnSelection, actionOnTimeOut, timeout);
+    }
+
+    public void TryGetUserYesNoChoice(string selectionMsg, UnityAction actionOnYes, UnityAction actionOnNo, UnityAction actionOnTimeOut, float timeout)
+    {
+        _messageContainer.TryGetUserYesNoChoice(selectionMsg, actionOnYes, actionOnNo, actionOnTimeOut, timeout);
     }
 
     #endregion
@@ -394,7 +400,7 @@ public class Orb : Singleton<Orb>
     /// </summary>
     private void HandleUpdateTaskListEvent()
     {
-        _messageContainer.HandleUpdateTaskListEvent(DataProvider.Instance.CurrentSelectedTasks, DataProvider.Instance.CurrentObservedTask);
+        _messageContainer.HandleUpdateTaskListEvent(DataProvider.Instance.CurrentActiveTasks, DataProvider.Instance.CurrentObservedTask);
     }
 
     /// <summary>
@@ -402,8 +408,8 @@ public class Orb : Singleton<Orb>
     /// </summary>
     private void HandleUpdateActiveTaskEvent()
     {
-        if (DataProvider.Instance.CurrentSelectedTasks.Count > 0)
-            _messageContainer.HandleUpdateActiveTaskEvent(DataProvider.Instance.CurrentSelectedTasks, DataProvider.Instance.CurrentObservedTask);
+        if (DataProvider.Instance.CurrentActiveTasks.Count > 0)
+            _messageContainer.HandleUpdateActiveTaskEvent(DataProvider.Instance.CurrentActiveTasks, DataProvider.Instance.CurrentObservedTask);
     }
 
     /// <summary>
@@ -411,7 +417,7 @@ public class Orb : Singleton<Orb>
     /// </summary>
     private void HandleUpdateActiveStepEvent()
     {
-        SetTaskMessage(DataProvider.Instance.CurrentSelectedTasks);
+        SetTaskMessage(DataProvider.Instance.CurrentActiveTasks);
     }
 
     #endregion

@@ -26,7 +26,6 @@ public class ExampleScript : MonoBehaviour
                 StartCoroutine(RunAutomatedTestsMaintenance());
             }
         }
-            
     }
 
     private IEnumerator RunAutomatedTestsRecipes()
@@ -147,7 +146,7 @@ public class ExampleScript : MonoBehaviour
             return;
         }
 
-        AngelARUI.Instance.TryGetUserConfirmation("Do you want to go to the next task?", () => DialogueTestConfirmed(), () => DialogueTestFailed());
+        AngelARUI.Instance.TryGetUserConfirmation("Please confirm if you are 100% confident that you want to go to the next step in the current task. We really need your confirmation.", () => DialogueTestConfirmed(), () => DialogueTestFailed());
     }
 
     private void GoToPreviousStepConfirmation()
@@ -267,7 +266,7 @@ public class ExampleScript : MonoBehaviour
 
         if (Input.GetKeyUp(KeyCode.N))
         {
-            AngelARUI.Instance.TryGetUserChoice("Please select your preferred instruction alignment:",
+            AngelARUI.Instance.TryGetUserMultipleChoice("Please select your preferred instruction alignment:",
                 new List<string> { "Right", "Left", "Automatic" },
                 new List<UnityAction>()
                 {
@@ -275,7 +274,12 @@ public class ExampleScript : MonoBehaviour
                     () => AngelARUI.Instance.SetAgentMessageAlignment(MessageAlignment.LockLeft),
                     () => AngelARUI.Instance.SetAgentMessageAlignment(MessageAlignment.Auto),
                 }, null, 30);
+        }
 
+        if (Input.GetKeyUp(KeyCode.B))
+        {
+            AngelARUI.Instance.TryGetUserYesNoChoice("Are you done with the previous step?",
+                null, () => { GoToPreviousStepConfirmation(); }, null, 30) ;
         }
 
         if (Input.GetKeyUp(KeyCode.A))

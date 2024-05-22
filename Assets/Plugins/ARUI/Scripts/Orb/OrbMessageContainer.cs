@@ -163,6 +163,11 @@ public class OrbMessageContainer : MonoBehaviour
         _orbNotificationManager.TryGetUserChoice(selectionMsg, choices, actionOnSelection, actionOnTimeOut, timeout);
     }
 
+    public void TryGetUserYesNoChoice(string selectionMsg, UnityAction actionOnYes, UnityAction actionOnNo, UnityAction actionOnTimeOut, float timeout)
+    {
+        _orbNotificationManager.TryGetUserYesNoChoice(selectionMsg, actionOnYes, actionOnNo, actionOnTimeOut, timeout);
+    }
+
     public void Update()
     {
         // Update eye tracking flag
@@ -170,7 +175,7 @@ public class OrbMessageContainer : MonoBehaviour
 
         foreach (var orbtask in _taskNameToOrbPie.Values)
         {
-            if (orbtask != null && orbtask.EyeGazeTarget.GetInstanceID()==EyeGazeManager.Instance.CurrentHitID)
+            if (orbtask != null && orbtask.IsLookingAtTask)
                 lookingAtAnyTask = true;
         }
 
@@ -207,21 +212,21 @@ public class OrbMessageContainer : MonoBehaviour
     /// <summary>
     /// Handles updates if the currently observed task updates
     /// </summary>
-    /// <param name="currentSelectedTasks"></param>
+    /// <param name="currentActiveTasks"></param>
     /// <param name="currentTaskID"></param>
-    public void HandleUpdateActiveTaskEvent(Dictionary<string, TaskList> currentSelectedTasks, string currentTaskID)
+    public void HandleUpdateActiveTaskEvent(Dictionary<string, TaskList> currentActiveTasks, string currentTaskID)
     {
-        HandleUpdateTaskListEvent(currentSelectedTasks, currentTaskID);
+        HandleUpdateTaskListEvent(currentActiveTasks, currentTaskID);
     }
 
     /// <summary>
     /// Handles updates to the task list (e.g., if stepIndex updates)
     /// </summary>
-    /// <param name="currentSelectedTasks"></param>
+    /// <param name="currentActiveTasks"></param>
     /// <param name="currentTaskID"></param>
-    public void HandleUpdateTaskListEvent(Dictionary<string, TaskList> currentSelectedTasks, string currentTaskID)
+    public void HandleUpdateTaskListEvent(Dictionary<string, TaskList> currentActiveTasks, string currentTaskID)
     {
-        if (currentSelectedTasks.Count == 0 || currentSelectedTasks.Count > 5) return;
+        if (currentActiveTasks.Count == 0 || currentActiveTasks.Count > 5) return;
 
         foreach (OrbTask pie in _taskNameToOrbPie.Values)
             pie.ResetPie();
@@ -229,34 +234,34 @@ public class OrbMessageContainer : MonoBehaviour
         _taskNameToOrbPie = new Dictionary<string, OrbTask>();
 
         int pieIndex = 0;
-        foreach (string taskName in currentSelectedTasks.Keys)
+        foreach (string taskName in currentActiveTasks.Keys)
         {
             if (taskName.Equals(currentTaskID))
             {
                 _taskNameToOrbPie.Add(taskName, _mainTaskPiePlace);
-                _mainTaskPiePlace.TaskName = currentSelectedTasks[taskName].Name;
+                _mainTaskPiePlace.TaskName = currentActiveTasks[taskName].Name;
             }
             else
             {
                 _taskNameToOrbPie.Add(taskName, _allTasksPlaceholder[pieIndex]); //assign task to pie
-                _allTasksPlaceholder[pieIndex].TaskName = currentSelectedTasks[taskName].Name;
+                _allTasksPlaceholder[pieIndex].TaskName = currentActiveTasks[taskName].Name;
                 pieIndex++;
             }
         }
 
-        UpdateAllTaskMessages(currentSelectedTasks);
+        UpdateAllTaskMessages(currentActiveTasks);
     }
 
-    public void UpdateAllTaskMessages(Dictionary<string, TaskList> currentSelectedTasks)
+    public void UpdateAllTaskMessages(Dictionary<string, TaskList> currentActiveTasks)
     {
         UpdateAnchorInstant();
 
         string tempName = "";
-        foreach (string taskName in currentSelectedTasks.Keys)
+        foreach (string taskName in currentActiveTasks.Keys)
         {
             if (_taskNameToOrbPie.ContainsKey(taskName))
             {
-                if (currentSelectedTasks[taskName].CurrStepIndex >= currentSelectedTasks[taskName].Steps.Count)
+                if (currentActiveTasks[taskName].CurrStepIndex >= currentActiveTasks[taskName].Steps.Count)
                 {
                     if (_taskNameToOrbPie[taskName].gameObject.activeSelf)
                     {
@@ -269,11 +274,11 @@ public class OrbMessageContainer : MonoBehaviour
                     if (!_taskNameToOrbPie[taskName].gameObject.activeSelf)
                         _taskNameToOrbPie[taskName].gameObject.SetActive(true);
 
-                    _taskNameToOrbPie[taskName].SetTaskMessage(currentSelectedTasks[taskName].CurrStepIndex,
-                currentSelectedTasks[taskName].Steps.Count,
-                    currentSelectedTasks[taskName].Steps[currentSelectedTasks[taskName].CurrStepIndex].StepDesc);
+                    _taskNameToOrbPie[taskName].SetTaskMessage(currentActiveTasks[taskName].CurrStepIndex,
+                currentActiveTasks[taskName].Steps.Count,
+                    currentActiveTasks[taskName].Steps[currentActiveTasks[taskName].CurrStepIndex].StepDesc, currentActiveTasks.Count >1);
 
-                    float ratio = Mathf.Min(1, (float)currentSelectedTasks[taskName].CurrStepIndex / (float)(currentSelectedTasks[taskName].Steps.Count - 1));
+                    float ratio = Mathf.Min(1, (float)currentActiveTasks[taskName].CurrStepIndex / (float)(currentActiveTasks[taskName].Steps.Count - 1));
                     _taskNameToOrbPie[taskName].UpdateCurrentTaskStatus(ratio);
                 }
             }
@@ -285,21 +290,21 @@ public class OrbMessageContainer : MonoBehaviour
         {
             _prevText.text = "";
             _nextText.text = "";
-            int prevIndex = currentSelectedTasks[tempName].PrevStepIndex;
-            int nextIndex = currentSelectedTasks[tempName].NextStepIndex;
+            int prevIndex = currentActiveTasks[tempName].PrevStepIndex;
+            int nextIndex = currentActiveTasks[tempName].NextStepIndex;
 
             if (prevIndex>=0)
             {
-                string previous = currentSelectedTasks[tempName].Steps[prevIndex].StepDesc;
-                _prevText.text = "<b>DONE:</b> " + Utils.SplitTextIntoLines(previous, ARUISettings.OrbMessageMaxCharCountPerLine);
+                string previous = currentActiveTasks[tempName].Steps[prevIndex].StepDesc;
+                _prevText.text = "<b>DONE:</b> " + previous;
             }
-            if (nextIndex>=0 && nextIndex < currentSelectedTasks[tempName].Steps.Count)
+            if (nextIndex>=0 && nextIndex < currentActiveTasks[tempName].Steps.Count)
             {
-                string next = currentSelectedTasks[tempName].Steps[nextIndex].StepDesc;
-                _nextText.text = "<b>Upcoming:</b> " + Utils.SplitTextIntoLines(next, ARUISettings.OrbNoteMaxCharCountPerLine);
+                string next = currentActiveTasks[tempName].Steps[nextIndex].StepDesc;
+                _nextText.text = "<b>Upcoming:</b> " + next;
             }
 
-            if (currentSelectedTasks[tempName].CurrStepIndex == currentSelectedTasks[tempName].Steps.Count-1)
+            if (currentActiveTasks[tempName].CurrStepIndex == currentActiveTasks[tempName].Steps.Count-1)
             {
                 _nextText.text = "<b>Upcoming: All Done!</b> ";
             }

@@ -192,7 +192,7 @@ public class AngelARUI : Singleton<AngelARUI>
     /// The message will be cut off after 50 words, which take around 25 seconds to speak on average.
     /// </summary>
     /// <param name="message"></param>
-    public void PlayMessageAtAgent(string message, float timeout = 30)
+    public void PlayMessageAtAgent(string message, float timeout = 10)
     {
         if (!Utils.StringValid(message) || Orb.Instance == null || AudioManager.Instance == null) return;
         AudioManager.Instance.PlayAndShowMessage(message, timeout);
@@ -202,11 +202,17 @@ public class AngelARUI : Singleton<AngelARUI>
     /// <summary>
     /// If given paramter is true, the orb will show message to the user that the system detected an attempt to skip the current task.
     /// The message will disappear if "SetCurrentTaskID(..)" is called, or ShowSkipNotification(false)
-    /// 
-    /// //TODO
     /// </summary>
-    /// <param name="show">if true, the orb will show a skip notification, if false, the notification will disappear</param>
-    public void SetWarningMessage(string message) => Orb.Instance.AddWarning(message);
+    /// <param name="message"></param>
+    /// <param name="urgent"></param>
+    public void SetWarningMessage(string message, bool urgent = false)
+    {
+        if (urgent)
+        {
+            AngelARUI.Instance.CallAgentToUser();
+        }
+        Orb.Instance.AddWarning(message);
+    }
 
     /// <summary>
     /// //TODO
@@ -221,11 +227,14 @@ public class AngelARUI : Singleton<AngelARUI>
     /// <param name="msg">Message that is shown in the Confirmation Dialogue</param>
     /// <param name="actionOnConfirmation">Action triggerd if the user confirms the dialogue</param>
     /// <param name="actionOnTimeOut">OPTIONAL - Action triggered if notification times out</param>
-    public void TryGetUserConfirmation(string msg, UnityAction actionOnConfirmation, UnityAction actionOnTimeOut, float timeout = 10)
+    public void TryGetUserConfirmation(string msg, UnityAction actionOnConfirmation, UnityAction actionOnTimeOut, float timeout = 10, bool urgent = false)
     {
         if (!Utils.StringValid(msg) || actionOnConfirmation==null) return;
         List<UnityAction> allConfirmationActions = new List<UnityAction>() { actionOnConfirmation };
-        AngelARUI.Instance.CallAgentToUser();
+        if (urgent)
+        {
+            AngelARUI.Instance.CallAgentToUser();
+        }
         Orb.Instance.TryGetUserConfirmation(msg, allConfirmationActions, actionOnTimeOut, timeout);
     }
 
@@ -237,11 +246,32 @@ public class AngelARUI : Singleton<AngelARUI>
     /// <param name="actionOnSelection"></param>
     /// <param name="actionOnTimeOut"></param>
     /// <param name="timeout"></param>
-    public void TryGetUserChoice(string selectionMsg, List<string> choices, List<UnityAction> actionOnSelection, UnityAction actionOnTimeOut, float timeout = 10)
+    public void TryGetUserMultipleChoice(string selectionMsg, List<string> choices, List<UnityAction> actionOnSelection, UnityAction actionOnTimeOut, float timeout = 10, bool urgent = false)
     {
         if (actionOnSelection == null || choices.Count!= actionOnSelection.Count) return;
-        AngelARUI.Instance.CallAgentToUser();
+
+        if (urgent) {
+            AngelARUI.Instance.CallAgentToUser();
+        }
+        
         Orb.Instance.TryGetUserChoice(selectionMsg,choices, actionOnSelection, actionOnTimeOut, timeout);
+    }
+
+    /// <summary>
+    /// TODO
+    /// </summary>
+    /// <param name="selectionMsg"></param>
+    /// <param name="actionOnYes"></param>
+    /// <param name="actionOnNo"></param>
+    /// <param name="actionOnTimeOut"></param>
+    /// <param name="timeout"></param>
+    public void TryGetUserYesNoChoice(string selectionMsg, UnityAction actionOnYes, UnityAction actionOnNo, UnityAction actionOnTimeOut, float timeout = 10, bool urgent = false)
+    {
+        if (urgent)
+        {
+            AngelARUI.Instance.CallAgentToUser();
+        }
+        Orb.Instance.TryGetUserYesNoChoice(selectionMsg, actionOnYes, actionOnNo, actionOnTimeOut, timeout);
     }
 
     #endregion

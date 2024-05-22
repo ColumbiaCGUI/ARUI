@@ -2,6 +2,7 @@
 using System.Collections;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public enum TaskType
 {
@@ -48,10 +49,9 @@ public class OrbTask : MonoBehaviour
     {
         get => _currentStepText.text;
     }
+    public bool IsLookingAtTask => _textContainer.IsLookingAtText;
 
     private Color _activeColorText = Color.white;
-
-    public GameObject EyeGazeTarget;
 
     public void InitializeComponents(TaskType currenType)
     {
@@ -92,9 +92,6 @@ public class OrbTask : MonoBehaviour
         _taskname = gameObject.name;
 
         SetPieActive(false);
-
-        EyeGazeTarget = _textContainer.gameObject;
-        EyeGazeManager.Instance.RegisterEyeTargetID(EyeGazeTarget);
     }
 
     public void ResetPie()
@@ -107,11 +104,6 @@ public class OrbTask : MonoBehaviour
         _pieProgressRect.End = new Vector3(_xEnd,0,0);
 
         _textContainer.TextColor = new Color(_activeColorText.r, _activeColorText.g, _activeColorText.b, 1);
-    }
-
-    private void Update()
-    {
-        _textContainer.IsLookingAtText = EyeGazeManager.Instance.CurrentHitID == EyeGazeTarget.GetInstanceID();
     }
 
     public void SetPieActive(bool active)
@@ -129,15 +121,23 @@ public class OrbTask : MonoBehaviour
     /// <param name="stepIndex"></param>
     /// <param name="total"></param>
     /// <param name="message"></param>
-    public void SetTaskMessage(int stepIndex, int total, string message)
+    /// 
+    public void SetTaskMessage(int stepIndex, int total, string message, bool showTaskName)
     {
         int maxChar = 110;
         if (_taskType.Equals(TaskType.primary))
             maxChar = 80;
 
-        string newPotentialMessage = Utils.SplitTextIntoLines(TaskName + " (" + (stepIndex + 1) + "/" + total + ") : " +
+        string newPotentialMessage = "";
+        if (showTaskName)
+        {
+            newPotentialMessage = Utils.SplitTextIntoLines(TaskName + " (" + (stepIndex + 1) + "/" + total + ") : " +
             message, maxChar);
-
+        } else {
+            newPotentialMessage = Utils.SplitTextIntoLines("(" + (stepIndex + 1) + "/" + total + ") : " +
+            message, maxChar);
+        }
+        
         _currentStepText.text = newPotentialMessage;
     }
 

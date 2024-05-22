@@ -1,4 +1,5 @@
 using Microsoft.MixedReality.Toolkit.Input;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -9,26 +10,19 @@ using UnityEngine.Events;
 /// The user has timeInSeconds seconds to decide if the given action should be executed. Confirmation can be done by
 /// looking at the button or touching it.
 /// </summary>
-public class SelectNotificationOrb : MonoBehaviour
+public class OrbMultipleChoiceNotification : OrbNotificationTemplate 
 {
-    private bool _init = false;                      /// <true if dialogue was initialized (e.g. message, event)
-    private bool _timerStarted = false;              /// <true if timer started already
-
-    private FlexibleTextContainer _textContainer;
     private List<DwellButton> _buttons = new List<DwellButton>();
     private List<UnityEvent> _choiceEvents = new List<UnityEvent>();
     private List<string> _choiceLabels;
 
-    private UnityEvent _timeOutEvent;                /// <Event that will be invoked if the notification timesout
-    private UnityEvent _selfDestruct;
 
-    private Shapes.Line _time;                       /// <Line that shows the user how much time is left to make a decision
-
-    private float _timeOutInSeconds = 10;
     private int _maxChoices = 5;
     private void Awake()
     {
         _textContainer = transform.GetChild(1).GetChild(0).gameObject.AddComponent<FlexibleTextContainer>();
+
+        type = NotificationType.MulitpleChoice;
 
         var allButtons = transform.GetChild(0);
         int i = 0;
@@ -57,15 +51,6 @@ public class SelectNotificationOrb : MonoBehaviour
 
 
     /// <summary>
-    /// Start the timer if the dialogue is initialized and the timer is not running yet.
-    /// </summary>
-    private void Update()
-    {
-        if (_init & !_timerStarted && _textContainer.TextRect.width > 0.001f)
-            StartCoroutine(DecreaseTime());
-    }
-
-    /// <summary>
     /// Initialize the dialgoue components - text and confirmation event
     /// </summary>
     /// <param name="intentMsg">Contains message that is shown to the user.</param>
@@ -75,7 +60,7 @@ public class SelectNotificationOrb : MonoBehaviour
         if (choiceMsg.Count!=confirmedEventPerChoice.Count) return;
 
         _timeOutInSeconds = timeout;
-        string dialogText = selectionMsg + "\n";
+        string dialogText = selectionMsg + "\n<b>";
         int i = 0;
         foreach (string choice in choiceMsg)
         {
@@ -84,7 +69,9 @@ public class SelectNotificationOrb : MonoBehaviour
             _buttons[i].gameObject.SetActive(true);
             i++;
         }
+
         _textContainer.Text = dialogText;
+        _textContainer.AddShortLineToText("</b><i><size=0.006><color=#d3d3d3>Confirm by saying 'Select A', 'Select B',.. etc.</color></size></i>");
 
         if (i<_maxChoices)
         {
@@ -114,6 +101,8 @@ public class SelectNotificationOrb : MonoBehaviour
         {
             AngelARUI.Instance.DebugLogMessage("The user selected.", true);
             confirmationEvent.Invoke();
+
+            AudioManager.Instance.PlaySound(transform.position, SoundType.actionConfirmation);
         }
         else
         {
@@ -127,18 +116,32 @@ public class SelectNotificationOrb : MonoBehaviour
         _selfDestruct.Invoke();
     }
 
+    /// <summary>
+    /// /TODO
+    /// </summary>
+    /// <param name="input"></param>
+    public void ConfirmedViaSpeech(AcceptedSpeechInput input) => Confirmed(true, _choiceEvents[(int)input]);
+
+    #region Timeout
+
+    /// <summary>
+    /// Start the timer if the dialogue is initialized and the timer is not running yet.
+    /// </summary>
+    private void Update()
+    {
+        if (_init & !_timerStarted && _textContainer.TextRect.width > 0.001f)
+            StartCoroutine(DecreaseTime());
+    }
+
     private IEnumerator DecreaseTime()
     {
         AudioManager.Instance.PlaySound(transform.position, SoundType.select);
 
         _timerStarted = true;
-
         _time.enabled = true;
 
-        //_okBtn.transform.localPosition = _textContainer.transform.localPosition + new Vector3(_textContainer.TextRect.width + _okBtn.Width/2, 0, 0);
-
-        _time.Start = new Vector3(0, _textContainer.TextRect.height/2, 0);
-        _time.End = new Vector3(_textContainer.TextRect.width, _textContainer.TextRect.height / 2, 0);
+        _time.Start = new Vector3(0, 0, 0);
+        _time.End = new Vector3(_textContainer.TextRect.width, 0, 0);
         Vector3 xEnd = _time.End;
 
         yield return new WaitForFixedUpdate();
@@ -156,7 +159,7 @@ public class SelectNotificationOrb : MonoBehaviour
                 isInteractingWithAnyChoice = btn.IsInteractingWithBtn || isInteractingWithAnyChoice;
             }
 
-            if (!isInteractingWithAnyChoice)
+            if (!isInteractingWithAnyChoice && !_textContainer.IsLookingAtText)
             {
                 _time.End = Vector3.Lerp(_time.Start, xEnd, 1 - (timeElapsed / lerpDuration));
                 timeElapsed += Time.deltaTime;
@@ -165,4 +168,6 @@ public class SelectNotificationOrb : MonoBehaviour
 
         Confirmed(false, null);
     }
+
+    #endregion
 }

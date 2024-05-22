@@ -18,6 +18,7 @@ public enum SoundType
     select = 6,
     warning = 7,
     voiceConfirmation = 8,
+    actionConfirmation = 9,
 }
 
 /// <summary>
@@ -34,13 +35,14 @@ public class AudioManager : Singleton<AudioManager>, IMixedRealitySpeechHandler
     private Dictionary<SoundType, string> _soundTypeToPathMapping = new Dictionary<SoundType, string>()
     {
         { SoundType.notification,StringResources.NotificationSound_path},
-        { SoundType.confirmation, StringResources.ConfirmationSound_path},
+        { SoundType.confirmation, StringResources.BtnConfirmationSound_path},
         { SoundType.taskDone,StringResources.NextTaskSound_path},
         { SoundType.moveStart,StringResources.MoveStart_path},
         { SoundType.moveEnd,StringResources.MoveEnd_path},
         { SoundType.select,StringResources.SelectSound_path},
         { SoundType.warning,StringResources.WarningSound_path},
-        { SoundType.voiceConfirmation,StringResources.VoiceConfirmation_path}
+        { SoundType.voiceConfirmation,StringResources.VoiceConfirmation_path},
+        { SoundType.actionConfirmation, StringResources.ActionConfirmation_path }
     };
 
     private List<AudioSource> _currentlyPlayingSound = null;             /// <Reference to all sounds that are currently playing

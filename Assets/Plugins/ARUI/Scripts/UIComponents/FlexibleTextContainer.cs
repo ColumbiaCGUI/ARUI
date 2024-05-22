@@ -50,19 +50,16 @@ public class FlexibleTextContainer : MonoBehaviour
     }
 
     private Color _isLookingatTextColor = new Color(0.1f, 0.1f, 0.1f);
+    private bool _isLookingAtText = false;
     public bool IsLookingAtText
     {
-        set
+        get
         {
-            if (value)
-            {
-                GlowColor = _isLookingatTextColor;
-            } else
-            {
-                GlowColor = _innerGlowColorStartup;
-            }
+            return _isLookingAtText;
         }
     }
+
+    public GameObject EyeGazeTarget;
 
     // Start is called before the first frame update
     void Awake()
@@ -84,17 +81,28 @@ public class FlexibleTextContainer : MonoBehaviour
 
         _taskMessageCollider = transform.GetComponent<BoxCollider>();
 
+        EyeGazeTarget = _taskMessageCollider.gameObject;
+        EyeGazeManager.Instance.RegisterEyeTargetID(EyeGazeTarget);
     }
-
-    //public void AddVMNC() => gameObject.AddComponent<VMNonControllable>();
 
     /// <summary>
     /// Update collider of messagebox based on the how much space the text takes
     /// </summary>
-    void Update()
+    public void Update()
     {
         _taskMessageCollider.size = new Vector3(_HGroupTaskMessage.rect.width, _taskMessageCollider.size.y, _taskMessageCollider.size.z);
         _taskMessageCollider.center = new Vector3(_HGroupTaskMessage.rect.width / 2, 0, 0);
+
+        _isLookingAtText = EyeGazeManager.Instance.CurrentHitID == EyeGazeTarget.GetInstanceID();
+
+        if (_isLookingAtText)
+        {
+            GlowColor = _isLookingatTextColor;
+        }
+        else
+        {
+            GlowColor = _innerGlowColorStartup;
+        }
     }
 
     /// <summary>
@@ -105,5 +113,7 @@ public class FlexibleTextContainer : MonoBehaviour
         _taskMessageCollider.center = new Vector3(_HGroupTaskMessage.rect.width / 2, 0, 0);
         _taskMessageCollider.size = new Vector3(_HGroupTaskMessage.rect.width, _taskMessageCollider.size.y, _taskMessageCollider.size.z);
     }
+
+    public void AddShortLineToText(string shortnote) => _textComponent.text += "\n"+shortnote;
 
 }
