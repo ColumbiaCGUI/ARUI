@@ -31,6 +31,7 @@ public class AngelARUI : Singleton<AngelARUI>
     [HideInInspector]
     public bool IsVMActiv => ViewManagement.Instance != null && _useViewManagement;
 
+
     private void Awake() => StartCoroutine(InitProjectSettingsAndScene());
 
     private IEnumerator InitProjectSettingsAndScene()
@@ -94,6 +95,13 @@ public class AngelARUI : Singleton<AngelARUI>
         //Instantiate the Task Overview
         GameObject TaskOverview = Instantiate(Resources.Load(StringResources.Sid_Tasklist_path)) as GameObject;
         TaskOverview.gameObject.name = "***ARUI-" + StringResources.tasklist_name;
+
+        //Instantiate the logger if not in scene
+        if (Logger.Instance==null)
+        {
+            GameObject LoggerWindow = Instantiate(Resources.Load(StringResources.LoggerPrefab_path)) as GameObject;
+            LoggerWindow.gameObject.name = "***ARUI-Logger";
+        }
 
         //Start View Management, if enabled
         if (_useViewManagement)
@@ -192,7 +200,7 @@ public class AngelARUI : Singleton<AngelARUI>
     /// The message will be cut off after 50 words, which take around 25 seconds to speak on average.
     /// </summary>
     /// <param name="message"></param>
-    public void PlayMessageAtAgent(string message, float timeout = 10)
+    public void PlayMessageAtAgent(string message, float timeout = 20)
     {
         if (!Utils.StringValid(message) || Orb.Instance == null || AudioManager.Instance == null) return;
         AudioManager.Instance.PlayAndShowMessage(message, timeout);
@@ -409,6 +417,18 @@ public class AngelARUI : Singleton<AngelARUI>
     }
 
     /// <summary>
+    /// Set the logger window visible or not visible. visible is true, the logger will appear in front of the user.
+    /// </summary>
+    /// <param name="visible"></param>
+    public void SetLoggerVisible(bool visible)
+    {
+        if (Logger.Instance != null)
+        {
+            Logger.Instance.IsVisible = visible;
+        }
+    }
+
+    /// <summary>
     /// ********FOR DEBUGGING ONLY, prints ARUI logging messages
     /// </summary>
     /// <param name="message"></param>
@@ -417,7 +437,7 @@ public class AngelARUI : Singleton<AngelARUI>
     {
         if (_showARUIDebugMessages)
         {
-            if (showInLogger && FindObjectOfType<Logger>() != null)
+            if (showInLogger && Logger.Instance != null)
                 Logger.Instance.LogInfo("***ARUI: " + message);
             Debug.Log("***ARUI: " + message);
 
