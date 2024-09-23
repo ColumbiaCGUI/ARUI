@@ -1,7 +1,5 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
@@ -142,6 +140,12 @@ public class DataProvider : Singleton<DataProvider>
         //Update currently observed task
         if (copy.Keys.Count > 0 && (_currentObservedTask.Equals("") || !copy.ContainsKey(_currentObservedTask))) //Set the a random initial value for the currentObservedTask
             SetCurrentObservedTask(copy.First().Key);
+
+        //If manual is set for the first time, say the step
+//        if (_currentObservedTask != null)
+//        {
+//            AudioManager.Instance.PlayMessage(_currentActiveTasks[_currentObservedTask].Steps[0].StepDesc);
+//        }
 
         string debug = "DATA PROVIDER: selected tasks set to: ";
         foreach (string taskID in _currentActiveTasks.Keys)

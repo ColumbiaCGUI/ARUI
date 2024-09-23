@@ -116,8 +116,9 @@ public class ExampleScript : MonoBehaviour
         AngelARUI.Instance.RegisterKeyword("Previous Step", () => { GoToPreviousStepConfirmation(); });
         AngelARUI.Instance.RegisterKeyword("Coach", () => { AngelARUI.Instance.CallAgentToUser(); });
 
-        AngelARUI.Instance.RegisterKeyword("Right", () => { AngelARUI.Instance.SetAgentMessageAlignment(MessageAlignment.LockRight); });
-        AngelARUI.Instance.RegisterKeyword("Left", () => { AngelARUI.Instance.SetAgentMessageAlignment(MessageAlignment.LockLeft); });
+        AngelARUI.Instance.RegisterKeyword("Right", () => { StartCoroutine(ShowWarningDelayed()); });
+
+        AngelARUI.Instance.RegisterKeyword("Left", () => { StartCoroutine(ShowTestMultipleChoiceDelayed()); });
         AngelARUI.Instance.RegisterKeyword("Automatic", () => { ShowTestMultipleChoice(); });
         AngelARUI.Instance.RegisterKeyword("toggle debug", () => { AngelARUI.Instance.SetLoggerVisible(!Logger.Instance.IsVisible); });
 
@@ -125,18 +126,34 @@ public class ExampleScript : MonoBehaviour
 
         AngelARUI.Instance.RegisterDetectedObject(transform.GetChild(0).gameObject, "test");
 
-        yield return new WaitForSeconds(4f);
+    }
 
-        AngelARUI.Instance.PlayMessageAtAgent
-            ("This is a very long message the user asked. to test how a very very very very long message with verrrrrrrryyyylooooonngg words would look like");
+    private IEnumerator ShowWarningDelayed()
+    {
+        yield return new WaitForSeconds(2f);
+
+        AngelARUI.Instance.SetWarningMessage("I detected that you are not wearing gloves, this is recommended");
 
         yield return new WaitForSeconds(5f);
 
-        AngelARUI.Instance.SetWarningMessage("This is a very very very very very very very very long warning");
-
-        yield return new WaitForSeconds(3f);
-
         AngelARUI.Instance.RemoveWarningMessage();
+    }
+
+    private IEnumerator ShowTestMultipleChoiceDelayed()
+    {
+        Debug.Log("here1");
+        yield return new WaitForSeconds(2f);
+        Debug.Log("here2");
+
+        AngelARUI.Instance.TryGetUserMultipleChoice("We noticed you are taking a long time with the current step. Please select to see more information.",
+    new List<string> { "I am fine.", "Video please.", "Show the manual." },
+    new List<UnityAction>()
+    {
+                    () => { Debug.Log("First selecte"); },
+                    () => { Debug.Log("Second selecte"); },
+                    () => { Debug.Log("Third selecte"); },
+    }, null, 20);
+
     }
 
     private void GoToNextStepConfirmation()
@@ -189,6 +206,7 @@ public class ExampleScript : MonoBehaviour
                     () => AngelARUI.Instance.SetAgentMessageAlignment(MessageAlignment.LockLeft),
                     () => AngelARUI.Instance.SetAgentMessageAlignment(MessageAlignment.Auto),
             }, null, 30);
+
     }
 
     private IEnumerator SpeechCommandRegistrationTest()
@@ -254,6 +272,7 @@ public class ExampleScript : MonoBehaviour
             }
 
             AngelARUI.Instance.InitManual(allJsonTasks);
+            AngelARUI.Instance.GoToStep("Filter Inspection", 1);
         } 
 
         // Example how to step forward/backward in tasklist. 
