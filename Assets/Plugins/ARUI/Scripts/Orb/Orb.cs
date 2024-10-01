@@ -1,4 +1,5 @@
 using Microsoft.MixedReality.OpenXR;
+using Microsoft.MixedReality.Toolkit.Utilities;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -23,7 +24,6 @@ public class Orb : Singleton<Orb>
     {
         get => _orbBehavior;
     }
-    private Vector3 _lastFixedPosition = Vector3.zero;
 
     ///** Reference to parts of the orb
     private OrbFace _face;                                   /// <the orb shape itself (part of prefab)
@@ -179,7 +179,7 @@ public class Orb : Singleton<Orb>
     }
 
     /// <summary>
-    /// TODO - 
+    /// Changes the movement mode of the orb to the new behavior
     /// </summary>
     /// <param name="newBehavior"></param>
     public void UpdateMovementbehavior(MovementBehavior newBehavior)
@@ -191,9 +191,7 @@ public class Orb : Singleton<Orb>
         else
         {
             Orb.Instance.SetHandleProgress(0);
-            _lastFixedPosition = _followSolver.transform.position;
         }
-            
     }
 
     /// <summary>
@@ -255,16 +253,21 @@ public class Orb : Singleton<Orb>
         _followSolver.MoveToCenter();
     }
 
-    
     /// <summary>
-    /// 
+    /// Set the movement of the orb manually. if changeToFixed is true theagent will stay put, else it
+    /// will move with the user's FOV.
     /// </summary>
-    public void MoveToLastFixedLocation()
+    /// <param name="changeToFixed"></param>
+    public void SetCurrentLocationAsFixed(bool changeToFixed)
     {
-        if (_lastFixedPosition.Equals(Vector3.zero)) return;
-
-        _followSolver.transform.position = _lastFixedPosition;
-        _grabbable.TransitionToFixedMovement();
+        if (changeToFixed)
+        {
+            StartCoroutine(_grabbable.TransitionToFixedMovement());
+        } else
+        {
+            StopCoroutine(_grabbable.TransitionToFixedMovement());
+            UpdateMovementbehavior(MovementBehavior.Follow);
+        }
     }
 
     #endregion

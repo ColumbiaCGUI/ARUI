@@ -132,25 +132,24 @@ public class AudioManager : Singleton<AudioManager>, IMixedRealitySpeechHandler
 
 
     /// <summary>
-    /// 
+    /// Plays audioclip at given location. 
     /// </summary>
     /// <param name="pos"></param>
-    /// <param name="relativeFilePath"></param>
-    /// <exception cref="NotImplementedException"></exception>
-    public void PlayExternalSound(Vector3 pos, string relativeFilePath) => StartCoroutine(PlayExternalSoundLocalized(pos, relativeFilePath));
+    /// <param name="audioClip"></param>
+    public void PlayExternalSound(Vector3 pos, AudioClip audioClip) => StartCoroutine(PlayExternalSoundLocalized(pos, audioClip));
 
     /// <summary>
     /// Play a sound file at a certain position
     /// </summary>
     /// <param name="pos">Sound effect is played form this position</param>
-    /// <param name="type">Type of sound effect that should be played</param>
+    /// <param name="audioClip">audio clip to be played</param>
     /// <returns></returns>
-    private IEnumerator PlayExternalSoundLocalized(Vector3 pos, string relativeFilePath)
+    private IEnumerator PlayExternalSoundLocalized(Vector3 pos, AudioClip audioClip)
     {
-        AudioSource sound = new GameObject(relativeFilePath).AddComponent<AudioSource>();
+        AudioSource sound = new GameObject(audioClip.name).AddComponent<AudioSource>();
 
-        sound.gameObject.name = "***ARUI-" + relativeFilePath;
-        sound.clip = Resources.Load(relativeFilePath) as AudioClip;
+        sound.gameObject.name = "***ARUI-" + audioClip.name;
+        sound.clip = audioClip;
         sound.transform.parent = transform;
         sound.spatialize = true;
         sound.maxDistance = 10f;
@@ -166,6 +165,7 @@ public class AudioManager : Singleton<AudioManager>, IMixedRealitySpeechHandler
 
         audioSource.Play();
         _currentlyPlayingSound.Add(audioSource);
+        AngelARUI.Instance.DebugLogMessage("Playing sound file "+ audioClip.name + " at " +pos, true);
 
         while (audioSource.isPlaying)
         {

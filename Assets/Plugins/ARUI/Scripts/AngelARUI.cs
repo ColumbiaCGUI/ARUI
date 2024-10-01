@@ -132,10 +132,7 @@ public class AngelARUI : Singleton<AngelARUI>
     /// <summary>
     /// Clear the current manual. If called, the virtual agent will not show any information.
     /// </summary>
-    public void ClearManual()
-    {
-        DataProvider.Instance.Clear();
-    }
+    public void ClearManual() => DataProvider.Instance.Clear();
 
     /// <summary>
     /// Set the current step the user has to do at given taskID
@@ -214,6 +211,35 @@ public class AngelARUI : Singleton<AngelARUI>
         AudioManager.Instance.PlayAndShowMessage(message, timeout);
         Orb.Instance.SetOrbThinking(false);
     }
+
+    /// <summary>
+    /// Play sound file at the given position.
+    /// The filepath should be relative to Unity's Resources folder in Assets.
+    /// </summary>
+    /// <param name="pos"></param>
+    /// <param name="relativeFilePath"></param>
+    public void PlaySoundAt(Vector3 pos, string relativeFilePath)
+    {
+        AudioClip tmpAudioClip = null;
+        try
+        {
+            tmpAudioClip = Resources.Load(relativeFilePath) as AudioClip;
+        } catch
+        {
+            tmpAudioClip = null;
+        }
+
+        if (tmpAudioClip == null)
+            AngelARUI.Instance.DebugLogMessage("Sound file path was invalid or file could not be found - " + relativeFilePath, true);
+        else
+            AudioManager.Instance.PlayExternalSound(pos, tmpAudioClip);
+    }
+
+    /// <summary>
+    /// Play sound file at the position of the agent. The filepath should be relative to Unity's Resources folder in Assets.
+    /// </summary>
+    /// <param name="relativeFilePath"></param>
+    public void PlaySoundAtAgent(string relativeFilePath) => PlaySoundAt(Orb.Instance.orbTransform.position, relativeFilePath);
 
     /// <summary>
     /// If given paramter is true, the orb will show message to the user that the system detected an attempt to skip the current task.
@@ -342,6 +368,13 @@ public class AngelARUI : Singleton<AngelARUI>
 
     public void SetAgentMessageAlignment(MessageAlignment newAlignment) => Orb.Instance.SetMessageAlignmentTo(newAlignment);
 
+    /// <summary>
+    /// Call to manually override the movement behavior. If given parameter is true, the agent will stay put in it's current
+    /// position, else the agent will follow the user.
+    /// </summary>
+    /// <param name="shouldBeFixed"></param>
+    public void SetAgentAsFixed(bool shouldBeFixed) => Orb.Instance.SetCurrentLocationAsFixed(shouldBeFixed);
+
     #endregion
 
     #region Voice Activation
@@ -406,10 +439,6 @@ public class AngelARUI : Singleton<AngelARUI>
 
     #region Design Parameters
 
-    public void PlaySoundAt(Vector3 pos, string relativeFilePath)
-    {
-        AudioManager.Instance.PlayExternalSound(pos, relativeFilePath);
-    }
 
     #endregion
 

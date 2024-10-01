@@ -330,7 +330,7 @@ public class ExampleScript : MonoBehaviour
         }
         if (Input.GetKeyUp(KeyCode.S))
         {
-            AngelARUI.Instance.DebugShowEyeGazeTarget(true);
+            AngelARUI.Instance.PlaySoundAt(new Vector3(5, 5, 5), "test");
         }
         if (Input.GetKeyUp(KeyCode.D))
         {
@@ -349,6 +349,15 @@ public class ExampleScript : MonoBehaviour
         if (Input.GetKeyUp(KeyCode.Alpha0))
         {
             AngelARUI.Instance.RemoveWarningMessage();
+        }
+
+        if (Input.GetKeyUp(KeyCode.Alpha7))
+        {
+            AngelARUI.Instance.SetAgentAsFixed(true);
+        }
+        if (Input.GetKeyUp(KeyCode.Alpha8))
+        {
+            AngelARUI.Instance.SetAgentAsFixed(false);
         }
     }
 
