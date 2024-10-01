@@ -100,8 +100,8 @@ public class OrbTask : MonoBehaviour
         _currentStepText.text = "";
 
         _pieProgressRect.Thickness = _thickness;
-        _orbRect.Thickness = _thickness;
-        _pieProgressRect.End = new Vector3(_xEnd,0,0);
+        _pieProgressRect.End = _pieProgressRect.Start;
+        _orbRect.Thickness = 0;
 
         _textContainer.TextColor = new Color(_activeColorText.r, _activeColorText.g, _activeColorText.b, 1);
     }
@@ -114,6 +114,14 @@ public class OrbTask : MonoBehaviour
         _pieText.SetActive(active);
     }
 
+    public void SetTaskMessageDone(bool showTaskName)
+    {
+        string currentname = "";
+        if (showTaskName) 
+            currentname = _taskname;
+
+        _currentStepText.text = currentname + " - Done";
+    }
 
     /// <summary>
     /// Set the text message of this orb task container.
@@ -129,15 +137,13 @@ public class OrbTask : MonoBehaviour
             maxChar = 80;
 
         string newPotentialMessage = "";
+
         if (showTaskName)
-        {
-            newPotentialMessage = Utils.SplitTextIntoLines(TaskName + " (" + (stepIndex + 1) + "/" + total + ") : " +
-            message, maxChar);
-        } else {
-            newPotentialMessage = Utils.SplitTextIntoLines("(" + (stepIndex + 1) + "/" + total + ") : " +
-            message, maxChar);
-        }
-        
+            newPotentialMessage = TaskName;
+
+        newPotentialMessage += Utils.SplitTextIntoLines(TaskName + " (" + (stepIndex + 1) + "/" + total + ") : " +
+      message, maxChar);
+
         _currentStepText.text = newPotentialMessage;
     }
 

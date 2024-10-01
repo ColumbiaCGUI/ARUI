@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,17 +12,14 @@ public enum SusbcriberType
 
 public class DataProvider : Singleton<DataProvider>
 {
-    private Dictionary<string, string> _manual = null; // Don't write to manual, only read! Manual should be only set once.
-    public bool ManualInitialized
-    {
-        get => _manual != null;
-    }
+    public Dictionary<string, TaskList> CurrentActiveTasks => _currentActiveTasks; /// <access to the current task state
+    public string CurrentObservedTask => _currentObservedTask;
+
+    private Dictionary<string, string> _manual = null; 
 
     private Dictionary<string, TaskList> _currentActiveTasks = new Dictionary<string, TaskList>();
-    public Dictionary<string, TaskList> CurrentActiveTasks => _currentActiveTasks;
 
     private string _currentObservedTask = "";
-    public string CurrentObservedTask => _currentObservedTask;
 
     private Dictionary<string, CVDetectedObj> DetectedObjects = new Dictionary<string, CVDetectedObj>();
 
@@ -80,18 +78,34 @@ public class DataProvider : Singleton<DataProvider>
     /// jsonTaskLists is a list of json strings 
     /// </summary>
     /// <param name="jsonTaskLists"></param>
-    public void InitManual(Dictionary<string, string> jsonTaskLists)
+    public void SetManual(Dictionary<string, string> jsonTaskLists)
     {
-        if (ManualInitialized || jsonTaskLists == null || jsonTaskLists.Keys.Count == 0) 
-            return;
-        else
-            _manual = new Dictionary<string, string>();
+        Clear();
+        _manual = new Dictionary<string, string>();
 
         foreach (string taskID in jsonTaskLists.Keys)
         {
             _manual.Add(taskID, jsonTaskLists[taskID]);
             AngelARUI.Instance.DebugLogMessage("DATA PROVIDER: loaded task from json: " + jsonTaskLists[taskID], true);
         }
+    }
+
+    public void Clear()
+    {
+        if (_manual == null) return;
+
+        _manual.Clear();
+        _manual = null;
+
+        _currentActiveTasks.Clear();
+
+        _currentObservedTask = "";
+
+        AngelARUI.Instance.DebugLogMessage("DATA PROVIDER: manual cleared", true);
+
+        PublishToSubscribers(SusbcriberType.TaskListChanged);
+        PublishToSubscribers(SusbcriberType.CurrentStepChanged);
+        PublishToSubscribers(SusbcriberType.ObservedTaskChanged);
     }
 
     /// <summary>
@@ -103,7 +117,7 @@ public class DataProvider : Singleton<DataProvider>
     /// <param name="tasksToBe"></param>
     public void SetSelectedTasksFromManual(List<string> tasksToBe)
     {
-        if (!ManualInitialized || tasksToBe == null || tasksToBe.Count > _manual.Keys.Count) return;
+        if (_manual == null || tasksToBe == null || tasksToBe.Count > _manual.Keys.Count) return;
 
         Dictionary<string, TaskList> copy = new Dictionary<string, TaskList>(_currentActiveTasks);
 
@@ -141,12 +155,6 @@ public class DataProvider : Singleton<DataProvider>
         if (copy.Keys.Count > 0 && (_currentObservedTask.Equals("") || !copy.ContainsKey(_currentObservedTask))) //Set the a random initial value for the currentObservedTask
             SetCurrentObservedTask(copy.First().Key);
 
-        //If manual is set for the first time, say the step
-//        if (_currentObservedTask != null)
-//        {
-//            AudioManager.Instance.PlayMessage(_currentActiveTasks[_currentObservedTask].Steps[0].StepDesc);
-//        }
-
         string debug = "DATA PROVIDER: selected tasks set to: ";
         foreach (string taskID in _currentActiveTasks.Keys)
             debug += taskID + ", ";
@@ -163,7 +171,7 @@ public class DataProvider : Singleton<DataProvider>
     /// <param name="taskID"></param>
     public void SetCurrentObservedTask(string taskID)
     {
-        if (!ManualInitialized || _currentActiveTasks == null 
+        if (_manual == null || _currentActiveTasks == null 
             || !_currentActiveTasks.ContainsKey(taskID)
             || _currentObservedTask == taskID) return;
 
@@ -188,7 +196,7 @@ public class DataProvider : Singleton<DataProvider>
     /// <param name="stepIndex">index of current step in the task list given by taskID</param>
     public void SetCurrentStep(string taskID, int stepIndex)
     {
-        if (!ManualInitialized || _currentActiveTasks == null 
+        if (_manual == null || _currentActiveTasks == null 
             || !_currentActiveTasks.ContainsKey(taskID)
             || _currentActiveTasks[taskID].CurrStepIndex == stepIndex) return;
 
@@ -242,29 +250,6 @@ public class DataProvider : Singleton<DataProvider>
         PublishToSubscribers(SusbcriberType.CurrentStepChanged);
     }
 
-    /// <summary>
-    /// Proceed to the next step at the given task. Nothing happens if the taskID is not currently selected
-    /// </summary>
-    /// <param name="taskID"></param>
-    private void GoToNextStep(string taskID)
-    {
-        if (!ManualInitialized || _currentActiveTasks == null || !_currentActiveTasks.ContainsKey(taskID)) return;
-        int potentialStepIndex = _currentActiveTasks[taskID].CurrStepIndex + 1;
-
-        SetCurrentStep(taskID, potentialStepIndex);
-    }
-
-    /// <summary>
-    /// Proceed to the previous step at the given task. Nothing happens if the taskID is not currently selected
-    /// </summary>
-    /// <param name="taskID"></param>
-    private void GoToPreviousStep(string taskID)
-    {
-        if (_manual == null || _currentActiveTasks == null || !_currentActiveTasks.ContainsKey(taskID)) return;
-        int potentialStepIndex = _currentActiveTasks[taskID].CurrStepIndex -1;
-
-        SetCurrentStep(taskID, potentialStepIndex);
-    }
 
     #endregion
 

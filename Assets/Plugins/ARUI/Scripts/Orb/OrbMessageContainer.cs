@@ -226,7 +226,7 @@ public class OrbMessageContainer : MonoBehaviour
     /// <param name="currentTaskID"></param>
     public void HandleUpdateTaskListEvent(Dictionary<string, TaskList> currentActiveTasks, string currentTaskID)
     {
-        if (currentActiveTasks.Count == 0 || currentActiveTasks.Count > 5) return;
+        if (currentActiveTasks.Count > 5) return;
 
         foreach (OrbTask pie in _taskNameToOrbPie.Values)
             pie.ResetPie();
@@ -256,6 +256,16 @@ public class OrbMessageContainer : MonoBehaviour
     {
         UpdateAnchorInstant();
 
+        if (currentActiveTasks.Count == 0)
+        {
+            foreach (OrbTask pie in _taskNameToOrbPie.Values)
+                pie.SetPieActive(false);
+
+            _prevText.text = "";
+            _nextText.text = "";
+            return;
+        }
+
         string tempName = "";
         foreach (string taskName in currentActiveTasks.Keys)
         {
@@ -263,11 +273,7 @@ public class OrbMessageContainer : MonoBehaviour
             {
                 if (currentActiveTasks[taskName].CurrStepIndex >= currentActiveTasks[taskName].Steps.Count)
                 {
-                    if (_taskNameToOrbPie[taskName].gameObject.activeSelf)
-                    {
-                        AudioManager.Instance.PlaySound(transform.position, SoundType.confirmation);
-                        _taskNameToOrbPie[taskName].gameObject.SetActive(false);
-                    }
+                    _taskNameToOrbPie[taskName].SetTaskMessageDone(currentActiveTasks.Count > 1);
                 }
                 else
                 {
@@ -288,23 +294,21 @@ public class OrbMessageContainer : MonoBehaviour
         // Only show the previous and next step at the orb if there is only one task
         if (_taskNameToOrbPie.Count==1)
         {
-            _prevText.text = "";
-            _nextText.text = "";
             int prevIndex = currentActiveTasks[tempName].PrevStepIndex;
             int nextIndex = currentActiveTasks[tempName].NextStepIndex;
 
-            if (prevIndex>=0)
+            if (prevIndex >= 0)
             {
                 string previous = currentActiveTasks[tempName].Steps[prevIndex].StepDesc;
                 _prevText.text = "<b>DONE:</b> " + previous;
             }
-            if (nextIndex>=0 && nextIndex < currentActiveTasks[tempName].Steps.Count)
+            if (nextIndex >= 0 && nextIndex < currentActiveTasks[tempName].Steps.Count)
             {
                 string next = currentActiveTasks[tempName].Steps[nextIndex].StepDesc;
                 _nextText.text = "<b>Upcoming:</b> " + next;
             }
 
-            if (currentActiveTasks[tempName].CurrStepIndex == currentActiveTasks[tempName].Steps.Count-1)
+            if (currentActiveTasks[tempName].CurrStepIndex == currentActiveTasks[tempName].Steps.Count - 1)
             {
                 _nextText.text = "<b>Upcoming: All Done!</b> ";
             }
@@ -314,7 +318,6 @@ public class OrbMessageContainer : MonoBehaviour
             _prevText.text = "";
             _nextText.text = "";
         }
-
     }
 
     #region Warning

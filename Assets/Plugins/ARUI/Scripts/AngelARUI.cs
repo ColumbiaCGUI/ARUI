@@ -123,10 +123,18 @@ public class AngelARUI : Singleton<AngelARUI>
     /// Nothing happens if allTasks is null or length is 0, else the manual will be set in the database
     /// </summary>
     /// <param name="allTasks"></param>
-    public void InitManual(Dictionary<string, string> allTasks)
+    public void SetManual(Dictionary<string, string> allTasks)
     {
-        DataProvider.Instance.InitManual(allTasks);
+        DataProvider.Instance.SetManual(allTasks);
         DataProvider.Instance.SetSelectedTasksFromManual(new List<string>(allTasks.Keys));
+    }
+
+    /// <summary>
+    /// Clear the current manual. If called, the virtual agent will not show any information.
+    /// </summary>
+    public void ClearManual()
+    {
+        DataProvider.Instance.Clear();
     }
 
     /// <summary>
@@ -394,6 +402,15 @@ public class AngelARUI : Singleton<AngelARUI>
 
         _useViewManagement = loaded;
     }
+    #endregion
+
+    #region Design Parameters
+
+    public void PlaySoundAt(Vector3 pos, string relativeFilePath)
+    {
+        AudioManager.Instance.PlayExternalSound(pos, relativeFilePath);
+    }
+
     #endregion
 
     #region Logging and Debugging

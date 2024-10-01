@@ -104,7 +104,7 @@
 //        foreach (string btnNames in allTaskBtns.Keys)
 //            allTaskBtns[btnNames].IsDisabled = !manual.Contains(btnNames);
 
-//        DataProvider.Instance.InitManual(manual);
+//        DataProvider.Instance.SetManual(manual);
 //    }
 
 //    /// <summary>

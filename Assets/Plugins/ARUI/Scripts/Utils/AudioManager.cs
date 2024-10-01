@@ -130,6 +130,52 @@ public class AudioManager : Singleton<AudioManager>, IMixedRealitySpeechHandler
     /// <param name="type">Type of sound effect that should be played</param>
     public void PlaySound(Vector3 pos, SoundType type) => StartCoroutine(PlaySoundLocalized(pos, type));
 
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="pos"></param>
+    /// <param name="relativeFilePath"></param>
+    /// <exception cref="NotImplementedException"></exception>
+    public void PlayExternalSound(Vector3 pos, string relativeFilePath) => StartCoroutine(PlayExternalSoundLocalized(pos, relativeFilePath));
+
+    /// <summary>
+    /// Play a sound file at a certain position
+    /// </summary>
+    /// <param name="pos">Sound effect is played form this position</param>
+    /// <param name="type">Type of sound effect that should be played</param>
+    /// <returns></returns>
+    private IEnumerator PlayExternalSoundLocalized(Vector3 pos, string relativeFilePath)
+    {
+        AudioSource sound = new GameObject(relativeFilePath).AddComponent<AudioSource>();
+
+        sound.gameObject.name = "***ARUI-" + relativeFilePath;
+        sound.clip = Resources.Load(relativeFilePath) as AudioClip;
+        sound.transform.parent = transform;
+        sound.spatialize = true;
+        sound.maxDistance = 10f;
+        sound.spatialBlend = 1;
+        sound.loop = false;
+        sound.playOnAwake = false;
+
+        sound.transform.position = pos;
+
+        yield return new WaitForEndOfFrame();
+
+        AudioSource audioSource = sound.GetComponent<AudioSource>();
+
+        audioSource.Play();
+        _currentlyPlayingSound.Add(audioSource);
+
+        while (audioSource.isPlaying)
+        {
+            yield return new WaitForEndOfFrame();
+        }
+
+        _currentlyPlayingSound.Remove(audioSource);
+        Destroy(sound.gameObject);
+    }
+
     /// <summary>
     /// Mute audio feedback for task guidance, but NOT sound effects
     /// </summary>

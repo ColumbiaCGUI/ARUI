@@ -49,7 +49,7 @@ public class ExampleScript : MonoBehaviour
             allJsonTasks.Add(taskID, jsonTextFile.text);
         }
 
-        AngelARUI.Instance.InitManual(allJsonTasks);
+        AngelARUI.Instance.SetManual(allJsonTasks);
 
         AngelARUI.Instance.SetAgentThinking(true);
 
@@ -231,8 +231,19 @@ public class ExampleScript : MonoBehaviour
             allJsonTasks.Add(taskID, jsonTextFile.text);
         }
 
-        AngelARUI.Instance.InitManual(allJsonTasks);
+        AngelARUI.Instance.SetManual(allJsonTasks);
 
+        yield return new WaitForSeconds(2);
+
+        AngelARUI.Instance.GoToStep("Filter Inspection", 1);
+
+        yield return new WaitForSeconds(2);
+
+        AngelARUI.Instance.ClearManual();
+
+        yield return new WaitForSeconds(1);
+
+        StartCoroutine(RunAutomatedTestsRecipes());
     }
     #endregion
 
@@ -271,14 +282,15 @@ public class ExampleScript : MonoBehaviour
                 allJsonTasks.Add(taskID, jsonTextFile.text);
             }
 
-            AngelARUI.Instance.InitManual(allJsonTasks);
-            AngelARUI.Instance.GoToStep("Filter Inspection", 1);
+            AngelARUI.Instance.SetManual(allJsonTasks);
+            AngelARUI.Instance.GoToStep("Filter Inspection", 0);
         } 
 
         // Example how to step forward/backward in tasklist. 
         if (Input.GetKeyUp(KeyCode.RightArrow))
         {
-            GoToNextStepConfirmation();
+            _currentStepMap[_currentTask]++;
+            AngelARUI.Instance.GoToStep(_currentTask, _currentStepMap[_currentTask]);
         }
         else if (Input.GetKeyUp(KeyCode.LeftArrow))
         {
@@ -294,6 +306,11 @@ public class ExampleScript : MonoBehaviour
         if (Input.GetKeyUp(KeyCode.M))
         {
             AngelARUI.Instance.PlayMessageAtAgent("Hello",10);
+        }
+
+        if (Input.GetKeyUp(KeyCode.Delete))
+        {
+            AngelARUI.Instance.ClearManual();
         }
 
         if (Input.GetKeyUp(KeyCode.N))
