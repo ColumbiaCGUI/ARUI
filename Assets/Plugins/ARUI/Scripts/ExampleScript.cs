@@ -350,15 +350,6 @@ public class ExampleScript : MonoBehaviour
         {
             AngelARUI.Instance.RemoveWarningMessage();
         }
-
-        if (Input.GetKeyUp(KeyCode.Alpha7))
-        {
-            AngelARUI.Instance.SetAgentAsFixed(true);
-        }
-        if (Input.GetKeyUp(KeyCode.Alpha8))
-        {
-            AngelARUI.Instance.SetAgentAsFixed(false);
-        }
     }
 
 
