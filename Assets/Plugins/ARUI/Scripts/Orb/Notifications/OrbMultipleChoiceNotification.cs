@@ -14,7 +14,9 @@ public class OrbMultipleChoiceNotification : OrbNotificationTemplate
 {
     private List<DwellButton> _buttons = new List<DwellButton>();
     private List<UnityEvent> _choiceEvents = new List<UnityEvent>();
-    private List<string> _choiceLabels;
+
+    private List<string> _choiceID;
+    private List<TMPro.TextMeshProUGUI> _choiceLabels = new List<TMPro.TextMeshProUGUI>();
 
 
     private int _maxChoices = 5;
@@ -36,6 +38,8 @@ public class OrbMultipleChoiceNotification : OrbNotificationTemplate
             dwell.gameObject.SetActive(false);
 
             _buttons.Add(dwell);
+
+            _choiceLabels.Add(allButtons.GetChild(i).GetChild(2).GetComponentInChildren<TMPro.TextMeshProUGUI>());
         }
         
         _time = _textContainer.transform.GetComponentInChildren<Shapes.Line>();
@@ -46,7 +50,7 @@ public class OrbMultipleChoiceNotification : OrbNotificationTemplate
 
         transform.SetLayerAllChildren(StringResources.LayerToInt(StringResources.UI_layer));
 
-        _choiceLabels = new List<string> { "A", "B", "C", "D", "E"};
+        _choiceID = new List<string> { "A", "B", "C", "D", "E"};
     }
 
 
@@ -64,9 +68,9 @@ public class OrbMultipleChoiceNotification : OrbNotificationTemplate
         int i = 0;
         foreach (string choice in choiceMsg)
         {
-            dialogText += _choiceLabels[i]+" : "+ choice + ", ";
             _choiceEvents[i].AddListener(confirmedEventPerChoice[i]);
             _buttons[i].gameObject.SetActive(true);
+            _choiceLabels[i].text = choice;
             i++;
         }
 

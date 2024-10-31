@@ -10,9 +10,10 @@ public enum AcceptedSpeechInput{
     SelectOkay = 7,
 }
 
-public class OrbNotificationManager : MonoBehaviour
+public class OrbNotificationManager : Singleton<OrbNotificationManager>
 {
-    private Dictionary<int, OrbNotificationTemplate> _allNotificationDialog = null;     /// <Reference to confirmation dialogue
+    private Dictionary<int, OrbNotificationTemplate> _allNotificationDialog = new Dictionary<int, OrbNotificationTemplate>();     /// <Reference to confirmation dialogue
+    public int GetCurrentActiveDialogs() => _allNotificationDialog.Count;
 
     ///****** All notification prefabs
     private GameObject _confirmationNotificationPrefab = null;
@@ -22,8 +23,6 @@ public class OrbNotificationManager : MonoBehaviour
     // Start is called before the first frame update
     private void Start()
     {
-        _allNotificationDialog = new Dictionary<int, OrbNotificationTemplate>();
-
         //Load resources for UI elements
         _confirmationNotificationPrefab = Resources.Load(StringResources.ConfNotificationOrb_path) as GameObject;
         _confirmationNotificationPrefab.gameObject.name = "***ARUI-ConfirmationNotification";

@@ -386,6 +386,15 @@ public class AngelARUI : Singleton<AngelARUI>
 
     #endregion
 
+    #region Storage
+
+    public void StoreObject(GameObject objectToStore, OrbStorageManager type)
+    {
+       
+    }
+
+    #endregion
+
     #region View management
 
     /// <summary>

@@ -28,6 +28,9 @@ public class OrbFace : MonoBehaviour
 
     private GameObject _warningIcon;
     private GameObject _noteIcon;
+
+    private OrbStorageManager _storageManager;
+
     public bool MessageNotificationEnabled
     {
         set => SetNotificationPulse(value);
@@ -106,16 +109,21 @@ public class OrbFace : MonoBehaviour
         _noteIcon.SetActive(false);
         _warningIcon = allDiscs[5].gameObject;
         _warningIcon.SetActive(false);
+
+        _storageManager = transform.GetChild(0).GetChild(6).gameObject.AddComponent<OrbStorageManager>();
     }
 
     private void Update()
     {
         if (_userIsLooking || _userIsGrabbing && !_eyes.gameObject.activeSelf)
+        {
             _eyes.gameObject.SetActive(true);
-
+        }
         else if (!_userIsLooking && !_userIsGrabbing && _eyes.gameObject.activeSelf)
+        {
             _eyes.gameObject.SetActive(false);
-
+        }
+            
         if (Orb.Instance.OrbBehavior.Equals(MovementBehavior.Fixed))
             _mouth.Type = Shapes.DiscType.Disc;
         else

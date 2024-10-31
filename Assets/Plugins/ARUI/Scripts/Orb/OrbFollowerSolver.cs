@@ -75,10 +75,16 @@ public class OrbFollowerSolver : Solver
 
             if (!_coolDown)
             {
-                //update maxDistance based on spatial map
-                float dist = transform.position.GetDistanceToSpatialMap();
-                if (dist != -1)
-                    _currentMaxDistance = Mathf.Max(ARUISettings.OrbMinDistToUser, Mathf.Min(dist - 0.05f, ARUISettings.OrbMaxDistToUser));
+                if (OrbNotificationManager.Instance != null && OrbNotificationManager.Instance.GetCurrentActiveDialogs() > 0)
+                {
+                    _currentMaxDistance = ARUISettings.OrbMinDistToUser;
+                } else
+                {
+                    //update maxDistance based on spatial map
+                    float dist = transform.position.GetDistanceToSpatialMap();
+                    if (dist != -1)
+                        _currentMaxDistance = Mathf.Max(ARUISettings.OrbMinDistToUser, Mathf.Min(dist - 0.05f, ARUISettings.OrbMaxDistToUser));
+                }
 
                 bool moving = GetDesiredPos(ref goalPosition);
                 if (moving)
@@ -141,6 +147,15 @@ public class OrbFollowerSolver : Solver
     {
         // Determine reference locations and directions
         Vector3 direction = SolverReferenceDirection;
+
+        if (OrbNotificationManager.Instance != null && OrbNotificationManager.Instance.GetCurrentActiveDialogs() > 0)
+        {
+            // Adjust the SolverReferenceDirection to point slightly upwards towards the top of the FOV
+            float upwardAngle = -29f / 2f; // Half of the vertical FOV of HoloLens 2
+            Quaternion upwardRotation = Quaternion.AngleAxis(upwardAngle, Camera.main.transform.right); // Rotate upwards around the camera's right axis
+            direction = upwardRotation * SolverHandler.TransformTarget.forward; // This is the new SolverReferenceDirection
+        }
+
         Vector3 elementPoint = transform.position;
         Vector3 elementDelta = elementPoint - ReferencePoint;
         float elementDist = elementDelta.magnitude;
@@ -167,10 +182,9 @@ public class OrbFollowerSolver : Solver
 
         // Clamp distance too, if desired
         float clampedDistance = Mathf.Clamp(elementDist, ARUISettings.OrbMinDistToUser, _currentMaxDistance);
-
+        
         if (currentAngle > _currentMaxViewDegrees * verticalAspectScale || _isSticky)
         {
-            //Debug.Log("Current:" + currentAngle + ", " + (currentMaxViewDegrees * verticalAspectScale));
             float angRad = currentAngleClamped * Mathf.Deg2Rad;
             desiredPos = ReferencePoint + clampedDistance * (direction * Mathf.Cos(angRad) + perpendicularDirection * Mathf.Sin(angRad));
         }
