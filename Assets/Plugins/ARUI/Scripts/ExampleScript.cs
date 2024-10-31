@@ -199,14 +199,12 @@ public class ExampleScript : MonoBehaviour
     private void ShowTestMultipleChoice()
     {
         AngelARUI.Instance.TryGetUserMultipleChoice("Please select your preferred instruction alignment:",
-            new List<string> { "Right", "Left", "Automatic", "Automatic", "Automatic" },
+            new List<string> { "Right", "Left", "Automatic" },
             new List<UnityAction>()
             {
                     () => AngelARUI.Instance.SetAgentMessageAlignment(MessageAlignment.LockRight),
                     () => AngelARUI.Instance.SetAgentMessageAlignment(MessageAlignment.LockLeft),
-                    () => AngelARUI.Instance.SetAgentMessageAlignment(MessageAlignment.Auto),
-                    () => AngelARUI.Instance.SetAgentMessageAlignment(MessageAlignment.Auto),
-                    () => AngelARUI.Instance.SetAgentMessageAlignment(MessageAlignment.Auto),
+                    () => AngelARUI.Instance.SetAgentMessageAlignment(MessageAlignment.Auto)
             }, null, 30);
 
     }

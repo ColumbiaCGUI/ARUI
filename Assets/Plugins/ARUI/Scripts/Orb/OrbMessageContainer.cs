@@ -14,7 +14,7 @@ public enum MessageAlignment
 
 public class OrbMessageContainer : MonoBehaviour
 {
-    private OrbNotificationManager _orbNotificationManager;
+    private DialogManager _orbNotificationManager;
 
     private List<OrbTask> _allTasksPlaceholder = new List<OrbTask>();
 
@@ -134,7 +134,7 @@ public class OrbMessageContainer : MonoBehaviour
         _nextText.text = "";
 
         //Init the notification manager at orb
-        _orbNotificationManager = transform.GetChild(1).GetChild(0).GetChild(0).GetChild(2).GetComponentInChildren<VerticalLayoutGroup>().gameObject.AddComponent<OrbNotificationManager>();
+        _orbNotificationManager = transform.GetChild(1).GetChild(0).GetChild(0).GetChild(2).GetComponentInChildren<VerticalLayoutGroup>().gameObject.AddComponent<DialogManager>();
         _orbNotificationManager.gameObject.name = "***ARUI-" + StringResources.NotificationManager_name;
     }
 

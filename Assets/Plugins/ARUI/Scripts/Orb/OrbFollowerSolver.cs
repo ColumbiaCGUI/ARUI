@@ -75,7 +75,7 @@ public class OrbFollowerSolver : Solver
 
             if (!_coolDown)
             {
-                if (OrbNotificationManager.Instance != null && OrbNotificationManager.Instance.GetCurrentActiveDialogs() > 0)
+                if (DialogManager.Instance != null && DialogManager.Instance.CurrentActiveDialogs > 0)
                 {
                     _currentMaxDistance = ARUISettings.OrbMinDistToUser;
                 } else
@@ -148,7 +148,7 @@ public class OrbFollowerSolver : Solver
         // Determine reference locations and directions
         Vector3 direction = SolverReferenceDirection;
 
-        if (OrbNotificationManager.Instance != null && OrbNotificationManager.Instance.GetCurrentActiveDialogs() > 0)
+        if (DialogManager.Instance != null && DialogManager.Instance.CurrentActiveDialogs > 0)
         {
             // Adjust the SolverReferenceDirection to point slightly upwards towards the top of the FOV
             float upwardAngle = -29f / 2f; // Half of the vertical FOV of HoloLens 2

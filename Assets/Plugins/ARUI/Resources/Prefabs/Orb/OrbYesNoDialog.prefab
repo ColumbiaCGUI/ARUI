@@ -641,7 +641,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3851953592626974122}
   m_Layer: 5
-  m_Name: OrbYesNoNotification
+  m_Name: OrbYesNoDialog
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -829,7 +829,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4505128970180590443}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.08, y: -0.043, z: 0}
+  m_LocalPosition: {x: 0.02464294, y: -0.095, z: 0}
   m_LocalScale: {x: 1.2, y: 1.2, z: 1.2}
   m_Children:
   - {fileID: 8000876147208035413}
@@ -849,7 +849,7 @@ BoxCollider:
   m_Enabled: 1
   serializedVersion: 2
   m_Size: {x: 0.04, y: 0.04, z: 0.04}
-  m_Center: {x: 0, y: 0, z: 0.01}
+  m_Center: {x: 0, y: 0, z: -0.01}
 --- !u!114 &8434855455187102074
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -967,7 +967,7 @@ BoxCollider:
   m_Enabled: 1
   serializedVersion: 2
   m_Size: {x: 0.04, y: 0.04, z: 0.04}
-  m_Center: {x: 0, y: 0, z: 0.01}
+  m_Center: {x: 0, y: 0, z: -0.01}
 --- !u!114 &1637157510758018506
 MonoBehaviour:
   m_ObjectHideFlags: 0
