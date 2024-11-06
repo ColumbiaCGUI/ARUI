@@ -66,7 +66,7 @@ public class OrbFollowerSolver : Solver
 
     public override void SolverUpdate()
     {
-        // Update the collider AABB of the orb based on the position and visibility of the orb message
+        // Update the _collider AABB of the orb based on the position and visibility of the orb message
         thisControllable.UpdateRectBasedOnSubColliders(Orb.Instance.AllOrbColliders);
 
         if (!(_paused || _isLookingAtOrbFlag))

@@ -21,7 +21,8 @@ public class DataProvider : Singleton<DataProvider>
 
     private string _currentObservedTask = "";
 
-    private Dictionary<string, CVDetectedObj> DetectedObjects = new Dictionary<string, CVDetectedObj>();
+    private Dictionary<string, CVDetectedObj> _detectedObjects = new Dictionary<string, CVDetectedObj>();
+    public Dictionary<string, CVDetectedObj> DetectedObjects => _detectedObjects;
 
     #region Data Change Event Handling
 
@@ -261,7 +262,7 @@ public class DataProvider : Singleton<DataProvider>
     /// <param name="ID">ID to identify the gameobject that should be added</param>
     public void AddDetectedObjects(GameObject bbox, string ID)
     {
-        if (DetectedObjects.ContainsKey(ID)) return;
+        if (_detectedObjects.ContainsKey(ID)) return;
 
         GameObject copy = Instantiate(bbox);
         copy.gameObject.name = "***ARUI-CVDetected-" + ID;
@@ -271,7 +272,14 @@ public class DataProvider : Singleton<DataProvider>
             Destroy(copy.GetComponent<MeshRenderer>());
 
         CVDetectedObj ndetection = copy.AddComponent<CVDetectedObj>();
-        DetectedObjects.Add(ID, ndetection);
+        _detectedObjects.Add(ID, ndetection);
+    }
+
+    public GameObject GetObjectByID(string ID)
+    {
+        if (!_detectedObjects.ContainsKey(ID)) return null;
+
+        return _detectedObjects[ID].gameObject;
     }
 
     /// <summary>
@@ -280,10 +288,10 @@ public class DataProvider : Singleton<DataProvider>
     /// <param name="ID">ID to identify the gameobject that should be removed</param>
     public void RemoveDetectedObjects(string ID)
     {
-        if (!DetectedObjects.ContainsKey(ID)) return;
+        if (!_detectedObjects.ContainsKey(ID)) return;
 
-        StartCoroutine(LateDestroy(DetectedObjects[ID]));
-        DetectedObjects.Remove(ID);
+        StartCoroutine(LateDestroy(_detectedObjects[ID]));
+        _detectedObjects.Remove(ID);
     }
 
     private IEnumerator LateDestroy(CVDetectedObj temp)

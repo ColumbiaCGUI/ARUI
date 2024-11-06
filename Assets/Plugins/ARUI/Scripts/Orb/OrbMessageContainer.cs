@@ -24,6 +24,8 @@ public class OrbMessageContainer : MonoBehaviour
 
     //** Layout
     private MessageAlignment _currentAlignment = MessageAlignment.Auto;
+    public bool IsMessageRight => _currentAlignmentIsRight;
+
     private bool _currentAlignmentIsRight = true;
 
     //** States

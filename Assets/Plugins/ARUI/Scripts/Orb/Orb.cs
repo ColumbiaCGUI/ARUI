@@ -36,7 +36,7 @@ public class Orb : Singleton<Orb>
     private OrbGrabbable _grabbable;                         /// <reference to grabbing behavior
     private OrbMessageContainer _messageContainer;                     /// <reference to orb message container (part of prefab)
 
-    private List<BoxCollider> _allOrbColliders;              /// <reference to all collider - will be merged for view management.
+    private List<BoxCollider> _allOrbColliders;              /// <reference to all _collider - will be merged for view management.
     public List<BoxCollider> AllOrbColliders => _allOrbColliders;
 
     ///** Placement behaviors - overall, orb stays in the FOV of the user
@@ -45,6 +45,7 @@ public class Orb : Singleton<Orb>
     {
         get => _followSolver.transform;
     }
+
     private GameObject _eyeGazeTargetBody;
 
     ///** Flags
@@ -119,7 +120,7 @@ public class Orb : Singleton<Orb>
 
     /// <summary>
     /// View management
-    /// Update the visibility of the orb message based on eye gaze collisions with the orb collider 
+    /// Update the visibility of the orb message based on eye gaze collisions with the orb _collider 
     /// </summary>
     private void UpdateMessageVisibility()
     {
@@ -195,7 +196,7 @@ public class Orb : Singleton<Orb>
     }
 
     /// <summary>
-    /// Called if input events with hand collider are detected
+    /// Called if input events with hand _collider are detected
     /// </summary>
     /// <param name="isDragging"></param>
     public void SetIsDragging(bool isDragging)
@@ -383,6 +384,7 @@ public class Orb : Singleton<Orb>
     /// <param name="newAlignment"></param>
     public void SetMessageAlignmentTo(MessageAlignment newAlignment) => _messageContainer.ChangeAlignmentTo(newAlignment);
 
+    public bool GetIsMessageRight => _messageContainer.IsMessageRight;
     #endregion
 
     #region Data Change Listeners

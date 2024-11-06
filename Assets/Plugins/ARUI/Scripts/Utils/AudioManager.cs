@@ -387,7 +387,7 @@ public class AudioManager : Singleton<AudioManager>, IMixedRealitySpeechHandler
 
     public bool RegisterKeyword(string keyword, UnityAction keyWordDetectedCallBack)
     {
-        if (keyword != null && keyword.Length >= 2)
+        if (keyword != null && keyword.Length >= 2 && !_keywordToActionMapping.ContainsKey(keyword))
         {
             _keywordToActionMapping.Add(keyword, keyWordDetectedCallBack);
             AngelARUI.Instance.DebugLogMessage("Successfully registered keyword '" + keyword + "'.", true);

@@ -1,49 +1,86 @@
 ﻿using Microsoft.MixedReality.Toolkit.Input;
 using System;
+using UnityEditor;
 using UnityEngine;
 
-public class OrbStorageBox : MonoBehaviour, IMixedRealityPointerHandler
+public class OrbStorageBox : MonoBehaviour
 {
-    private GameObject _storedItem;         // Holds the stored GameObject.
-    public GameObject StoredItem
+    private StorableObject _storedItem = null;         // Holds the stored GameObject.
+    public StorableObject StoredItem
     {
         get => _storedItem;
-        set
-        {
-            _storedItem = value;
-            _isFull = _storedItem != null;  // Update IsFull whenever StoredItem is set.
-        }
     }
 
-    private bool _isFull;                   // Stores whether the box is full or not.
-    public bool IsFull => _isFull;
+    public bool IsFull => _storedItem != null;
 
-    private MeshRenderer _meshRenderer;     // To change the color of the storage box.
+    private float _followSpeed = 2f;   // Delay factor for the following movement.
 
-    // Define colors for different pointer states.
-    private Color defaultColor = Color.white;
-    private Color pointerHoverColor = Color.yellow;
-    private Color pointerClickedColor = Color.green;
+    private Shapes.Line _connection;
 
-    private bool _isLookingAtBox = false;
-    public bool IsLookingAtBox => _isLookingAtBox;
+    private Vector3 _leftAligmentPos = Vector3.zero;
+    private Vector3 _rightAligmentPos = Vector3.zero;
 
+    private float _baseRadius = 0.1f;
 
-    public void Start()
+    private StorableObject _isPreviewing = null;
+
+    public void Initialize()
     {
-        // Initialize MeshRenderer and set default color
-        _meshRenderer = GetComponent<MeshRenderer>();
-        if (_meshRenderer != null)
-        {
-            _meshRenderer.material.color = defaultColor;
-        }
+        _connection = GetComponent<Shapes.Line>();
+        _connection.enabled = false;
 
-        EyeGazeManager.Instance.RegisterEyeTargetID(this.gameObject);
+        _leftAligmentPos = transform.localPosition;
+        _rightAligmentPos = new Vector3(_leftAligmentPos.x * -1, _leftAligmentPos.y, _leftAligmentPos.z);
     }
 
     public void Update()
     {
-        _isLookingAtBox = EyeGazeManager.Instance.CurrentHitID == gameObject.GetInstanceID();
+        if (_storedItem != null)
+        {
+            _storedItem.transform.position =
+               Vector3.Lerp(_storedItem.transform.position, transform.position, _followSpeed * Time.deltaTime);
+
+            _storedItem.Collider.center = transform.InverseTransformPoint(_storedItem.transform.position);
+
+            _connection.Start = transform.InverseTransformPoint(_storedItem.transform.position);
+            _connection.End = transform.InverseTransformPoint(AngelARUI.Instance.GetAgentTransform().transform.position);
+            _connection.enabled = true;
+        } else
+        {
+            if (_isPreviewing==null)
+            {
+                _connection.enabled = false;
+            } else
+            {
+                _connection.Start = transform.InverseTransformPoint(_isPreviewing.transform.position);
+                _connection.End = transform.InverseTransformPoint(AngelARUI.Instance.GetAgentTransform().transform.position);
+                _connection.enabled = true;
+            }
+        }
+    }
+
+    public void SetAlignmentLeft(bool isMessageRight)
+    {
+       if (isMessageRight)
+        {
+            transform.localPosition = _leftAligmentPos;
+        } else
+        {
+            transform.localPosition = _rightAligmentPos;
+        }
+    }
+
+    public void StoreItem(StorableObject item)
+    {
+        _isPreviewing = item;
+
+        _storedItem = item;
+        _storedItem.ScaleToBoxSize(_baseRadius);
+        _storedItem.IsStored = true;
+
+        _connection = GetComponent<Shapes.Line>();
+        _connection.ColorStart = Color.white;
+        _connection.ColorEnd = new Color(1,1,1,0);
     }
 
     /// <summary>
@@ -51,43 +88,24 @@ public class OrbStorageBox : MonoBehaviour, IMixedRealityPointerHandler
     /// </summary>
     public void ClearStorage()
     {
-        StoredItem = null;  // This will also set _isFull to false.
+        _isPreviewing = null;
+
+        _storedItem.ScaleToOriginalSize();
+
+        // Move the stored item 1 meter back relative to the user
+        _storedItem.transform.position = _storedItem.transform.position + AngelARUI.Instance.ARCamera.transform.forward;
+
+        _storedItem.IsStored = false;
+        _storedItem = null;  
     }
 
-    public void OnPointerDown(MixedRealityPointerEventData eventData)
+    internal void Preview(StorableObject lookingAt)
     {
-        // Change the color to indicate the pointer is pressed.
-        if (_meshRenderer != null)
-        {
-            _meshRenderer.material.color = pointerClickedColor;
-        }
+        _isPreviewing = lookingAt;
     }
 
-    public void OnPointerDragged(MixedRealityPointerEventData eventData)
+    internal void UnPreview()
     {
-        throw new System.NotImplementedException();
-    }
-
-    public void OnPointerUp(MixedRealityPointerEventData eventData)
-    {
-        // Reset the color to the hover color when the pointer is released.
-        if (_meshRenderer != null)
-        {
-            _meshRenderer.material.color = pointerHoverColor;
-        }
-    }
-
-    public void OnPointerClicked(MixedRealityPointerEventData eventData)
-    {
-        // Change the color back to the default after clicking.
-        if (_meshRenderer != null)
-        {
-            _meshRenderer.material.color = defaultColor;
-        }
-    }
-
-    internal bool StoreItem(GameObject item)
-    {
-        throw new NotImplementedException();
+        _isPreviewing = null;
     }
 }

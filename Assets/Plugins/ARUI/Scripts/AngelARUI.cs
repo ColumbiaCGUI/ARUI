@@ -341,6 +341,14 @@ public class AngelARUI : Singleton<AngelARUI>
         DataProvider.Instance.RemoveDetectedObjects(ID);
     }
 
+    public void RegisterTetheredObject(GameObject toRegister)
+    {
+        OrbStorageManager.Instance.RegisterStorableObject(toRegister);
+
+        RegisterKeyword("Follow", () => { OrbStorageManager.Instance.HandleStoreKeyword(); });
+        RegisterKeyword("Unfollow", () => { OrbStorageManager.Instance.HandleUnstoreKeyword(); });
+    }
+
     #endregion
 
     #region Orb Behavior

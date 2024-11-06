@@ -124,7 +124,13 @@ public class ExampleScript : MonoBehaviour
 
         AngelARUI.Instance.RegisterKeyword("Hello", () => { AngelARUI.Instance.PlayMessageAtAgent("How can I help you?"); });
 
-        AngelARUI.Instance.RegisterDetectedObject(transform.GetChild(0).gameObject, "test");
+       // AngelARUI.Instance.RegisterDetectedObject(transform.GetChild(0).gameObject, "test");
+       // AngelARUI.Instance.RegisterDetectedObject(transform.GetChild(1).gameObject, "test1");
+        //AngelARUI.Instance.RegisterDetectedObject(transform.GetChild(2).gameObject, "test2");
+
+        AngelARUI.Instance.RegisterTetheredObject(transform.GetChild(0).gameObject);
+        AngelARUI.Instance.RegisterTetheredObject(transform.GetChild(1).gameObject);
+        AngelARUI.Instance.RegisterTetheredObject(transform.GetChild(2).gameObject);
 
     }
 

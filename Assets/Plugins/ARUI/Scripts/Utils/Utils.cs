@@ -280,7 +280,7 @@ public static class Utils
     /// </summary>
     /// <param name="t"></param>
     /// <param name="cam"></param>
-    /// <returns>Rect of given collider in </returns>
+    /// <returns>Rect of given _collider in </returns>
     public static Rect RectFromObjs(this Transform t1, Camera cam, List<BoxCollider> bxcols)
     {
         List<BoxCollider> activeColliders = new List<BoxCollider>();

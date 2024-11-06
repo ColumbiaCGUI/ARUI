@@ -86,7 +86,7 @@ public class FlexibleTextContainer : MonoBehaviour
     }
 
     /// <summary>
-    /// Update collider of messagebox based on the how much space the text takes
+    /// Update _collider of messagebox based on the how much space the text takes
     /// </summary>
     public void Update()
     {

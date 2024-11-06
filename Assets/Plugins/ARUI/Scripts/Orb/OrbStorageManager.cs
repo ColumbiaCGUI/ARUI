@@ -8,51 +8,64 @@ public enum StorageObjectType
     Panel = 1
 }
 
-public class OrbStorageManager : MonoBehaviour
+public class OrbStorageManager : Singleton<OrbStorageManager>
 {
     private List<OrbStorageBox> _allStorageBoxes; 
-    public List<OrbStorageBox> OrbStorage => _allStorageBoxes;
 
-    private bool _isLookingAtStorageArea = false;                       // true if the user is looking at the storage box area or any of the storageboxes.
-    public bool IsLookingAtStorageArea => _isLookingAtStorageArea;    
-
+    private List<StorableObject> _registeredObjects = new List<StorableObject>();
 
     public void Awake()
     {
         _allStorageBoxes = new List<OrbStorageBox>();
-        foreach (var item in gameObject.GetComponentsInChildren<Transform>())
+        for (int i = 0; i < transform.childCount; i++)
         {
-            if (item.gameObject.GetInstanceID()!=gameObject.GetInstanceID())
+            if (transform.GetChild(i).gameObject.GetInstanceID() != gameObject.GetInstanceID())
             {
-                _allStorageBoxes.Add(item.gameObject.AddComponent<OrbStorageBox>());
+                var box = transform.GetChild(i).gameObject.AddComponent<OrbStorageBox>();
+                _allStorageBoxes.Add(box);
+                box.Initialize();
             }
         }
-
-        SetAllVisible(false); // Example to set them inactive during Awake
 
         EyeGazeManager.Instance.RegisterEyeTargetID(gameObject);
     }
 
     public void Update()
     {
-        foreach (var item in OrbStorage)
+        StorableObject lookingAt = null;
+        foreach (StorableObject objs in _registeredObjects)
         {
-            _isLookingAtStorageArea = item.IsLookingAtBox;
+            if (objs.IsLookingAtObj)
+                lookingAt = objs;
         }
-        _isLookingAtStorageArea = _isLookingAtStorageArea || EyeGazeManager.Instance.CurrentHitID == gameObject.GetInstanceID();
+
+        if (lookingAt != null)
+        {
+            foreach (var box in _allStorageBoxes)
+            {
+                if (!box.IsFull)
+                {
+                    box.Preview(lookingAt);
+                    break;
+                }
+            }
+        } else
+        {
+            foreach (var box in _allStorageBoxes)
+            {
+                box.UnPreview();
+            }
+        }
     }
 
-    /// <summary>
-    /// Sets all OrbStorageBoxes visible or not based on the provided boolean.
-    /// </summary>
-    /// <param name="isVisible">True to set visible, false to set not visible.</param>
-    public void SetAllVisible(bool isVisible)
+    public void RegisterStorableObject(GameObject toRegister)
     {
-        foreach (var storageBox in _allStorageBoxes)
-        {
-            storageBox.gameObject.SetActive(isVisible);
-        }
+        // Add the StorableObject component
+        var storable = toRegister.AddComponent<StorableObject>();
+        storable.Initialize();
+        _registeredObjects.Add(storable);
     }
+
 
     /// <summary>
     /// Stores the provided GameObject in the given OrbStorageBox if it is not full.
@@ -61,7 +74,7 @@ public class OrbStorageManager : MonoBehaviour
     /// <param name="item">The GameObject to store.</param>
     /// <param name="storageType">The storage type will define where it will show up.</param>
     /// <returns>True if the item was stored successfully, false otherwise.</returns>
-    public bool StoreItemInBox(GameObject item, StorageObjectType storageType)
+    private bool StoreItemInBox(StorableObject item)
     {
         if (item == null)
         {
@@ -69,35 +82,52 @@ public class OrbStorageManager : MonoBehaviour
             return false;
         }
 
-        switch (storageType)
+        AngelARUI.Instance.DebugLogMessage("Storing object " + item.name, true);
+        // Store Panel in any available box.
+        foreach (var box in _allStorageBoxes)
         {
-            case StorageObjectType.Twin:
-                // Always store Twin in the center box (assuming center box is index 1).
-                int centerIndex = 1;
-                if (_allStorageBoxes.Count > centerIndex && !_allStorageBoxes[centerIndex].IsFull)
-                {
-                    _allStorageBoxes[centerIndex].StoredItem = item;
-                    return true;
-                }
-                Debug.LogWarning("Center box is already full. Cannot store Twin.");
-                return false;
+            if (!box.IsFull)
+            {
+                box.StoreItem(item);
+                return true;
+            }
+        }
 
-            case StorageObjectType.Panel:
-                // Store Panel in any available box.
-                foreach (var box in _allStorageBoxes)
-                {
-                    if (!box.IsFull)
-                    {
-                        box.StoredItem = item;
-                        return true;
-                    }
-                }
-                Debug.LogWarning("All storage boxes are full. Cannot store Panel.");
-                return false;
+        Debug.LogWarning("All storage boxes are full. Cannot store Panel.");
+        return false;
+    }
 
-            default:
-                Debug.LogWarning("Invalid storage type provided.");
-                return false;
+    private void Remove(StorableObject toBeRemoved)
+    {
+        foreach (var box in _allStorageBoxes)
+        {
+            if (box.IsFull && box.StoredItem.GetInstanceID()== toBeRemoved.GetInstanceID())
+            {
+                box.ClearStorage();
+                return;
+            }
+        }
+    }
+
+    public void HandleStoreKeyword()
+    {
+        foreach (StorableObject objs in _registeredObjects)
+        {
+            if (!objs.IsStored && objs.IsLookingAtObj)
+            {
+                StoreItemInBox(objs);
+            }
+        }
+    }
+
+    public void HandleUnstoreKeyword()
+    {
+        foreach (StorableObject objs in _registeredObjects)
+        {
+            if (objs.IsStored && objs.IsLookingAtObj)
+            {
+                Remove(objs);
+            }
         }
     }
 }

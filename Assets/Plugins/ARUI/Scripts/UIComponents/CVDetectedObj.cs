@@ -43,7 +43,7 @@ public class CVDetectedObj : VMNonControllable
         //rb.isKinematic = true;
         //rb.useGravity = false;
 
-        //collider.isTrigger = false;
+        //_collider.isTrigger = false;
     }
 
     public void Start()
