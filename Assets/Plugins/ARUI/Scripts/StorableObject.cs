@@ -68,7 +68,7 @@ public class StorableObject : MonoBehaviour
         // Get the mesh filter of the target GameObject
         Vector3 maxSize = new Vector3(1f,1f,1f); //fallback assumption is that the target object's max dimension is 1 meter
 
-        var mesh = GetComponentInChildren<MeshFilter>();
+        var mesh = GetComponent<MeshFilter>();
         if (mesh == null || mesh.mesh == null)
         {
             // Get the mesh filter of the target GameObject

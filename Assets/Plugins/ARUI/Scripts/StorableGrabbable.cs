@@ -1,11 +1,7 @@
 using Microsoft.MixedReality.Toolkit.Input;
 using Microsoft.MixedReality.Toolkit.UI;
 using UnityEngine;
-using System.Collections;
 
-/// <summary>
-/// Catch pointer and dragging events at orb
-/// </summary>
 public class StorableGrabbable : MonoBehaviour, IMixedRealityPointerHandler
 {
     private ObjectManipulator _grabbable;
