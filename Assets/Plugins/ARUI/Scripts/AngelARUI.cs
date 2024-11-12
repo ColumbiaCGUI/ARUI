@@ -341,13 +341,19 @@ public class AngelARUI : Singleton<AngelARUI>
         DataProvider.Instance.RemoveDetectedObjects(ID);
     }
 
-    public void RegisterTetheredObject(GameObject toRegister)
+    public void RegisterTetheredObject(int ID, GameObject toRegister)
     {
-        OrbStorageManager.Instance.RegisterStorableObject(toRegister);
+        OrbStorageManager.Instance.RegisterStorableObject(ID, toRegister);
 
         RegisterKeyword("Follow", () => { OrbStorageManager.Instance.HandleStoreKeyword(); });
         RegisterKeyword("Unfollow", () => { OrbStorageManager.Instance.HandleUnstoreKeyword(); });
     }
+
+    public void DeRegisterTetheredObject(int ID) => OrbStorageManager.Instance.DeRegisterStorableObject(ID);
+
+    //public void TetherObject(int ID) => OrbStorageManager.Instance.TetherStorableObject(ID);
+
+    //public void UntetherObject(int ID) => OrbStorageManager.Instance.UntetherStorableObject(ID);
 
     #endregion
 
@@ -387,9 +393,18 @@ public class AngelARUI : Singleton<AngelARUI>
 
     #region Voice Activation
 
-    public bool RegisterKeyword(string keyword, UnityAction keyWordDetectedCallBack)
+    /// <summary>
+    /// Register an utterance (e.g., "Follow me") to a callback action that should be invoked when the user is saying the utterance.
+    /// MRTK is used for this, so in addition to call this function, the utterance has to be set in the "MixedRealityToolKit" script in your Unity scene 
+    /// (Input --> Speech --> Add new Speech Command) before compile time.
+    /// If the given utterance is already registered, this call will be ignored.
+    /// </summary>
+    /// <param name="utterance"></param>
+    /// <param name="utteranceDetectedCallBack"></param>
+    /// <returns>true if registration was successful, else false</returns>
+    public bool RegisterKeyword(string utterance, UnityAction utteranceDetectedCallBack)
     {
-        return AudioManager.Instance.RegisterKeyword(keyword, keyWordDetectedCallBack);
+        return AudioManager.Instance.RegisterKeyword(utterance, utteranceDetectedCallBack);
     }
 
     #endregion

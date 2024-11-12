@@ -12,7 +12,23 @@ public class OrbStorageManager : Singleton<OrbStorageManager>
 {
     private List<OrbStorageBox> _allStorageBoxes; 
 
-    private List<StorableObject> _registeredObjects = new List<StorableObject>();
+    private Dictionary<int, StorableObject> _registeredObjects = new Dictionary<int, StorableObject>();
+
+    private List<Vector2[]> _defaultLayout = new List<Vector2[]>()
+    {
+        new Vector2[] { new Vector2(-ARUISettings.SizeAtStorage,0) },
+        new Vector2[]
+        {
+            new Vector2(-ARUISettings.SizeAtStorage/2, ARUISettings.SizeAtStorage/2),
+            new Vector2(-ARUISettings.SizeAtStorage/2, -ARUISettings.SizeAtStorage/2)
+        },
+        new Vector2[]
+        {
+            new Vector2(-ARUISettings.SizeAtStorage/2, ARUISettings.SizeAtStorage/2), 
+            new Vector2(-ARUISettings.SizeAtStorage/2, -ARUISettings.SizeAtStorage/2),
+            new Vector2(-ARUISettings.SizeAtStorage/2, -ARUISettings.SizeAtStorage/2)
+        }
+    };
 
     public void Awake()
     {
@@ -21,9 +37,11 @@ public class OrbStorageManager : Singleton<OrbStorageManager>
         {
             if (transform.GetChild(i).gameObject.GetInstanceID() != gameObject.GetInstanceID())
             {
-                var box = transform.GetChild(i).gameObject.AddComponent<OrbStorageBox>();
+                var boxObj = transform.GetChild(i).gameObject;
+                boxObj.transform.position = _defaultLayout[transform.childCount - 1][i];
+                var box = boxObj.AddComponent<OrbStorageBox>();
                 _allStorageBoxes.Add(box);
-                box.Initialize();
+                box.Initialize(i);
             }
         }
 
@@ -33,7 +51,7 @@ public class OrbStorageManager : Singleton<OrbStorageManager>
     public void Update()
     {
         StorableObject lookingAt = null;
-        foreach (StorableObject objs in _registeredObjects)
+        foreach (StorableObject objs in _registeredObjects.Values)
         {
             if (objs.IsLookingAtObj)
                 lookingAt = objs;
@@ -58,14 +76,23 @@ public class OrbStorageManager : Singleton<OrbStorageManager>
         }
     }
 
-    public void RegisterStorableObject(GameObject toRegister)
+    /// <summary>
+    /// Register an object with the storage manager. This is generating a sphere collider with diameter of the largest 
+    /// </summary>
+    /// <param name="ID"></param>
+    /// <param name="toRegister"></param>
+    public void RegisterStorableObject(int ID, GameObject toRegister)
     {
         // Add the StorableObject component
         var storable = toRegister.AddComponent<StorableObject>();
         storable.Initialize();
-        _registeredObjects.Add(storable);
+        _registeredObjects.Add(ID,storable);
     }
 
+    public void DeRegisterStorableObject(int iD)
+    {
+        throw new NotImplementedException();
+    }
 
     /// <summary>
     /// Stores the provided GameObject in the given OrbStorageBox if it is not full.
@@ -74,29 +101,27 @@ public class OrbStorageManager : Singleton<OrbStorageManager>
     /// <param name="item">The GameObject to store.</param>
     /// <param name="storageType">The storage type will define where it will show up.</param>
     /// <returns>True if the item was stored successfully, false otherwise.</returns>
-    private bool StoreItemInBox(StorableObject item)
+    private OrbStorageBox StoreItemInBox(StorableObject item)
     {
-        if (item == null)
-        {
-            Debug.LogWarning("Cannot store a null item.");
-            return false;
-        }
+        if (item == null) return null;
 
-        AngelARUI.Instance.DebugLogMessage("Storing object " + item.name, true);
         // Store Panel in any available box.
         foreach (var box in _allStorageBoxes)
         {
             if (!box.IsFull)
             {
+                AngelARUI.Instance.DebugLogMessage("Storing object " + item.name, true);
                 box.StoreItem(item);
-                return true;
+                UpdateIdealLayout();
+                return box;
             }
         }
 
-        Debug.LogWarning("All storage boxes are full. Cannot store Panel.");
-        return false;
+        AngelARUI.Instance.DebugLogMessage("Can't store item. All storage spots are full at orb.", true);
+        return null;
     }
 
+ 
     private void Remove(StorableObject toBeRemoved)
     {
         foreach (var box in _allStorageBoxes)
@@ -104,30 +129,61 @@ public class OrbStorageManager : Singleton<OrbStorageManager>
             if (box.IsFull && box.StoredItem.GetInstanceID()== toBeRemoved.GetInstanceID())
             {
                 box.ClearStorage();
+                UpdateIdealLayout();
                 return;
             }
         }
     }
 
+    private void UpdateIdealLayout()
+    {
+        int count = CountFull();
+        int layoutIndex = 0;
+        foreach (var box in _allStorageBoxes)
+        {
+            if (box.IsFull)
+            {
+                box.transform.localPosition = _defaultLayout[count - 1][layoutIndex];
+                layoutIndex++;
+            }
+        }
+    }
+
+    private int CountFull()
+    {
+        int count = 0;
+        foreach (var box in _allStorageBoxes)
+        {
+            if (box.IsFull) count++;
+        }
+        return count;
+    }
+
+
     public void HandleStoreKeyword()
     {
-        foreach (StorableObject objs in _registeredObjects)
+        foreach (StorableObject objs in _registeredObjects.Values)
         {
-            if (!objs.IsStored && objs.IsLookingAtObj)
+            if (objs.CurrentStorage==null && objs.IsLookingAtObj)
             {
-                StoreItemInBox(objs);
+                objs.CurrentStorage = StoreItemInBox(objs);
+                break;
             }
         }
     }
 
     public void HandleUnstoreKeyword()
     {
-        foreach (StorableObject objs in _registeredObjects)
+        foreach (StorableObject objs in _registeredObjects.Values)
         {
-            if (objs.IsStored && objs.IsLookingAtObj)
+            if (objs.CurrentStorage!=null && objs.IsLookingAtObj)
             {
                 Remove(objs);
-            }
+                objs.CurrentStorage = null;
+                break;
+            } 
         }
     }
+
+
 }

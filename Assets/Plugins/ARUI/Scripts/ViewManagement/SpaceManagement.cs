@@ -107,13 +107,14 @@ public class SpaceManagement : Singleton<SpaceManagement>
     /// <returns>Rect of closest empty one in screen space</returns>
     public Rect GetClosestEmtpy(int ID, int[] rect) => ParseRectangles_Closest(get_all_rect(Convert.ToUInt64(ID)), rect);
 
+
     /// <summary>
-    /// Get closest empty rectangle given rect
+    /// 
     /// </summary>
     /// <param name="ID">ID of 2D spacetree</param>
-    /// <param name="rect">Screen coordinate system = origin is bottom left, xmin, ymin, xmax, ymax</param>
-    /// <returns>Rect of closest empty one in screen space</returns>
-    public Rect GetClosestEmtpy(int ID, Vector3 point) => ParseRectangles_Closest(get_all_rect(Convert.ToUInt64(ID)), point);
+    /// <param name="point"></param>
+    /// <returns></returns>
+    public Rect GetClosestEmtpy(int ID, Vector3 dim, Vector3 point) => ParseRectangles_Closest(get_all_rect(Convert.ToUInt64(ID)), dim, point);
 
     /// <summary>
     /// Get a list of all empty rectangles
@@ -248,12 +249,12 @@ public class SpaceManagement : Singleton<SpaceManagement>
     }
 
     /// <summary>
-    /// Returns rectangle that is the closest to the given rectangle rect
+    /// Returns rectangle that is the closest to the given screen point
     /// </summary>
     /// <param name="rectangleStream">rectangles in GUI space in string</param>
     /// <param name="rect">Screen coordinate system = origin is bottom left, xmin, ymin, xmax, ymax</param>
     /// <returns></returns>
-    private Rect ParseRectangles_Closest(string rectangleStream, Vector2 screenSpacePos)
+    private Rect ParseRectangles_Closest(string rectangleStream, Vector2 dimension, Vector2 targetPosScreen)
     {
         string[] inst = rectangleStream.Split('(');
 
@@ -289,27 +290,33 @@ public class SpaceManagement : Singleton<SpaceManagement>
             float resMaxX = (emptyRect.x + width);
             float resMaxY = (emptyRect.y + height);
 
-            //case: no overlap 
-            if (Mathf.Abs(emptyRect.x - screenSpacePos.x) < minDistX)
-            {  //there is a rectangle to the left of the orb, shorter distance
-                minDistX = Mathf.Abs(emptyRect.x - screenSpacePos.x);
-                closestRectX = emptyRect;
-            }
-            else if (Mathf.Abs( (emptyRect.x+width) - screenSpacePos.x) < minDistX)
-            {   //orb top edge is above the bottom edge of the empty rect
-                minDistX = Mathf.Abs((emptyRect.x + width) - screenSpacePos.x);
-                closestRectX = emptyRect;
-            }
+            if (targetPosScreen.x >= emptyRect.x && 
+                targetPosScreen.x <= resMaxX && targetPosScreen.y >= emptyRect.y &&
+                targetPosScreen.y <= resMaxY &&
+                width > dimension.x && height > dimension.y)
+            {
+                //case: no overlap 
+                if (Mathf.Abs(emptyRect.x - targetPosScreen.x) < minDistX)
+                {  //there is a rectangle to the left of the orb, shorter distance
+                    minDistX = Mathf.Abs(emptyRect.x - targetPosScreen.x);
+                    closestRectX = emptyRect;
+                }
+                else if (Mathf.Abs(resMaxX - targetPosScreen.x) < minDistX)
+                {   //orb top edge is above the bottom edge of the empty rect
+                    minDistX = Mathf.Abs(resMaxX - targetPosScreen.x);
+                    closestRectX = emptyRect;
+                }
 
-            if (Mathf.Abs(emptyRect.y - screenSpacePos.y) < minDistY)
-            {
-                minDistY = Mathf.Abs(emptyRect.y - screenSpacePos.y);
-                closestRectY = emptyRect;
-            }
-            else if (Mathf.Abs((emptyRect.y + height) - screenSpacePos.y) < minDistY)
-            {
-                minDistY = Mathf.Abs((emptyRect.y + height) - screenSpacePos.y);
-                closestRectY = emptyRect;
+                if (Mathf.Abs(emptyRect.y - targetPosScreen.y) < minDistY)
+                {
+                    minDistY = Mathf.Abs(emptyRect.y - targetPosScreen.y);
+                    closestRectY = emptyRect;
+                }
+                else if (Mathf.Abs(resMaxY - targetPosScreen.y) < minDistY)
+                {
+                    minDistY = Mathf.Abs(resMaxY - targetPosScreen.y);
+                    closestRectY = emptyRect;
+                }
             }
         }
 

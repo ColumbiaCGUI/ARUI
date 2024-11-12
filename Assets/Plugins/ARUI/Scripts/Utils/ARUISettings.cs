@@ -9,6 +9,7 @@ public static class ARUISettings
     //**** Orb
     public static readonly float OrbMinDistToUser = 0.6f;    /// <in meters
     public static readonly float OrbMaxDistToUser = 1.1f;    /// <in meters
+    public static readonly float SizeAtStorage = 0.08f;
 
     // Orb radial behavior - higher values means the element will stay further away from the center of view
     public static readonly float OrbMinViewDegrees = 10f;        ///<The element will stay at least this far away from the center of view
@@ -44,5 +45,4 @@ public static class ARUISettings
     public static readonly int Padding = 20;             /// < buffer in pixels
     public static readonly int VMPixelIteration = 1;
     public static readonly int SMPixelSkip = 2;          /// < Adjust the resolution of the SM algorithm
-
 }

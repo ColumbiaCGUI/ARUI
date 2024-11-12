@@ -1,68 +1,165 @@
 ﻿using Microsoft.MixedReality.OpenXR;
+using Microsoft.MixedReality.Toolkit.Utilities;
 using System;
+using System.Collections;
 using System.Diagnostics.Eventing.Reader;
 using UnityEngine;
 
-public class StorableObject : MonoBehaviour
+public class StorableObject : VMControllable
 {
-    private SphereCollider _collider;
-    public SphereCollider Collider => _collider;
+    private BoxCollider _collider;
+    public BoxCollider Collider => _collider;
 
     private bool _isLookingAt = false;
     public bool IsLookingAtObj => _isLookingAt;
 
     // Store the original scale of the target GameObject
-    private Vector3 _originalTargetScale;
+    private Vector3 _originalScale;
+    private Vector3 _originalPosition;
 
-    public bool IsStored = false;
+    public OrbStorageBox CurrentStorage = null;
 
     public string LabelMessage = "Say 'Follow'";
 
+    private float _followSpeed = 2f;   // Delay factor for the following movement.
+
+    private StorableGrabbable _grabbable= null;
+
+    private bool _isMoving = false;
+
     public void Update()
     {
+        base.Update();
+
         _isLookingAt = EyeGazeManager.Instance.CurrentHitID == gameObject.GetInstanceID();
+
+        if (CurrentStorage != null && !_isLookingAt && !_grabbable.IsGrabbed && !_isMoving)
+        {
+            if (CurrentStorage.PlaceInList == 1)
+                priority = 1;
+            else 
+                priority = 0;
+
+            //Get default target pos (next to orb, storage box position
+            DesiredPos = Vector3.Lerp(transform.position, CurrentStorage.transform.position, _followSpeed * Time.deltaTime);
+
+            Vector3 vmOptimal = Vector3.zero;
+            //if (AngelARUI.Instance.IsVMActiv)
+            //    vmOptimal = GetOptimalPos();
+
+            if (vmOptimal != Vector3.zero) 
+            {
+                StartCoroutine(MoveToPose());
+            } else
+            {
+                transform.position = DesiredPos;
+            }
+        }
     }
 
+    private IEnumerator MoveToPose()
+    {
+        _isMoving = true;
+
+        Vector3 startPos = transform.position;
+        float elapsedTime = Time.deltaTime;
+        Vector3 vmOptimal = DesiredPos;
+        while (Vector3.Distance(transform.position, vmOptimal) > 0.001f)
+        {
+            transform.position = Vector3.Lerp(startPos, DesiredPos, (elapsedTime / 1f));
+            elapsedTime += Time.deltaTime;
+            yield return new WaitForEndOfFrame();
+        }
+
+        transform.position = DesiredPos;
+        yield return new WaitForEndOfFrame();
+
+        _isMoving = false;
+    }
+
+    private Vector3 GetOptimalPos()
+    {
+        Vector3 optimalPos = Vector3.zero;
+        Rect getBest = ViewManagement.Instance.GetBestEmptyRect(this);
+        if (getBest != Rect.zero)
+        {
+            float depth = (transform.position - AngelARUI.Instance.ARCamera.transform.position).magnitude;
+
+            Vector3 pivot = new Vector3(getBest.x + getBest.width / 2, getBest.y + getBest.height / 2, depth);
+            optimalPos = AngelARUI.Instance.ARCamera.ScreenToWorldPoint(pivot);
+        }
+        return optimalPos;
+    }
+
+    /// <summary>
+    /// Prepare the storable object
+    /// 
+    /// </summary>
     public void Initialize()
     {
-        _originalTargetScale = transform.localScale;
+        _originalScale = transform.localScale;
+        _originalPosition = transform.position;
 
-        if (gameObject.GetComponent<SphereCollider>() == null)
+        _collider = gameObject.GetComponent<BoxCollider>();
+        if (_collider == null)
         {
-            // Get the mesh renderer to calculate bounds
-            var meshRenderer = gameObject.GetComponentInChildren<MeshRenderer>();
-            float largestDimension = 0.5f; //assuming half a meter is largest
-            if (meshRenderer != null)
+            _collider = gameObject.AddComponent<BoxCollider>();
+
+            // If no mesh is available, generate a 0.5 cube collider
+            var meshProvider = gameObject.GetComponentInChildren<MeshFilter>();
+            if (meshProvider == null)
             {
-                // Calculate the largest dimension of the bounds
-                largestDimension = Mathf.Max(meshRenderer.bounds.max.x, meshRenderer.bounds.max.y, meshRenderer.bounds.max.z);
+                Bounds bounds = new Bounds(Vector3.zero, new Vector3(0.5f, 0.5f, 0.5f)); // if no mesh can be found, assume a half meter cube
+                _collider.center = Vector3.zero; // Center it, assuming no offset is needed
+                _collider.size = bounds.extents;
             }
-
-            // Add a SphereCollider and set its radius
-            _collider = gameObject.AddComponent<SphereCollider>();
-            _collider.radius = largestDimension / 2f; // Radius is half the diameter
-            _collider.center = Vector3.zero; // Center it, assuming no offset is needed
-
-        }
-        else
-        {
-            _collider = gameObject.GetComponent<SphereCollider>();
         }
 
         // Set the layer and register eye target
         gameObject.layer = StringResources.LayerToInt(StringResources.UI_layer);
-
         EyeGazeManager.Instance.RegisterEyeTargetID(gameObject);
 
-        gameObject.AddComponent<StorableGrabbable>();
+        _grabbable =gameObject.AddComponent<StorableGrabbable>();
+
+        IsVMReady = false; //turn off for now
     }
 
+    #region Scaling
+
+    /// <summary>
+    /// Scale object to original size. This is called when the object is untethered
+    /// </summary>
     public void ScaleToOriginalSize()
     {
-        transform.localScale = _originalTargetScale;
         LabelMessage = "Say 'Follow'";
+
+        StartCoroutine(MoveToOriginal());
     }
 
+    private IEnumerator MoveToOriginal()
+    {
+        Vector3 targetPos = _originalPosition;
+        Vector3 targetScale = _originalScale;
+
+        float elapsedTime = Time.deltaTime;
+        Vector3 startPos = transform.position;
+        Vector3 startScale = transform.localScale;
+        while (Vector3.Distance(transform.position, targetPos) > 0.001f)
+        {
+            transform.position = Vector3.Lerp(startPos, targetPos, (elapsedTime / 1f));
+            transform.localScale = Vector3.Lerp(startScale, targetScale, (elapsedTime / 1f));
+            elapsedTime += Time.deltaTime;
+            yield return new WaitForEndOfFrame();
+        }
+
+        transform.position = _originalPosition;
+        transform.localScale = _originalScale;
+    }
+
+    /// <summary>
+    /// Scale object to tethered size. The largest dimension should fit in the tethered space
+    /// </summary>
+    /// <param name="radius"></param>
     public void ScaleToBoxSize(float radius)
     {
         // Get the mesh filter of the target GameObject
@@ -101,4 +198,6 @@ public class StorableObject : MonoBehaviour
 
         LabelMessage = "Say 'Unfollow'";
     }
+
+    #endregion
 }

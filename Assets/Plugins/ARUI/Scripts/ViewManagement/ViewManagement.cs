@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using Random = UnityEngine.Random;
@@ -11,13 +12,13 @@ using Random = UnityEngine.Random;
 public class ViewManagement : Singleton<ViewManagement>
 {
     private bool _init = false;
-    private bool _smIsAlive = false;                             /// < true if the current data is valid, false if it is processing in the current frame
+    private bool _smIsAlive = false;                                    /// < true if the current data is valid, false if it is processing in the current frame
 
-    private Dictionary<VMControllable, Rect> vmToRect;          /// < AABB: minx, miny, maxX, maxY - SCREEN SPACE
-    private List<VMNonControllable> _allCoarseNC;                /// < AABB: minx, miny, maxX, maxY - GUI coordinate system
+    private Dictionary<VMControllable, Rect> vmToRect;                  /// < AABB: minx, miny, maxX, maxY - SCREEN SPACE
+    private List<VMNonControllable> _allCoarseNC;                       /// < AABB: minx, miny, maxX, maxY - GUI coordinate system
     private Dictionary<VMNonControllable, List<Rect>> allProcessedNC;
 
-    private List<Rect> _allEmptyRect;                             /// < AABB: minx, miny, maxX, maxY - GUI coordinate system
+    private List<Rect> _allEmptyRect;                                   /// < AABB: minx, miny, maxX, maxY - GUI coordinate system
     private int _objectsInViewSpace = 0;
 
     private void Start() => StartCoroutine(RunViewManagement());
@@ -139,13 +140,18 @@ public class ViewManagement : Singleton<ViewManagement>
     /// 
     private Dictionary<VMControllable, Rect> GetBestLayout()
     {
+        lastClosest = new List<Rect>();
+        lastTargetPoint = new List<Vector2>();
+
         List<VMControllable> all = new List<VMControllable>();
         VMControllable[] allOther = FindObjectsOfType<VMControllable>();
         foreach (var vmc in allOther)
         {
-            all.Add(vmc);
+            if (vmc.IsVMReady)
+                all.Add(vmc);
         }
 
+        all = all.OrderByDescending(o => o.priority).ToList();
         Dictionary<VMControllable, Rect> bestLayout = new Dictionary<VMControllable, Rect>();
 
         foreach (VMControllable obj in all)
@@ -168,9 +174,17 @@ public class ViewManagement : Singleton<ViewManagement>
             if (overlap )
             {
                 Vector3 posScreen;
-                posScreen = GetClosestEmptyPos(
+                if (obj.DesiredPos != null && obj.DesiredPos != Vector3.zero) {
+                    posScreen = GetClosestEmptyPos(
+                    AngelARUI.Instance.ARCamera.WorldToScreenPoint(obj.DesiredPos),
+                    new Vector2(obj.AABB.width, obj.AABB.height),
+                    ARUISettings.Padding);
+                } else
+                {
+                    posScreen = GetClosestEmptyPos(
                     AngelARUI.Instance.ARCamera.WorldToScreenPoint(obj.transform.position),
                     obj.AABB, ARUISettings.Padding);
+                }
                
                 Rect newPosRect = new Rect(
                     posScreen.x - obj.AABB.width / 2, posScreen.y - obj.AABB.height / 2,
@@ -182,6 +196,7 @@ public class ViewManagement : Singleton<ViewManagement>
                 {
                     SpaceManagement.Instance.AddFullRectToTree(0, AABB);
                     SpaceManagement.Instance.AddRectToTree(1, AABB);
+                    _objectsInViewSpace++;
 
                     bestLayout.Add(obj, newPosRect);
                     continue;
@@ -191,6 +206,7 @@ public class ViewManagement : Singleton<ViewManagement>
             {
                 SpaceManagement.Instance.AddFullRectToTree(0, cappedRect);
                 SpaceManagement.Instance.AddRectToTree(1, cappedRect);
+                _objectsInViewSpace++;
             }
 
             bestLayout.Add(obj, Rect.zero);
@@ -212,28 +228,30 @@ public class ViewManagement : Singleton<ViewManagement>
         int[] cappedRectScreen = Utils.GetCappedScreen(objRectGUI);
         Rect closestEmptyScreen = SpaceManagement.Instance.GetClosestEmtpy(0, cappedRectScreen);
 
-        return GetClosestPointInRectScreen(
+        lastClosest.Add(closestEmptyScreen);
+
+        return RectToClosestEmptyPoint(
             new int[2] { (int)prevPosInScreenSpace.x, (int)prevPosInScreenSpace.y },
             cappedRectScreen, closestEmptyScreen, padding);
     }
+
 
     /// <summary>
-    /// Get position in closest empty rectangle based 
-    /// </summary>
-    /// <param name="prevPosInScreenSpace">previous position in screen space of objRectGUI</param>
-    /// <param name="objRectGUI">rectangle of the current rect</param>
-    /// <param name="padding">added to bounds of objRectGui</param>
+    /// Get position in closest empty position based
     /// <returns></returns>
-    private Vector3 GetClosestEmptyNoOverlapPos(Vector3 prevPosInScreenSpace, Vector3 targetPosInScreenPos,
-        Rect objRectGUI, int padding)
+    private Vector3 GetClosestEmptyPos(Vector3 posInScreen, Vector2 dimension, int padding)
     {
-        int[] cappedRectScreen = Utils.GetCappedScreen(objRectGUI);
-        Rect closestEmptyScreen = SpaceManagement.Instance.GetClosestEmtpy(0, targetPosInScreenPos);
+        Vector2 cappedScreenpoint = Utils.GetCappedScreen(posInScreen);
+        Rect closestEmptyScreen = SpaceManagement.Instance.GetClosestEmtpy(0, dimension, cappedScreenpoint);
 
-        return GetClosestPointInRectScreen(
-            new int[2] { (int)prevPosInScreenSpace.x, (int)prevPosInScreenSpace.y },
-            cappedRectScreen, closestEmptyScreen, padding);
+        lastClosest.Add(closestEmptyScreen);
+        lastTargetPoint.Add(Utils.ScreenToGUI(cappedScreenpoint));
+
+        return PointToClosestEmptyPoint(
+            posInScreen,
+            closestEmptyScreen, padding);
     }
+
 
     #endregion
 
@@ -266,7 +284,7 @@ public class ViewManagement : Singleton<ViewManagement>
     /// <param name="closestEmptyRectScreen"></param>
     /// <param name="padding"></param>
     /// <returns></returns>
-    private Vector3 GetClosestPointInRectScreen(int[] prevPointScreen, int[] fullRectScreen, Rect closestEmptyRectScreen, int padding)
+    private Vector3 RectToClosestEmptyPoint(int[] prevPointScreen, int[] fullRectScreen, Rect closestEmptyRectScreen, int padding)
     {
         int newX = prevPointScreen[0];
         int newY = prevPointScreen[1];
@@ -296,6 +314,42 @@ public class ViewManagement : Singleton<ViewManagement>
 
         return new Vector3(newX, newY, 0);
     }
+
+    /// <summary>
+    /// TODO
+    /// </summary>
+    /// <param name="prevPointScreen">previous position in screen space of objRectGUI</param>
+    /// <param name="closestEmptyRectScreen"></param>
+    /// <param name="padding"></param>
+    /// <returns></returns>
+    private Vector3 PointToClosestEmptyPoint(Vector2 prevPointScreen, Rect closestEmptyRectScreen, int padding)
+    {
+        int newX = (int)prevPointScreen.x;
+        int newY = (int)prevPointScreen.y;
+
+        if (prevPointScreen.y < closestEmptyRectScreen.y)
+        { //check if controllable coming from x bottom
+            newY = (int)closestEmptyRectScreen.y + padding;
+        }
+        else if ((closestEmptyRectScreen.y + closestEmptyRectScreen.height) < prevPointScreen.y)
+        { //check if controllable coming from x top
+            int maxY = (int)(closestEmptyRectScreen.y + closestEmptyRectScreen.height);
+            newY = maxY - padding ;
+        }
+
+        if (prevPointScreen.x < closestEmptyRectScreen.x)
+        { //check if controllable coming from x left
+            newX = (int)closestEmptyRectScreen.x + padding;
+        }
+        else if ((closestEmptyRectScreen.x + closestEmptyRectScreen.width) < prevPointScreen.x)
+        { //check if controllable coming from x right
+            int maxX = (int)(closestEmptyRectScreen.x + closestEmptyRectScreen.width);
+            newX = maxX - padding;
+        }
+
+        return new Vector3(newX, newY, 0);
+    }
+
 
     /// <summary>
     /// TODO
@@ -354,6 +408,8 @@ public class ViewManagement : Singleton<ViewManagement>
 
     //[GUITarget(1)]
 
+    List<Rect> lastClosest = new List<Rect> ();
+    List<Vector2> lastTargetPoint = new List<Vector2>();
     void OnGUI()
     {
         if (!AngelARUI.Instance.PrintVMDebug) return;
@@ -364,50 +420,34 @@ public class ViewManagement : Singleton<ViewManagement>
         tintableText.normal.background = Texture2D.whiteTexture; // must be white to tint properly
         tintableText.normal.textColor = Color.white; // whatever you want
 
-        //GUI.backgroundColor = new Color(255, 255, 255, 0.7f);
-        //GUI.Box(new Rect(orbrect.x * scale, orbrect.y * scale, (orbrect.width - orbrect.x) * scale, (orbrect.height - orbrect.y) * scale), "Orb", tintableText);
-
-        ////**** Draw all bright rects
-        //if (allCappedBrightAABBs != null && allCappedBrightAABBs.Count > 0)
+        //****Draw all empty recs
+        //for (int i = 0; i < _allEmptyRect.Count; i++)
         //{
-        //    Debug.Log("Count bright: " + allCappedBrightAABBs.Count);
-        //    foreach (var item in allCappedBrightAABBs)
-        //    {
-        //        GUI.backgroundColor = new Color(255, 0, 0, 0.8f);
-        //        GUI.Box(new Rect(item[0], item[1], item[2] - item[0], item[3] - item[1]), "Bright AABB : (" + item[0]
-        //                                        + "," + item[1]
-        //                                        + "," + (item[2] - item[0])
-        //                                        + "," + (item[3] - item[1]), tintableText);
-        //    }
+        //    GUI.backgroundColor = new Color(Random.Range(0f, 1f), Random.Range(0f, 1f), Random.Range(0f, 1f), 0.2f);
+        //    Rect scaledRect = new Rect(_allEmptyRect[i].x * scale, _allEmptyRect[i].y * scale, _allEmptyRect[i].width * scale, _allEmptyRect[i].height * scale);
+        //    GUI.Box(scaledRect, "Bounding Box : (" + _allEmptyRect[i].x
+        //                                        + "," + _allEmptyRect[i].y
+        //                                        + "," + _allEmptyRect[i].width
+        //                                        + "," + _allEmptyRect[i].height, tintableText);
         //}
 
-        if (printVM)
-        {
-            //****Draw all empty recs
-            for (int i = 0; i < _allEmptyRect.Count; i++)
-            {
-                GUI.backgroundColor = new Color(Random.Range(0f, 1f), Random.Range(0f, 1f), Random.Range(0f, 1f), 0.2f);
-                Rect scaledRect = new Rect(_allEmptyRect[i].x * scale, _allEmptyRect[i].y * scale, _allEmptyRect[i].width * scale, _allEmptyRect[i].height * scale);
-                GUI.Box(scaledRect, "Bounding Box : (" + _allEmptyRect[i].x
-                                                    + "," + _allEmptyRect[i].y
-                                                    + "," + _allEmptyRect[i].width
-                                                    + "," + _allEmptyRect[i].height, tintableText);
-            }
-        }
 
-        ////**** Draw all full recs
-        //if (allCappedAABBs != null && allCappedAABBs.Count > 0)
-        //{
-        //    foreach (var item in allCappedAABBs)
-        //    {
-        //        GUI.backgroundColor = new Color(255, 0, 0, 0.8f);
-        //        Rect scaledRect = new Rect(item[0] * scale, item[1] * scale, (item[2] - item[0]) * scale, (item[3] - item[1]) * scale);
-        //        GUI.Box(scaledRect, "AABB : (" + item[0]
-        //                                        + "," + item[1]
-        //                                        + "," + (item[2] - item[0])
-        //                                        + "," + (item[3] - item[1]), tintableText);
-        //    }
-        //}
+        if (lastClosest == null) return;
+
+        for (int i = 0; i < lastClosest.Count; i++) { 
+            GUI.backgroundColor = new Color(Random.Range(0f, 1f), Random.Range(0f, 1f), Random.Range(0f, 1f), 0.2f);
+            Rect scaledRect = new Rect(lastClosest[i].x * scale, lastClosest[i].y * scale, lastClosest[i].width * scale, lastClosest[i].height * scale);
+            GUI.Box(scaledRect, "Bounding Box : (" + lastClosest[i].x
+                                            + "," + lastClosest[i].y
+                                            + "," + lastClosest[i].width
+                                            + "," + lastClosest[i].height, tintableText);
+
+            scaledRect = new Rect(lastTargetPoint[i].x * scale, lastTargetPoint[i].y * scale, 10, 10);
+            GUI.Box(scaledRect, ".", tintableText);
+
+        }   
+
+
     }
 
 

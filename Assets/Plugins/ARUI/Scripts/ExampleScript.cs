@@ -128,9 +128,9 @@ public class ExampleScript : MonoBehaviour
        // AngelARUI.Instance.RegisterDetectedObject(transform.GetChild(1).gameObject, "test1");
         //AngelARUI.Instance.RegisterDetectedObject(transform.GetChild(2).gameObject, "test2");
 
-        AngelARUI.Instance.RegisterTetheredObject(transform.GetChild(0).gameObject);
-        AngelARUI.Instance.RegisterTetheredObject(transform.GetChild(1).gameObject);
-        AngelARUI.Instance.RegisterTetheredObject(transform.GetChild(2).gameObject);
+        AngelARUI.Instance.RegisterTetheredObject(transform.GetChild(0).gameObject.GetInstanceID(), transform.GetChild(0).gameObject);
+        AngelARUI.Instance.RegisterTetheredObject(transform.GetChild(1).gameObject.GetInstanceID(), transform.GetChild(1).gameObject);
+        //AngelARUI.Instance.RegisterTetheredObject(transform.GetChild(2).gameObject.GetInstanceID(), transform.GetChild(2).gameObject);
 
     }
 

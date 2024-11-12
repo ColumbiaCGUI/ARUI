@@ -14,6 +14,10 @@ public class StorableGrabbable : MonoBehaviour, IMixedRealityPointerHandler
         set { _grabbable.enabled = value; }
     }
 
+    public bool _isGrabbed = false;
+
+    public bool IsGrabbed => _isGrabbed;
+
     private void Start()
     {
         gameObject.AddComponent<NearInteractionGrabbable>();
@@ -32,14 +36,19 @@ public class StorableGrabbable : MonoBehaviour, IMixedRealityPointerHandler
     public void OnPointerDown(MixedRealityPointerEventData eventData)
     {
         AudioManager.Instance.PlaySound(transform.position, SoundType.moveStart);
+        _isGrabbed = true;
     }
 
-    public void OnPointerDragged(MixedRealityPointerEventData eventData) { }
+    public void OnPointerDragged(MixedRealityPointerEventData eventData)
+    {
+        _isGrabbed = true;
+    }
 
 
     public void OnPointerUp(MixedRealityPointerEventData eventData)
     {
         AudioManager.Instance.PlaySound(transform.position, SoundType.moveEnd);
+        _isGrabbed = false;
     }
 
     public void OnPointerClicked(MixedRealityPointerEventData eventData) { }

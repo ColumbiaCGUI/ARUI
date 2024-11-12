@@ -1,14 +1,16 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
-using TMPro;
 using UnityEngine;
-using UnityEngine.UIElements;
 
 public class VMControllable : VMObject
 {
     private BoxCollider _baseCollider;
     public BoxCollider BaseCollider => _baseCollider;
+
+    public Vector3 DesiredPos = Vector3.zero;
+
+    public int priority = 0;
+
+    public bool IsVMReady = true;
    
     public void Start()
     {

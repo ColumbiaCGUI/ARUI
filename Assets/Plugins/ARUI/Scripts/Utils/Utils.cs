@@ -233,6 +233,19 @@ public static class Utils
         return new int[] { xmincap, ymincap, xmaxcap, ymaxcap };
     }
 
+    public static Vector2 ScreenToGUI(Vector2 point)
+    {
+        float realY = AngelARUI.Instance.ARCamera.pixelHeight - point.y;
+
+        int xmincap = Mathf.Max(0, (int)point.x);
+        int ymincap = Mathf.Max(0, (int)realY);
+
+        int xmaxcap = Mathf.Min(AngelARUI.Instance.ARCamera.pixelWidth, xmincap);
+        int ymaxcap = Mathf.Min(AngelARUI.Instance.ARCamera.pixelHeight, ymincap);
+
+        return new Vector2(xmaxcap, ymaxcap);
+    }
+
     /// <summary>
     /// Cap the values of the rectangle to the screen (no negative values, not greated than screen size) in GUI coordinate system
     /// GUI coordinate system = origin is top left
@@ -267,6 +280,23 @@ public static class Utils
         int ymaxcap = Mathf.Min(AngelARUI.Instance.ARCamera.pixelHeight, (int)realY + (int)item.height);
 
         return new int[] { xmincap, ymincap, xmaxcap, ymaxcap };
+    }
+
+    /// <summary>
+    /// Cap the values of the rectangle to the screen (no negative values, not greated than screen size) in screen coordinate system
+    /// Screen coordinate system = origin is bottom left
+    /// </summary>
+    /// <param name="screenPoint">Ppint in screen coordinates</param>
+    /// <returns></returns>
+    public static Vector2 GetCappedScreen(Vector2 screenPoint)
+    {
+        int xmincap = Mathf.Max(0, (int)screenPoint.x);
+        int ymincap = Mathf.Max(0, (int)screenPoint.y);
+
+        int xmaxcap = Mathf.Min(AngelARUI.Instance.ARCamera.pixelWidth, xmincap);
+        int ymaxcap = Mathf.Min(AngelARUI.Instance.ARCamera.pixelHeight, ymincap);
+
+        return new Vector2(xmaxcap, ymaxcap);
     }
 
     public static Rect GUItoScreenRect(Rect item)
