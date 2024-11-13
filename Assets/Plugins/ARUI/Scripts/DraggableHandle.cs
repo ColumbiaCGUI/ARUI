@@ -3,15 +3,18 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class OrbHandle : MonoBehaviour
+public class DraggableHandle : MonoBehaviour
 {
     private Shapes.Triangle _indicator;
     private bool _isActive = false;
 
     private float _fixingProgress = 0.0f;
+    public float Progress => _fixingProgress;
 
     public void SetHandleProgress(float progress)
     {
+        if (_indicator==null)
+            _indicator = gameObject.GetComponentInChildren<Shapes.Triangle>();
         _indicator.ColorA = Color.white * progress;
         _indicator.ColorB = Color.white * progress;
         _indicator.ColorC = Color.white * progress;
@@ -26,7 +29,7 @@ public class OrbHandle : MonoBehaviour
 
     public void Update()
     {
-        _isActive = Orb.Instance.OrbBehavior == MovementBehavior.Fixed || _fixingProgress > 0.0f;
+        _isActive = _fixingProgress > 0.0f;
         _indicator.gameObject.SetActive(_isActive);
     }
 

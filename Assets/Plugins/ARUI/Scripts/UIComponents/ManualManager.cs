@@ -91,7 +91,7 @@
 //    #region Getter and Setter
 
 //    /// <summary>
-//    /// Initialize the manual menu by providing a list of strings that represent the taskIDs
+//    /// Register the manual menu by providing a list of strings that represent the taskIDs
 //    /// Can only be called once, nothing happens if manual is already set.
 //    /// </summary>
 //    /// <param name="manual"></param>

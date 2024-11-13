@@ -30,6 +30,7 @@ public static class StringResources
     public static string TaskOverview_template_path = "Prefabs/Sid_Tasklist/TaskOverview_template";
     public static string LoggerPrefab_path = "Prefabs/Logger";
     public static string LabelPrefab_path = "Prefabs/Label";
+    public static string OrbStorageBox_path = "Prefabs/Orb/OrbStorageBox";
 
     public static string dialogue_path = "Prefabs/Dialogue";
 
@@ -52,4 +53,5 @@ public static class StringResources
     public static string audioManager_name = "AudioManager";
     public static string HandPoseManager_name = "HandPoseManager";
     public static string NotificationManager_name = "NotificationManager";
+    public static string OrbStorageManager_name = "OrbStorageManager";
 }

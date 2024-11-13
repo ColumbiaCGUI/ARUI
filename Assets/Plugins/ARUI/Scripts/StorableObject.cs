@@ -1,202 +1,242 @@
-﻿using Microsoft.MixedReality.OpenXR;
-using Microsoft.MixedReality.Toolkit.Utilities;
-using System;
+﻿using System;
 using System.Collections;
-using System.Diagnostics.Eventing.Reader;
 using UnityEngine;
 
-public class StorableObject : VMControllable
+/// <summary>
+/// Represents a storable object that can be set to follow the virtual agent
+/// </summary>
+public class StorableObject : MonoBehaviour
 {
-    private BoxCollider _collider;
-    public BoxCollider Collider => _collider;
+    private int _id = -1;
+    public int ID { get { return _id; } }
 
-    private bool _isLookingAt = false;
-    public bool IsLookingAtObj => _isLookingAt;
+    private BoxCollider _collider;                  // BoxCollider for the GameObject
 
-    // Store the original scale of the target GameObject
-    private Vector3 _originalScale;
-    private Vector3 _originalPosition;
+    private bool _hadCollider = false;
 
-    public OrbStorageBox CurrentStorage = null;
+    private bool _isLookingAt = false;              // Tracks if the object is currently being looked at
+    public bool IsLookingAtObj => _isLookingAt; 
 
-    public string LabelMessage = "Say 'Follow'";
-
-    private float _followSpeed = 2f;   // Delay factor for the following movement.
-
-    private StorableGrabbable _grabbable= null;
-
-    private bool _isMoving = false;
-
-    public void Update()
+    public OrbStorageBox CurrentStorage = null;     // The current storage associated with this object
+    public string LabelMessage
     {
-        base.Update();
-
-        _isLookingAt = EyeGazeManager.Instance.CurrentHitID == gameObject.GetInstanceID();
-
-        if (CurrentStorage != null && !_isLookingAt && !_grabbable.IsGrabbed && !_isMoving)
+        get
         {
-            if (CurrentStorage.PlaceInList == 1)
-                priority = 1;
-            else 
-                priority = 0;
-
-            //Get default target pos (next to orb, storage box position
-            DesiredPos = Vector3.Lerp(transform.position, CurrentStorage.transform.position, _followSpeed * Time.deltaTime);
-
-            Vector3 vmOptimal = Vector3.zero;
-            //if (AngelARUI.Instance.IsVMActiv)
-            //    vmOptimal = GetOptimalPos();
-
-            if (vmOptimal != Vector3.zero) 
+            if (CurrentStorage != null)
             {
-                StartCoroutine(MoveToPose());
-            } else
-            {
-                transform.position = DesiredPos;
+                return OrbStorageManager.Instance.LabelMessageUntether;
             }
+            return OrbStorageManager.Instance.LabelMessageTether;
         }
     }
 
-    private IEnumerator MoveToPose()
-    {
-        _isMoving = true;
+    private float _followSpeed = 2f; // Delay factor for the object's following movement
+    private float _moveDuration = 1f;
 
-        Vector3 startPos = transform.position;
-        float elapsedTime = Time.deltaTime;
-        Vector3 vmOptimal = DesiredPos;
-        while (Vector3.Distance(transform.position, vmOptimal) > 0.001f)
-        {
-            transform.position = Vector3.Lerp(startPos, DesiredPos, (elapsedTime / 1f));
-            elapsedTime += Time.deltaTime;
-            yield return new WaitForEndOfFrame();
-        }
+    private Vector3 _originalScale; // Original scale of the GameObject
+    private Vector3 _originalPosition; // Original position of the GameObject
+    private int _originalLayer;
+    private Vector3 _originalBounds = new Vector3(1, 1, 1);
+    public Vector3 OriginalBounds => _originalBounds;
 
-        transform.position = DesiredPos;
-        yield return new WaitForEndOfFrame();
-
-        _isMoving = false;
-    }
-
-    private Vector3 GetOptimalPos()
-    {
-        Vector3 optimalPos = Vector3.zero;
-        Rect getBest = ViewManagement.Instance.GetBestEmptyRect(this);
-        if (getBest != Rect.zero)
-        {
-            float depth = (transform.position - AngelARUI.Instance.ARCamera.transform.position).magnitude;
-
-            Vector3 pivot = new Vector3(getBest.x + getBest.width / 2, getBest.y + getBest.height / 2, depth);
-            optimalPos = AngelARUI.Instance.ARCamera.ScreenToWorldPoint(pivot);
-        }
-        return optimalPos;
-    }
+    private StorableGrabbable _grabbable = null; // Reference to the StorableGrabbable component
+    public StorableGrabbable Grabbable => _grabbable;
 
     /// <summary>
-    /// Prepare the storable object
-    /// 
+    /// Every frame, check if the object is being looked at or grabbed, and if not, 
+    /// smoothly moves it towards its associated storage position if it is in storage.
     /// </summary>
-    public void Initialize()
+    public void Update()
     {
+        if (EyeGazeManager.Instance)
+            _isLookingAt = EyeGazeManager.Instance.CurrentHitID == gameObject.GetInstanceID();
+
+        if (CurrentStorage != null && !_isLookingAt && !_grabbable.IsGrabbed)
+        {
+            transform.position = Vector3.Lerp(transform.position, CurrentStorage.transform.position, _followSpeed * Time.deltaTime);
+        }
+    }
+
+    #region Registering and Deregistering Process
+    /// <summary>
+    /// Initializes the GameObject by storing its original position and scale, 
+    /// ensuring it has a valid BoxCollider, and registering it with the EyeGazeManager.
+    /// If no mesh is found, a default 0.5-meter cube collider is created. 
+    /// Also sets the GameObject's layer and adds a StorableGrabbable component.
+    /// </summary>
+    public void Register(int id)
+    {
+        _id = id;
         _originalScale = transform.localScale;
         _originalPosition = transform.position;
+        _originalLayer = gameObject.layer;
 
-        _collider = gameObject.GetComponent<BoxCollider>();
-        if (_collider == null)
+        // Set bounds and collider
+        bool boundsAreSet = TryToGetBoundsFromCollider();
+        if (!_hadCollider)
         {
-            _collider = gameObject.AddComponent<BoxCollider>();
+            if (!boundsAreSet)
+                TryToGetBoundsFromMesh();
 
-            // If no mesh is available, generate a 0.5 cube collider
-            var meshProvider = gameObject.GetComponentInChildren<MeshFilter>();
-            if (meshProvider == null)
-            {
-                Bounds bounds = new Bounds(Vector3.zero, new Vector3(0.5f, 0.5f, 0.5f)); // if no mesh can be found, assume a half meter cube
-                _collider.center = Vector3.zero; // Center it, assuming no offset is needed
-                _collider.size = bounds.extents;
-            }
+            // Add a new BoxCollider if none exists
+            _collider = gameObject.AddComponent<BoxCollider>();
+            _collider.center = Vector3.zero;    
+            _collider.size = _originalBounds;
         }
 
         // Set the layer and register eye target
         gameObject.layer = StringResources.LayerToInt(StringResources.UI_layer);
         EyeGazeManager.Instance.RegisterEyeTargetID(gameObject);
 
-        _grabbable =gameObject.AddComponent<StorableGrabbable>();
-
-        IsVMReady = false; //turn off for now
+        _grabbable = gameObject.AddComponent<StorableGrabbable>();
     }
 
-    #region Scaling
+    public void Deregister()
+    {
+        transform.position = _originalPosition;
+        transform.localScale = _originalScale;
+        gameObject.layer = _originalLayer;
+
+        EyeGazeManager.Instance.DeRegisterEyeTarget(gameObject);
+
+        if (!_hadCollider)
+            Destroy(_collider);
+        Destroy(_grabbable);
+    }
+
+    /// <summary>
+    /// Try to get the extents of this mesh by checking canvas or meshfilter components in children and this one
+    /// </summary>
+    private void TryToGetBoundsFromMesh()
+    {
+        if (GetComponentsInChildren<MeshFilter>()!=null) //check for meshfilter components
+        {
+            Bounds combinedBounds = new Bounds(Vector3.zero, Vector3.one);
+            foreach (MeshFilter filter in GetComponentsInChildren<MeshFilter>())
+            {
+                if (filter.mesh != null)
+                {
+                    Bounds meshBounds = filter.mesh.bounds;
+                    combinedBounds.Encapsulate(meshBounds);
+                }
+            }
+            _originalBounds = combinedBounds.size; // Local space bounds
+        }
+        else if (GetComponentInChildren<RectTransform>()) // check for canvas
+        {
+            // Get the mesh filter of the target GameObject
+            RectTransform targetCanvas = GetComponentInChildren<RectTransform>();
+            _originalBounds = new Vector3(targetCanvas.rect.width, targetCanvas.rect.height, 0.001f);
+        }
+    }
+
+    /// <summary>
+    /// Tries to get a collider mesh from this object or its children. If yes, it will be used as bounds
+    /// </summary>
+    private bool TryToGetBoundsFromCollider()
+    {
+        // Set bounds
+        if (GetComponentInChildren<Collider>()) // check if parent has mesh
+        {
+            var allColliders = GetComponentsInChildren<Collider>();
+            float maxDim = -111;
+            Collider selectedCollider = GetComponentInChildren<Collider>();
+            foreach (Collider col in allColliders)
+            {
+                var currentMaxDim = Mathf.Max(col.bounds.size.x, col.bounds.size.y, col.bounds.size.z);
+                if (currentMaxDim > maxDim)
+                {
+                    maxDim = currentMaxDim;
+                    selectedCollider = col;
+                }
+            }
+
+            if (selectedCollider is BoxCollider)
+            {
+                _collider = selectedCollider as BoxCollider;
+                _originalBounds = _collider.bounds.size;
+                _hadCollider = true;
+            }
+
+            if (maxDim<0)
+                return false;
+
+            _originalBounds = new Vector3(
+    selectedCollider.bounds.size.x / transform.lossyScale.x,
+    selectedCollider.bounds.size.y / transform.lossyScale.y,
+    selectedCollider.bounds.size.z / transform.lossyScale.z
+);
+            return true;
+        }
+
+        return false;
+    }
+
+    #endregion
+
+    #region Tether and Untethering
 
     /// <summary>
     /// Scale object to original size. This is called when the object is untethered
     /// </summary>
-    public void ScaleToOriginalSize()
-    {
-        LabelMessage = "Say 'Follow'";
-
-        StartCoroutine(MoveToOriginal());
-    }
-
-    private IEnumerator MoveToOriginal()
+    public void ToOriginalPosScale(Vector3? newPos = null)
     {
         Vector3 targetPos = _originalPosition;
+        if (newPos != null)
+            targetPos = (Vector3)newPos;
+
+        StartCoroutine(ToOriginalPosScale(targetPos));
+    }
+
+    /// <summary>
+    /// Smoothly moves the GameObject back to its original position and scale over a duration of 1 second.
+    /// Uses linear interpolation for the transition and ensures the final position and scale 
+    /// are set accurately at the end of the movement.
+    /// </summary>
+    /// <param name="targetPos">new position after untethering</param>
+    /// <returns></returns>
+    private IEnumerator ToOriginalPosScale(Vector3 targetPos)
+    {
         Vector3 targetScale = _originalScale;
 
         float elapsedTime = Time.deltaTime;
         Vector3 startPos = transform.position;
         Vector3 startScale = transform.localScale;
-        while (Vector3.Distance(transform.position, targetPos) > 0.001f)
+        while (Vector3.Distance(transform.localScale, targetScale) > 0.001f)
         {
-            transform.position = Vector3.Lerp(startPos, targetPos, (elapsedTime / 1f));
-            transform.localScale = Vector3.Lerp(startScale, targetScale, (elapsedTime / 1f));
+            float t = (elapsedTime / _moveDuration);
+            transform.position = Vector3.Lerp(startPos, targetPos, t);
+            transform.localScale = Vector3.Lerp(startScale, targetScale, t);
+
             elapsedTime += Time.deltaTime;
             yield return new WaitForEndOfFrame();
         }
 
-        transform.position = _originalPosition;
+        transform.position = targetPos;
         transform.localScale = _originalScale;
     }
 
     /// <summary>
-    /// Scale object to tethered size. The largest dimension should fit in the tethered space
+    /// Scales the current GameObject to fit within a bounding box of a specified radius.
+    /// It calculates the uniform scale factor based on the mesh or UI element size to
+    /// ensure the GameObject is resized proportionally within the given radius.
     /// </summary>
-    /// <param name="radius"></param>
-    public void ScaleToBoxSize(float radius)
+    /// <param name="dim">The dim of the bounding box within which the GameObject should fit.</param>
+    public void ScaleToBoxSize(float dim)
     {
-        // Get the mesh filter of the target GameObject
-        Vector3 maxSize = new Vector3(1f,1f,1f); //fallback assumption is that the target object's max dimension is 1 meter
-
-        var mesh = GetComponent<MeshFilter>();
-        if (mesh == null || mesh.mesh == null)
-        {
-            // Get the mesh filter of the target GameObject
-            RectTransform targetCanvas = GetComponentInChildren<RectTransform>();
-            if (targetCanvas != null)
-            {
-                maxSize = new Vector3(targetCanvas.rect.width, targetCanvas.rect.height, 0.001f);
-            }
-        }
-        else
-        {
-            maxSize = mesh.mesh.bounds.size;
-        }
-
-
-        // Get the world size of the current GameObject's mesh
-        Vector3 currentMeshSize = Vector3.Scale(new Vector3(radius * 2, radius * 2, radius * 2), transform.lossyScale);
+        Vector3 targetScale = new Vector3(dim, dim, dim);
 
         // Get the world size of the target GameObject's mesh
-        Vector3 targetMeshSize = Vector3.Scale(maxSize, transform.lossyScale);
+        Vector3 currentScale = Vector3.Scale(_originalBounds, transform.lossyScale);
 
         // Calculate the uniform scaling factor for the target GameObject to fit inside the current GameObject's dimensions
-        float scaleFactorX = currentMeshSize.x / targetMeshSize.x;
-        float scaleFactorY = currentMeshSize.y / targetMeshSize.y;
-        float scaleFactorZ = currentMeshSize.z / targetMeshSize.z;
+        float scaleFactorX = targetScale.x / currentScale.x;
+        float scaleFactorY = targetScale.y / currentScale.y;
+        float scaleFactorZ = targetScale.z / currentScale.z;
         float uniformScaleFactor = Mathf.Min(scaleFactorX, Mathf.Min(scaleFactorY, scaleFactorZ));
 
         // Apply the new uniform scale to the target GameObject
         transform.localScale = transform.localScale * uniformScaleFactor;
-
-        LabelMessage = "Say 'Unfollow'";
     }
 
     #endregion

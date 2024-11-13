@@ -37,13 +37,13 @@ public class ExampleScript : MonoBehaviour
 
         //test with dummy data
         var taskIDs = new List<string> { "Pinwheels", "Coffee", "Oatmeal", "Quesadilla", "Tea" };
-        _currentStepMap = new Dictionary<string, int> { 
+        _currentStepMap = new Dictionary<string, int> {
             { "Pinwheels", 0 }, { "Coffee", 0 },
             { "Oatmeal", 0 }, { "Quesadilla", 0 }, { "Tea", 0 }};
         _currentTask = "Pinwheels";
 
         var allJsonTasks = new Dictionary<string, string>();
-        foreach (string  taskID in taskIDs)
+        foreach (string taskID in taskIDs)
         {
             var jsonTextFile = Resources.Load<TextAsset>("Manuals/" + taskID);
             allJsonTasks.Add(taskID, jsonTextFile.text);
@@ -62,7 +62,7 @@ public class ExampleScript : MonoBehaviour
 
         AngelARUI.Instance.SetCurrentObservedTask("Tea");
         _currentTask = "Tea";
-    
+
         yield return new WaitForSeconds(1f);
 
         _currentStepMap[_currentTask]++;
@@ -124,14 +124,9 @@ public class ExampleScript : MonoBehaviour
 
         AngelARUI.Instance.RegisterKeyword("Hello", () => { AngelARUI.Instance.PlayMessageAtAgent("How can I help you?"); });
 
-       // AngelARUI.Instance.RegisterDetectedObject(transform.GetChild(0).gameObject, "test");
-       // AngelARUI.Instance.RegisterDetectedObject(transform.GetChild(1).gameObject, "test1");
+        // AngelARUI.Instance.RegisterDetectedObject(transform.GetChild(0).gameObject, "test");
+        // AngelARUI.Instance.RegisterDetectedObject(transform.GetChild(1).gameObject, "test1");
         //AngelARUI.Instance.RegisterDetectedObject(transform.GetChild(2).gameObject, "test2");
-
-        AngelARUI.Instance.RegisterTetheredObject(transform.GetChild(0).gameObject.GetInstanceID(), transform.GetChild(0).gameObject);
-        AngelARUI.Instance.RegisterTetheredObject(transform.GetChild(1).gameObject.GetInstanceID(), transform.GetChild(1).gameObject);
-        //AngelARUI.Instance.RegisterTetheredObject(transform.GetChild(2).gameObject.GetInstanceID(), transform.GetChild(2).gameObject);
-
     }
 
     private IEnumerator ShowWarningDelayed()
@@ -249,7 +244,6 @@ public class ExampleScript : MonoBehaviour
 
         yield return new WaitForSeconds(1);
 
-        StartCoroutine(RunAutomatedTestsRecipes());
     }
     #endregion
 
@@ -260,11 +254,11 @@ public class ExampleScript : MonoBehaviour
     /// </summary>
     public void Update()
     {
-        CheckForRecipeChange();
+        //CheckForRecipeChange();
 
         if (Input.GetKeyUp(KeyCode.O))
         {
-            var taskIDs= new List<string>();
+            var taskIDs = new List<string>();
             if (multipleTasks)
             {
                 //test with dummy data
@@ -290,7 +284,7 @@ public class ExampleScript : MonoBehaviour
 
             AngelARUI.Instance.SetManual(allJsonTasks);
             AngelARUI.Instance.GoToStep("Filter Inspection", 0);
-        } 
+        }
 
         // Example how to step forward/backward in tasklist. 
         if (Input.GetKeyUp(KeyCode.RightArrow))
@@ -311,7 +305,7 @@ public class ExampleScript : MonoBehaviour
 
         if (Input.GetKeyUp(KeyCode.M))
         {
-            AngelARUI.Instance.PlayMessageAtAgent("Hello",10);
+            AngelARUI.Instance.PlayMessageAtAgent("Hello", 10);
         }
 
         if (Input.GetKeyUp(KeyCode.Delete))
@@ -327,7 +321,7 @@ public class ExampleScript : MonoBehaviour
         if (Input.GetKeyUp(KeyCode.B))
         {
             AngelARUI.Instance.TryGetUserYesNoChoice("Are you done with the previous step?",
-                null, () => { GoToPreviousStepConfirmation(); }, null, 30) ;
+                null, () => { GoToPreviousStepConfirmation(); }, null, 30);
         }
 
         if (Input.GetKeyUp(KeyCode.A))
@@ -355,6 +349,55 @@ public class ExampleScript : MonoBehaviour
         if (Input.GetKeyUp(KeyCode.Alpha0))
         {
             AngelARUI.Instance.RemoveWarningMessage();
+        }
+
+        TestTethering();
+    }
+
+    private void TestTethering()
+    {
+        int tetherMode = -1;
+        if (Input.GetKey(KeyCode.K))
+        {
+            tetherMode = 0;
+        }
+        if (Input.GetKey(KeyCode.L))
+        {
+            tetherMode = 1;
+        }
+
+        int id = -1;
+        // Example how to use the NLI confirmation dialogue
+        if (Input.GetKeyUp(KeyCode.Alpha1))
+        {
+            id = 0;
+        }
+
+        if (Input.GetKeyUp(KeyCode.Alpha2))
+        {
+            id = 1;
+        }
+
+        if (Input.GetKeyUp(KeyCode.Alpha3))
+        {
+            id = 2;
+        }
+
+        if (id>=0)
+        {
+            if (tetherMode==-1)
+            {
+                if (!AngelARUI.Instance.RegisterTetheredObject(transform.GetChild(id).gameObject.GetInstanceID(), transform.GetChild(id).gameObject))
+                {
+                    AngelARUI.Instance.DeRegisterTetheredObject(transform.GetChild(id).gameObject.GetInstanceID());
+                }
+            } else if (tetherMode== 0) 
+            {
+                AngelARUI.Instance.Tether(transform.GetChild(id).gameObject.GetInstanceID());
+            } else if (tetherMode == 1)
+            {
+                AngelARUI.Instance.Untether(transform.GetChild(id).gameObject.GetInstanceID());
+            }
         }
     }
 

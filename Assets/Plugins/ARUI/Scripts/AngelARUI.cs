@@ -75,7 +75,7 @@ public class AngelARUI : Singleton<AngelARUI>
         GameObject eyeTarget = Instantiate(Resources.Load(StringResources.EyeTarget_path)) as GameObject;
         eyeTarget.gameObject.name = "***ARUI-" + StringResources.eyeGazeManager_name;
         eyeTarget.AddComponent<EyeGazeManager>();
-        EyeGazeManager.Instance.ShowDebugTarget(_showEyeGazeTarget);
+        EyeGazeManager.Instance.ShowEyeGazeTargetIndicator = _showEyeGazeTarget;
 
         //GameObject handPoseManager = Instantiate(Resources.Load(StringResources.HandPoseManager_path)) as GameObject;
         //handPoseManager.gameObject.name = "***ARUI-" + StringResources.HandPoseManager_name;
@@ -108,7 +108,7 @@ public class AngelARUI : Singleton<AngelARUI>
             StartCoroutine(TryStartVM());
 
 
-        //Initialize components for the visibility computation of physical objects
+        //Register components for the visibility computation of physical objects
         Camera zBufferCam = new GameObject("zBuffer").AddComponent<Camera>();
         zBufferCam.transform.parent = _arCamera.transform;
         zBufferCam.transform.position = Vector3.zero;
@@ -341,20 +341,6 @@ public class AngelARUI : Singleton<AngelARUI>
         DataProvider.Instance.RemoveDetectedObjects(ID);
     }
 
-    public void RegisterTetheredObject(int ID, GameObject toRegister)
-    {
-        OrbStorageManager.Instance.RegisterStorableObject(ID, toRegister);
-
-        RegisterKeyword("Follow", () => { OrbStorageManager.Instance.HandleStoreKeyword(); });
-        RegisterKeyword("Unfollow", () => { OrbStorageManager.Instance.HandleUnstoreKeyword(); });
-    }
-
-    public void DeRegisterTetheredObject(int ID) => OrbStorageManager.Instance.DeRegisterStorableObject(ID);
-
-    //public void TetherObject(int ID) => OrbStorageManager.Instance.TetherStorableObject(ID);
-
-    //public void UntetherObject(int ID) => OrbStorageManager.Instance.UntetherStorableObject(ID);
-
     #endregion
 
     #region Orb Behavior
@@ -397,7 +383,7 @@ public class AngelARUI : Singleton<AngelARUI>
     /// Register an utterance (e.g., "Follow me") to a callback action that should be invoked when the user is saying the utterance.
     /// MRTK is used for this, so in addition to call this function, the utterance has to be set in the "MixedRealityToolKit" script in your Unity scene 
     /// (Input --> Speech --> Add new Speech Command) before compile time.
-    /// If the given utterance is already registered, this call will be ignored.
+    /// If the given utterance is already registered, this call will override the previous callback
     /// </summary>
     /// <param name="utterance"></param>
     /// <param name="utteranceDetectedCallBack"></param>
@@ -411,10 +397,19 @@ public class AngelARUI : Singleton<AngelARUI>
 
     #region Storage
 
-    public void StoreObject(GameObject objectToStore, OrbStorageManager type)
+    public bool RegisterTetheredObject(int ID, GameObject toRegister)
     {
-       
+        RegisterKeyword(ARUISettings.TetherSpeechKeyword, () => { OrbStorageManager.Instance.HandleStoreKeyword(); });
+        RegisterKeyword(ARUISettings.UnTetherSpeechKeyword, () => { OrbStorageManager.Instance.HandleUnstoreKeyword(); });
+
+        return OrbStorageManager.Instance.RegisterStorableObject(ID, toRegister);
     }
+
+    public void DeRegisterTetheredObject(int ID) => OrbStorageManager.Instance.DeRegisterStorableObject(ID);
+
+    public bool Tether(int ID) => OrbStorageManager.Instance.HandleStore(ID);
+
+    public void Untether(int ID, Vector3? newPos = null) => OrbStorageManager.Instance.HandleUnstore(ID, newPos);
 
     #endregion
 
@@ -469,11 +464,6 @@ public class AngelARUI : Singleton<AngelARUI>
     }
     #endregion
 
-    #region Design Parameters
-
-
-    #endregion
-
     #region Logging and Debugging
 
     /// <summary>
@@ -491,7 +481,7 @@ public class AngelARUI : Singleton<AngelARUI>
     public void DebugShowEyeGazeTarget(bool show)
     {
         _showEyeGazeTarget = show;
-        EyeGazeManager.Instance.ShowDebugTarget(_showEyeGazeTarget);
+        EyeGazeManager.Instance.ShowEyeGazeTargetIndicator = _showEyeGazeTarget;
     }
 
     /// <summary>

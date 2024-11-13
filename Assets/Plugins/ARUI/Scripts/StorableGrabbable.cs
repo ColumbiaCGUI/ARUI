@@ -1,46 +1,44 @@
 using Microsoft.MixedReality.Toolkit.Input;
 using Microsoft.MixedReality.Toolkit.UI;
+using System.Collections;
 using UnityEngine;
 
-public class StorableGrabbable : MonoBehaviour, IMixedRealityPointerHandler
+public class StorableGrabbable : Grabbable, IMixedRealityPointerHandler
 {
-    private ObjectManipulator _grabbable;
-    private StorableObject storableObject;
-
-    private bool _grabbingAllowed = true;
-    public bool IsGrabbingAllowed
-    {
-        get { return _grabbingAllowed; }
-        set { _grabbable.enabled = value; }
-    }
-
     public bool _isGrabbed = false;
-
     public bool IsGrabbed => _isGrabbed;
+
+    private bool _isDragged = false;
+    public bool IsDragged => _isDragged;
+
+    private StorableObject storableObject;
 
     private void Start()
     {
+        base.Start();
+
         gameObject.AddComponent<NearInteractionGrabbable>();
-        _grabbable = gameObject.AddComponent<ObjectManipulator>();
-
         storableObject = GetComponentInChildren<StorableObject>();
-
-        _grabbable.OnHoverEntered.AddListener(delegate { OnHoverStarted(); });
-        _grabbable.OnHoverExited.AddListener(delegate { OnHoverExited(); });
     }
 
-    private void OnHoverStarted() { }
-
-    private void OnHoverExited() { }
+    private void Update()
+    {
+       if (DraggableHandle != null)
+       {
+            DraggableHandle.transform.position = transform.position + new Vector3(0,-0.02f,0);
+       }
+    }
 
     public void OnPointerDown(MixedRealityPointerEventData eventData)
     {
         AudioManager.Instance.PlaySound(transform.position, SoundType.moveStart);
         _isGrabbed = true;
+        _isDragged = false;
     }
 
     public void OnPointerDragged(MixedRealityPointerEventData eventData)
     {
+        _isDragged = true;
         _isGrabbed = true;
     }
 
@@ -48,9 +46,32 @@ public class StorableGrabbable : MonoBehaviour, IMixedRealityPointerHandler
     public void OnPointerUp(MixedRealityPointerEventData eventData)
     {
         AudioManager.Instance.PlaySound(transform.position, SoundType.moveEnd);
+
+        if (DraggableHandle !=null && DraggableHandle.Progress>=1.0f)
+        {
+            OrbStorageManager.Instance.HandleUnstore(storableObject.ID, transform.position);
+        }
+
         _isGrabbed = false;
+        _isDragged = false;
     }
 
     public void OnPointerClicked(MixedRealityPointerEventData eventData) { }
 
+
+    public void OnDestroy()
+    {
+        if (gameObject.GetComponent<NearInteractionGrabbable>())
+        {
+            Destroy(gameObject.GetComponent<NearInteractionGrabbable>());
+        }
+        if (gameObject.GetComponent<ObjectManipulator>())
+        {
+            Destroy(gameObject.GetComponent<ObjectManipulator>());
+        }
+        if (gameObject.GetComponent<ConstraintManager>())
+        {
+            Destroy(gameObject.GetComponent<ConstraintManager>());
+        }
+    }
 }

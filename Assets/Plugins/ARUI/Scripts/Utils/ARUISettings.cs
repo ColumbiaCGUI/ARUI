@@ -45,4 +45,11 @@ public static class ARUISettings
     public static readonly int Padding = 20;             /// < buffer in pixels
     public static readonly int VMPixelIteration = 1;
     public static readonly int SMPixelSkip = 2;          /// < Adjust the resolution of the SM algorithm
+
+    //**** Default Keywords
+    public static readonly string TetherSpeechKeyword = "Follow";
+    public static readonly string UnTetherSpeechKeyword = "Unfollow";
+
+    //**** Eye Gaze Settings
+    public static readonly float EyeGazeLabelDwelltime = 1f;
 }

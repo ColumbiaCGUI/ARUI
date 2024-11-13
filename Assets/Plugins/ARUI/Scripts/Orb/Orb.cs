@@ -35,6 +35,7 @@ public class Orb : Singleton<Orb>
 
     private OrbGrabbable _grabbable;                         /// <reference to grabbing behavior
     private OrbMessageContainer _messageContainer;                     /// <reference to orb message container (part of prefab)
+    public bool IsMessageRight => _messageContainer.IsMessageRight;
 
     private List<BoxCollider> _allOrbColliders;              /// <reference to all _collider - will be merged for view management.
     public List<BoxCollider> AllOrbColliders => _allOrbColliders;
@@ -54,7 +55,6 @@ public class Orb : Singleton<Orb>
     private bool _lazyFollowStarted = false;                 /// <used for lazy following
 
     private OrbSpeechBubble _dialogue;
-    private OrbHandle _orbHandle;
 
     /// <summary>
     /// Get all orb references from prefab
@@ -84,7 +84,7 @@ public class Orb : Singleton<Orb>
         _dialogue.gameObject.SetActive(false);
 
         GameObject handleObj = transform.GetChild(0).GetChild(3).gameObject;
-        _orbHandle = handleObj.AddComponent<OrbHandle>();
+        _grabbable.DraggableHandle = handleObj.AddComponent<DraggableHandle>();
 
         // Collect all orb colliders
         _allOrbColliders = new List<BoxCollider>();
@@ -188,10 +188,10 @@ public class Orb : Singleton<Orb>
         _orbBehavior = newBehavior;
 
         if (newBehavior==MovementBehavior.Fixed) 
-            Orb.Instance.SetHandleProgress(1);
+            _grabbable.DraggableHandle.SetHandleProgress(1);
         else
         {
-            Orb.Instance.SetHandleProgress(0);
+            _grabbable.DraggableHandle.SetHandleProgress(0);
         }
     }
 
@@ -263,10 +263,10 @@ public class Orb : Singleton<Orb>
     {
         if (changeToFixed)
         {
-            StartCoroutine(_grabbable.TransitionToFixedMovement());
+            StartCoroutine(_grabbable.TransitionToFullHandle( () => Orb.Instance.UpdateMovementbehavior(MovementBehavior.Fixed)));
         } else
         {
-            StopCoroutine(_grabbable.TransitionToFixedMovement());
+            StopCoroutine(_grabbable.TransitionToFullHandle(() => Orb.Instance.UpdateMovementbehavior(MovementBehavior.Fixed)));
             UpdateMovementbehavior(MovementBehavior.Follow);
         }
     }
@@ -358,12 +358,6 @@ public class Orb : Singleton<Orb>
     /// <param name="utterance"></param>
     /// <param name="answer"></param>
     public void SetDialogueText(string utterance, string answer, float timeout) => _dialogue.SetText(utterance, answer, timeout);
-
-    /// <summary>
-    /// Change the visual appearance of the orb handle. 0% is black, 100% progress is white
-    /// </summary>
-    /// <param name="progress"></param>
-    public void SetHandleProgress(float progress) => _orbHandle.SetHandleProgress(progress);
 
     /// <summary>
     /// Check if user is looking at orb. - includes orb message and task list button if 'any' is true. else only orb face and message

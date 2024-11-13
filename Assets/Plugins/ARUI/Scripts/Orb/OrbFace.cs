@@ -29,8 +29,6 @@ public class OrbFace : MonoBehaviour
     private GameObject _warningIcon;
     private GameObject _noteIcon;
 
-    private OrbStorageManager _storageManager;
-
     public bool MessageNotificationEnabled
     {
         set => SetNotificationPulse(value);
@@ -110,7 +108,11 @@ public class OrbFace : MonoBehaviour
         _warningIcon = allDiscs[5].gameObject;
         _warningIcon.SetActive(false);
 
-        _storageManager = transform.GetChild(0).GetChild(6).gameObject.AddComponent<OrbStorageManager>();
+        var storeManager = new GameObject();
+        storeManager.transform.parent = transform;
+        storeManager.transform.localPosition = Vector3.zero;
+        storeManager.transform.localScale = Vector3.one;
+        storeManager.AddComponent<OrbStorageManager>(); 
     }
 
     private void Update()

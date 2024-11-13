@@ -75,7 +75,7 @@ public class DataProvider : Singleton<DataProvider>
 
     #region Task List Data 
     /// <summary>
-    /// Initialize the task manual. Can only be set once at start and contains the file names of all tasks
+    /// Register the task manual. Can only be set once at start and contains the file names of all tasks
     /// jsonTaskLists is a list of json strings 
     /// </summary>
     /// <param name="jsonTaskLists"></param>

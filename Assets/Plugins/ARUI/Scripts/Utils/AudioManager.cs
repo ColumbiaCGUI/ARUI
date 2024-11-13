@@ -193,7 +193,7 @@ public class AudioManager : Singleton<AudioManager>, IMixedRealitySpeechHandler
     }
 
     /// <summary>
-    /// Initialize the sound effect library
+    /// Register the sound effect library
     /// </summary>
     private void InitIfNeeded()
     {
@@ -368,10 +368,11 @@ public class AudioManager : Singleton<AudioManager>, IMixedRealitySpeechHandler
     }
 
     /// <summary>
-    /// Handles Speech input event from MRTK, for now we only listen to the 
-    /// keyword 'stop', so the orb stops talking immediately.
+    /// Handles the event when a speech keyword is recognized using MRTK. 
+    /// Checks if the recognized keyword matches any registered keywords 
+    /// and invokes the associated callback action if a match is found.
     /// </summary>
-    /// <param name="eventData"></param>
+    /// <param name="eventData">The speech event data containing the recognized keyword and related information.</param>
     public void OnSpeechKeywordRecognized(SpeechEventData eventData)
     {
         AngelARUI.Instance.DebugLogMessage("Detected keyword: " + eventData.Command.Keyword.ToLower(), true);
@@ -385,12 +386,30 @@ public class AudioManager : Singleton<AudioManager>, IMixedRealitySpeechHandler
         }
     }
 
+    /// <summary>
+    /// Registers a keyword and associates it with a callback action to be executed 
+    /// when the keyword is detected. If the keyword is already registered, the callback 
+    /// is updated with the new one provided. The keyword must be at least 2 characters long.
+    /// </summary>
+    /// <param name="keyword">The keyword to register for detection.</param>
+    /// <param name="keyWordDetectedCallBack">The callback action to execute when the keyword is detected.</param>
+    /// <returns>
+    /// Returns true if the keyword was successfully registered or updated. 
+    /// Returns false if the keyword is null, too short, or if the registration fails for any reason.
+    /// </returns>
     public bool RegisterKeyword(string keyword, UnityAction keyWordDetectedCallBack)
     {
-        if (keyword != null && keyword.Length >= 2 && !_keywordToActionMapping.ContainsKey(keyword))
+        if (keyword != null && keyword.Length >= 2)
         {
-            _keywordToActionMapping.Add(keyword, keyWordDetectedCallBack);
-            AngelARUI.Instance.DebugLogMessage("Successfully registered keyword '" + keyword + "'.", true);
+            if (_keywordToActionMapping.ContainsKey(keyword))
+            {
+                _keywordToActionMapping[keyword] = keyWordDetectedCallBack;
+                AngelARUI.Instance.DebugLogMessage("Keyword '" + keyword + "'is already registered, but new callback is set", true);
+            } else
+            {
+                _keywordToActionMapping.Add(keyword, keyWordDetectedCallBack);
+                AngelARUI.Instance.DebugLogMessage("Successfully registered keyword '" + keyword + "'.", true);
+            }
             return true;
         }
 
