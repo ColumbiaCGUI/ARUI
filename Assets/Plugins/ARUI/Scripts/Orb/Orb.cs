@@ -1,5 +1,3 @@
-using Microsoft.MixedReality.OpenXR;
-using Microsoft.MixedReality.Toolkit.Utilities;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -75,8 +73,6 @@ public class Orb : Singleton<Orb>
         EyeGazeManager.Instance.RegisterEyeTargetID(_eyeGazeTargetBody);
 
         _grabbable = gameObject.GetComponentInChildren<OrbGrabbable>();
-
-        BoxCollider taskListBtnCol = transform.GetChild(0).GetComponent<BoxCollider>();
 
         _dialogue = transform.GetChild(0).GetChild(2).gameObject.AddComponent<OrbSpeechBubble>();
         _dialogue.Init();
@@ -367,7 +363,7 @@ public class Orb : Singleton<Orb>
     public bool IsLookingAtOrb(bool any)
     {
         if (any)
-            return _isLookingAtOrb || _messageContainer.IsLookingAtMessage || _messageContainer.IsInteractingWithBtn;
+            return _isLookingAtOrb || _messageContainer.IsLookingAtMessage || _messageContainer.IsInteractingWithBtn || DialogManager.Instance.IsLookingAtAnyDialog;
         else
             return _isLookingAtOrb || _messageContainer.IsLookingAtMessage;
     }

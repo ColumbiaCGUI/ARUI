@@ -91,7 +91,7 @@ public class OrbStorageBox : MonoBehaviour
 
         _connection = GetComponent<Shapes.Line>();
         _connection.ColorStart = Color.white;
-        _connection.ColorEnd = new Color(1,1,1,0);
+        _connection.ColorEnd = new Color(0,0,0,0);
     }
 
     /// <summary>

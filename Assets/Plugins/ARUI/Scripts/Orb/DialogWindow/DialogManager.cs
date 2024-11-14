@@ -26,6 +26,17 @@ public class DialogManager : Singleton<DialogManager>
     private Queue<DialogTemplate> _currentActiveDialogs = new Queue<DialogTemplate>();
     public int CurrentActiveDialogs => _currentActiveDialogs.Count;
 
+    public bool IsLookingAtAnyDialog
+    {
+        get
+        {
+           foreach (var dialog in _currentActiveDialogs)
+                if (dialog.LookingAtDialog) return true;
+
+            return false;
+        }
+    }
+
     protected UnityEvent _timeOutEvent;                /// <Event that will be invoked if the notification timesout
     protected UnityEvent _selfDestruct;
 

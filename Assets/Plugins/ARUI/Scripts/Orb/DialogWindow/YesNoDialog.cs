@@ -17,7 +17,7 @@ public class YesNoDialog : DialogTemplate
         dwell.InitializeButton(dwell.gameObject, () => OnUserSelectedAnOption(yesOption), null, true, DwellButtonType.Select, true);
         
         var onNoSelect = new UnityEvent();
-        DialogOption noOption = allButtons.GetChild(0).gameObject.AddComponent<DialogOption>();
+        DialogOption noOption = allButtons.GetChild(1).gameObject.AddComponent<DialogOption>();
         noOption.gameObject.name = "Option - No";
         dwell = noOption.Init(1, AcceptedSpeechInput.SelectNo);
         // use localIndex 1 because the no button is the second in the local _options list

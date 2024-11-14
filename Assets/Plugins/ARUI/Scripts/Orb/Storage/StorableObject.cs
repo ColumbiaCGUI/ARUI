@@ -52,7 +52,7 @@ public class StorableObject : MonoBehaviour
         if (EyeGazeManager.Instance)
             _isLookingAt = EyeGazeManager.Instance.CurrentHitID == gameObject.GetInstanceID();
 
-        if (CurrentStorage != null && !_isLookingAt && !_grabbable.IsGrabbed)
+        if (CurrentStorage != null && !_isLookingAt && !_grabbable.IsDragged)
         {
             transform.position = Vector3.Lerp(transform.position, CurrentStorage.transform.position, _followSpeed * Time.deltaTime);
         }

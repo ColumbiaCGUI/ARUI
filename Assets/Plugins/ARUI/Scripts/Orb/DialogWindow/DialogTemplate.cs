@@ -25,6 +25,8 @@ public abstract class DialogTemplate : MonoBehaviour
 
     protected List<DialogOption> _options = new List<DialogOption>();
 
+    private bool _lookingAtDialog = false;
+    public bool LookingAtDialog => _lookingAtDialog;
     public void InitTemplate(
         OrbDialogType type, 
         string dialogMessage, string subTitle, float timeOutInSeconds,
@@ -36,7 +38,7 @@ public abstract class DialogTemplate : MonoBehaviour
         _dialogMsgContainer.AddShortLineToText(subTitle);
 
         _timeLine = transform.GetChild(1).GetComponentInChildren<Shapes.Line>();
-        _timeLine.gameObject.SetActive(false);
+        _timeLine.enabled = false;
 
         _timeOutInSeconds = timeOutInSeconds;
         _timeOutEvent = new UnityEvent();
@@ -46,6 +48,16 @@ public abstract class DialogTemplate : MonoBehaviour
         transform.SetLayerAllChildren(StringResources.LayerToInt(StringResources.UI_layer));
 
         _init = true;
+    }
+
+    public void Update()
+    {
+        bool interacting = false;
+        foreach (var option in _options)
+        {
+            interacting = interacting || option.Btn.IsInteractingWithBtn;
+        }
+        _lookingAtDialog = interacting || _dialogMsgContainer.IsLookingAtText;
     }
 
     public void ShowDialog() => StartCoroutine(DecreaseTime());
@@ -92,8 +104,6 @@ public abstract class DialogTemplate : MonoBehaviour
         {
             yield return new WaitForFixedUpdate();
         }
-
-        _timeLine.gameObject.SetActive(true);
 
         _timerStarted = true;
         _timeLine.enabled = true;

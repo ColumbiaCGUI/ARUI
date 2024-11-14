@@ -5,9 +5,6 @@ using UnityEngine;
 
 public class StorableGrabbable : Grabbable, IMixedRealityPointerHandler
 {
-    public bool _isGrabbed = false;
-    public bool IsGrabbed => _isGrabbed;
-
     private bool _isDragged = false;
     public bool IsDragged => _isDragged;
 
@@ -27,21 +24,20 @@ public class StorableGrabbable : Grabbable, IMixedRealityPointerHandler
        {
             DraggableHandle.transform.position = transform.position + new Vector3(0,-0.02f,0);
        }
+
+        _isDragged = false;
     }
 
     public void OnPointerDown(MixedRealityPointerEventData eventData)
     {
         AudioManager.Instance.PlaySound(transform.position, SoundType.moveStart);
-        _isGrabbed = true;
         _isDragged = false;
     }
 
     public void OnPointerDragged(MixedRealityPointerEventData eventData)
     {
         _isDragged = true;
-        _isGrabbed = true;
     }
-
 
     public void OnPointerUp(MixedRealityPointerEventData eventData)
     {
@@ -52,7 +48,6 @@ public class StorableGrabbable : Grabbable, IMixedRealityPointerHandler
             OrbStorageManager.Instance.HandleUnstore(storableObject.ID, transform.position);
         }
 
-        _isGrabbed = false;
         _isDragged = false;
     }
 
