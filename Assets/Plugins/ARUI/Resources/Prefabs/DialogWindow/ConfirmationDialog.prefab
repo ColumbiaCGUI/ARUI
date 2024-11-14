@@ -307,7 +307,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3851953592626974122}
   m_Layer: 5
-  m_Name: OrbConfirmationDialog
+  m_Name: ConfirmationDialog
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -962,7 +962,7 @@ BoxCollider:
   m_Enabled: 1
   serializedVersion: 2
   m_Size: {x: 0.04, y: 0.04, z: 0.04}
-  m_Center: {x: 0, y: 0, z: 0.01}
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &2993808268362337039
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1181,8 +1181,8 @@ BoxCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Size: {x: 0.2, y: 0.04, z: 0.03}
-  m_Center: {x: 0.1, y: 0, z: 0}
+  m_Size: {x: 0.22, y: 0.04, z: 0.03}
+  m_Center: {x: 0.05, y: 0, z: 0.01}
 --- !u!114 &4729879220220033262
 MonoBehaviour:
   m_ObjectHideFlags: 0

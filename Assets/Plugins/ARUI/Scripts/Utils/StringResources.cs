@@ -22,15 +22,16 @@ public static class StringResources
     public static string POIHalo_path = "Prefabs/Halo3D";
     public static string Orb_path = "Prefabs/Orb/Orb";
     public static string EyeTarget_path = "Prefabs/EyeTarget";
-    public static string ConfDialogOrb_path = "Prefabs/Orb/OrbConfirmationDialog";
-    public static string MultiChoiceDialogOrb_path = "Prefabs/Orb/OrbChoiceDialog";
-    public static string YesNoDialogOrb_path = "Prefabs/Orb/OrbYesNoDialog";
     public static string HandPoseManager_path = "Prefabs/HandPoseManager";
     public static string Sid_Tasklist_path = "Prefabs/Sid_Tasklist/Task_Overview";
     public static string TaskOverview_template_path = "Prefabs/Sid_Tasklist/TaskOverview_template";
     public static string LoggerPrefab_path = "Prefabs/Logger";
     public static string LabelPrefab_path = "Prefabs/Label";
     public static string OrbStorageBox_path = "Prefabs/Orb/OrbStorageBox";
+
+    public static string ConfDialogOrb_path = "Prefabs/DialogWindow/ConfirmationDialog";
+    public static string MultiChoiceDialogOrb_path = "Prefabs/DialogWindow/ChoiceDialog";
+    public static string YesNoDialogOrb_path = "Prefabs/DialogWindow/YesNoDialog";
 
     public static string dialogue_path = "Prefabs/Dialogue";
 

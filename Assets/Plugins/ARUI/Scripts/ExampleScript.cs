@@ -165,7 +165,9 @@ public class ExampleScript : MonoBehaviour
             return;
         }
 
-        AngelARUI.Instance.TryGetUserConfirmation("Please confirm if you are 100% confident that you want to go to the next step in the current task. We really need your confirmation.", () => DialogueTestConfirmed(), () => DialogueTestFailed());
+        AngelARUI.Instance.TryGetUserConfirmation(
+            "Please confirm if you are 100% confident that you want to go to the next step in the current task. We really need your confirmation.", 
+            () => DialogueTestConfirmed(true), () => DialogueTestFailed());
     }
 
     private void GoToPreviousStepConfirmation()
@@ -176,11 +178,12 @@ public class ExampleScript : MonoBehaviour
             return;
         }
 
-        _currentStepMap[_currentTask]--;
-        AngelARUI.Instance.GoToStep(_currentTask, _currentStepMap[_currentTask]);
+        AngelARUI.Instance.TryGetUserYesNoChoice(
+            "Please confirm if you are 100% confident that you want to go to the next step in the current task. We really need your confirmation.", 
+            () => DialogueTestConfirmed(false), () => DialogueTestFailed(), () => DialogueTestFailed());
     }
 
-    private void DialogueTestConfirmed()
+    private void DialogueTestConfirmed(bool forward)
     {
         if (_currentStepMap == null)
         {
@@ -188,14 +191,18 @@ public class ExampleScript : MonoBehaviour
             return;
         }
 
-        _currentStepMap[_currentTask]++;
-        AngelARUI.Instance.GoToStep(_currentTask, _currentStepMap[_currentTask]);
+        if (forward)
+        {
+            _currentStepMap[_currentTask]++;
+            AngelARUI.Instance.GoToStep(_currentTask, _currentStepMap[_currentTask]);
+        } else
+        {
+            _currentStepMap[_currentTask]--;
+            AngelARUI.Instance.GoToStep(_currentTask, _currentStepMap[_currentTask]);
+        }
     }
 
-    private void DialogueTestFailed()
-    {
-        AngelARUI.Instance.PlayMessageAtAgent("okay, i wont");
-    }
+    private void DialogueTestFailed() => AngelARUI.Instance.PlayMessageAtAgent("okay, i wont");
 
     private void ShowTestMultipleChoice()
     {

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -75,12 +76,13 @@ public class StorableObject : MonoBehaviour
         bool boundsAreSet = TryToGetBoundsFromCollider();
         if (!_hadCollider)
         {
+            var center = Vector3.zero;
             if (!boundsAreSet)
-                TryToGetBoundsFromMesh();
+                center = TryToGetBoundsFromMesh();
 
             // Add a new BoxCollider if none exists
             _collider = gameObject.AddComponent<BoxCollider>();
-            _collider.center = Vector3.zero;    
+            _collider.center = center;    
             _collider.size = _originalBounds;
         }
 
@@ -107,27 +109,76 @@ public class StorableObject : MonoBehaviour
     /// <summary>
     /// Try to get the extents of this mesh by checking canvas or meshfilter components in children and this one
     /// </summary>
-    private void TryToGetBoundsFromMesh()
+    private Vector3 TryToGetBoundsFromMesh()
     {
-        if (GetComponentsInChildren<MeshFilter>()!=null) //check for meshfilter components
-        {
-            Bounds combinedBounds = new Bounds(Vector3.zero, Vector3.one);
-            foreach (MeshFilter filter in GetComponentsInChildren<MeshFilter>())
-            {
-                if (filter.mesh != null)
-                {
-                    Bounds meshBounds = filter.mesh.bounds;
-                    combinedBounds.Encapsulate(meshBounds);
-                }
-            }
-            _originalBounds = combinedBounds.size; // Local space bounds
-        }
-        else if (GetComponentInChildren<RectTransform>()) // check for canvas
+        if (GetComponent<RectTransform>()) // check for canvas
         {
             // Get the mesh filter of the target GameObject
             RectTransform targetCanvas = GetComponentInChildren<RectTransform>();
             _originalBounds = new Vector3(targetCanvas.rect.width, targetCanvas.rect.height, 0.001f);
+            return Vector3.zero;
+
+        } else if (GetComponentsInChildren<MeshFilter>()!=null) //check for meshfilter components
+        {
+            Bounds combinedBounds = GetCombinedBounds();
+
+            // Set the BoxCollider's center and size based on the combined bounds.
+            // Account for the scaling of the parentObject itself.
+            Vector3 adjustedCenter = transform.InverseTransformPoint(combinedBounds.center);
+            Vector3 adjustedSize = combinedBounds.size;
+
+            // Since the BoxCollider is attached to the parent, we need to divide the size by the parent's local scale to get the correct collider size.
+            Vector3 parentScale = transform.lossyScale;
+            adjustedSize = new Vector3(
+                adjustedSize.x / Mathf.Abs(parentScale.x),
+                adjustedSize.y / Mathf.Abs(parentScale.y),
+                adjustedSize.z / Mathf.Abs(parentScale.z)
+            );
+            _originalBounds = adjustedSize;
+            return adjustedCenter;
         }
+
+        return Vector3.zero; 
+    }
+
+    private Bounds GetCombinedBounds()
+    {
+        // Initialize an empty bounds object.
+        Bounds combinedBounds = new Bounds();
+        bool boundsInitialized = false;
+
+        // Iterate over all children and include the parent itself.
+        foreach (Transform child in GetComponentsInChildren<Transform>())
+        {
+            MeshFilter meshFilter = child.GetComponent<MeshFilter>();
+            if (meshFilter != null)
+            {
+                // Get the mesh and calculate the bounds in world space.
+                Mesh mesh = meshFilter.sharedMesh;
+                if (mesh != null)
+                {
+                    Bounds meshBounds = mesh.bounds;
+
+                    // Transform mesh bounds to world space using the child's transform.
+                    Vector3[] vertices = mesh.vertices;
+                    foreach (Vector3 vertex in vertices)
+                    {
+                        Vector3 worldVertex = child.TransformPoint(vertex);
+                        if (!boundsInitialized)
+                        {
+                            combinedBounds = new Bounds(worldVertex, Vector3.zero);
+                            boundsInitialized = true;
+                        }
+                        else
+                        {
+                            combinedBounds.Encapsulate(worldVertex);
+                        }
+                    }
+                }
+            }
+        }
+
+        return combinedBounds;
     }
 
     /// <summary>
