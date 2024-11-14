@@ -1,136 +1,165 @@
-# ARUI - 3D UI for angel system
+# ARUI - Non-Humanoid Virtual Agent
 
-Env: 2020.3.25f and MRTK 2.7.3
+AngelARUI is a non-humanoid virtual agent designed for Unity projects, providing task management, notifications, dialog interactions, and tethering functionalities. This system integrates with the Mixed Reality Toolkit (MRTK) to create a seamless AR user experience.
+---
 
-## How to use ARUI:
+## Getting Started
 
-1) Create an empty GameObject in the highest hierarchy level at pos (0,0,0) and scale (1,1,1)
-2) Add the AngelARUI script to it. This script generates all necessary UI elements at runtime
-3) Call the AngelARUI methods from another script
+### Prerequisites
+- Unity 2020.3.25f
+- MRTK 2.7.3 ([Download Here](https://github.com/microsoft/MixedRealityToolkit-Unity/releases/tag/v2.7.3))
+- An example scene is located in `Plugins/ARUI/Scenes`.
+- If you want to add the ARUI in your project. Simply copy the folder `Plugins/ARUI/` into your `Plugins` folder.
 
-## Example Scene
-
-The Unity scene 'SampleScene' in folder 'Plugins/ARUI/Scenes' shows how one can use the AngelARUI script. Other than the MRTK toolkit, there are two important components in this scene: An object with the 'AngelARUI' script attached and a script 'ExampleScript' that calls the functions of AngelARUI (at 'DummyTestDataGenerator').
+---
 
 ## Scene Setup
-If you build your own scene using the AngelARUI script, there are a few things to note:
-1) The ARUI uses layers to detect various collisions (e.g., between eye gaze and UI elements). It is essential that the layer "UI" exists in the Unity project, and the layer index should be 5. Please reserve the layer for the ARUI and do not set your objects with that layer
-2) Make sure that the MRTK toolkit behavior in your scene is correctly set: (or use the AngelARUI settings file - AngelMRTKSettingsProfile)
-    1) Tab 'Input' -> Pointers -> Eye-tracking has to be enabled
-    2) Tab 'Input' -> Pointers -> Pointing Raycast Layer Masks -> There should be a layer called "UI"
-    3) Tab 'Input' -> Pointers -> Assign a pointer to the 'ShellHandRayPointer_ARUI' prefab in Resource/ARUI/Prefabs/ ( {'articulated hand', 'generic openVR'} and 'any')
-    4) Tab 'Input' -> Speech -> add keyword 'stop' (the parameters at the keyword can be left None or null)
-    5) Tab 'Input' -> Articulated Hand Tracking -> Assign the prefab 'Resources/ARUI/Prefabs/HandJoint/' to 'handjoint' model (important for view management)
-    
-3) In the hierarchy, at the main camera, search for the "GazeProvider" script and select Raycast Layer Masks -> "UI" (if not already selected)
 
-## Functions, Testing and Debugging
-The ARUI can be customized as follows:
-* 'AngelARUI.Instance.DebugShowEyeGazeTarget(..)' enable/disable an eye-gaze debug cube if the user is looking at a component in the ARUI. The default is false.
-* 'AngelARUI.Instance.DebugShowMessagesInLogger(..)' enable/disable debugging messages in the logger window (see example scene), Default is true
-* 'AngelARUI.Instance.SetViewManagement(..)' enable/disable view management. Default is true
-* 'AngelARUI.Instance.MuteAudio(..)' mute or unmute audio instructions
-* 'AngelARUI.Instance.SetAgentThinking(..)' enable/disable the 'thinking' animation at the virtual agent
-* 'AngelARUI.Instance.CallAgentToUser()' to force the agent to appear in front of the user
-* File 'ARUISettings.cs' contains some design variables (use with caution)
+### Hierarchy Setup
+1. In your scene, create an empty GameObject at position `(0, 0, 0)` and scale `(1, 1, 1)`.
+2. Attach the `AngelARUI` script to this GameObject. This script initializes and manages ARUI components at runtime.
+3. Access the ARUI system globally using:
+   ```csharp
+   AngelARUI.Instance...
+   ```
 
-All features with the exception of TTS (audio instructions) should work with holographic remoting.
+### Layers
+Define the following layers in your Unity project:
+- `UI` (Layer Index 5)
+- `zBuffer` (Layer Index 24)
+- `Hand` (Layer Index 25)
+- `VM` (Layer Index 26)
+- `Spatial Awareness` (Layer Index 31) (created by MRTK)
 
-## Support for Multitasking
-The main part of the UI is the virtual agent; the virtual agent tells the user what task the user is currently on.
+### Mixed Reality Toolkit Configuration
+- **Input > Pointers**:
+  - Enable **Eye Tracking**.
+  - Set **Pointing Raycast Layer Masks** to include the `UI` layer.
+  - Assign `ShellHandRayPointer_ARUI` prefab for articulated and generic openVR pointers.
+- **Speech**:
+  - Add keywords such as `"stop"`, `"next step"`, or `"toggle debug"`.
+- **Articulated Hand Tracking**:
+  - Assign the prefab `Resources/ARUI/Prefabs/HandJoint/` to `handjoint`.
 
-For now, the ARUI supports multiple tasks. To set the tasks, call 'AngelARUI.Instance.InitManual(allJsonTasks);' 
-allJsonTasks is a Dictionary with string as key and value. The key represents the name of the task (e.g., 'Filter Inspection'), while the value represents the JSON data for the task. 
+### Camera Configuration
+Locate the `GazeProvider` script on the Main Camera and set its **Raycast Layer Masks** to include `UI`.
 
-Here is an example of a task called 'Filter Inspection' with 3 steps:
+---
+
+## Functionalities and Examples
+
+### Task Management
+AngelARUI supports multiple tasks. Load tasks using:
+```csharp
+var allJsonTasks = new Dictionary<string, string>();
+AngelARUI.Instance.SetManual(allJsonTasks);
+AngelARUI.Instance.GoToStep("TaskID", stepIndex);
 ```
-{"Name": "Filter Inspection", "Steps":[
-    {
-        "StepDesc": "Remove the nut.",
-        "RequiredItems": ["nut" ],
-        "SubSteps": [],
-        "CurrSubStepIndex": -1
-    },{
-        "StepDesc": "Remove the air clean cover.",
-        "RequiredItems": ["nut" ],
-        "SubSteps": [],
-        "CurrSubStepIndex": -1
-    },
-    {
-        "StepDesc": "Remove the wing nut and air filter assembly",
-        "RequiredItems": ["wing nut", "air filter assembly" ],
-        "SubSteps": [],
-        "CurrSubStepIndex": -1
-    }],
-    "CurrStepIndex":0,"PrevStepIndex":-1,"NextStepIndex":1}
+Example JSON task:
+```json
+{
+  "Name": "Filter Inspection",
+  "Steps": [
+    { "StepDesc": "Remove the nut.", "RequiredItems": ["nut"], "SubSteps": [] },
+    { "StepDesc": "Remove the air clean cover.", "RequiredItems": ["nut"], "SubSteps": [] },
+    { "StepDesc": "Remove the wing nut and air filter assembly", "RequiredItems": ["wing nut", "air filter assembly"], "SubSteps": [] }
+  ],
+  "CurrStepIndex": 0,
+  "PrevStepIndex": -1,
+  "NextStepIndex": 1
+}
 ```
+Key API functions:
+- `SetManual(allJsonTasks)`: Load task data.
+- `GoToStep("TaskID", 0)`: Set a specific task step.
+- `ClearManual()`: Clear tasks and progress.
 
-'StepDesc' is the description of the action the user has to execute and 'RequiredItems' is a list of items that we will emphasize in the UI.
-
-To set the first step in the task graph as the current one, call: 'AngelARUI.Instance.GoToStep("Filter Inspection", 0);' At the moment, there is NO support for subtasks.
-
-Overall, if you call 'AngelARUI.Instance.GoToStep("Filter Inspection", 0);' the virutal agent message will change, the task list will refresh and the user will hear the instructions (only in build).
-
-## Notifications (beta)
-At the moment, the ARUI supports warnings and a confirmation dialogue.
-
-#### Warnings
-The virutal agent will display a warning, if desired. The warning has to be removed manually. If a warning message is shown, the previous and next step will disappear temporarily. 
-```
+### Notifications
+Show warning messages with:
+```csharp
 AngelARUI.Instance.SetWarningMessage("Be careful, the stove is hot.");
 AngelARUI.Instance.RemoveWarningMessage();
 ```
 
-#### Confirmation Dialogue 
-Here is an example of how to call the confirmation dialogue (found in ExampleScript.cs). For now, the purpose of the confirmation dialogue is to ask the user for permission to execute an action if the NLP node of the system detected a certain user intent (e.g., the user wanted to go to the next task)
-```
-int next = 2;
-AngelARUI.Instance.TryGetUserFeedbackOnUserIntent(intentMsg, actionTriggeredOnUserConfirmation, actionTriggerdOnTimeOut);
-```
+### Dialog Windows
+Create dialog interactions such as confirmations and choices:
 
-## MRTK Keyword Registration System
-Supporting voice-triggered callbacks. 
-There are two steps involved to add a new keyword:
-
-1) In your scene, you have to manually add the keyword to the MixedRealityToolkit --> Input --> Speech --> Add new speech command. Type your keyword, e.g.: "Show Diagram"
-
-2) In the code, register a callback to the keyword. e.g.:
-```
-AngelARUI.Instance.RegisterKeyword("Show Diagram", () => { CallbackForKeyword(); });
+#### Confirmation Dialog
+```csharp
+AngelARUI.Instance.TryGetUserConfirmation(
+    "Did you mean to proceed?",
+    actionTriggeredOnUserConfirmation,
+    actionTriggerdOnTimeOut
+);
 ```
 
-## Support for QA
-If you want the virtual agent to say a message to the user, and display it too, call:
-```
-AngelARUI.Instance.PlayMessageAtAgent
-    ("", "Hello");
-```
-
-If you want the agent to e.g., repeat the user input AND display the message, call:
-```
-AngelARUI.Instance.PlayMessageAtAgent
-    ("How many apples do I need for this recipe?", "You need three apples");
+#### Yes/No Choices
+```csharp
+AngelARUI.Instance.TryGetUserYesNoChoice(
+    "Are you sure you want to continue?",
+    onYesAction, onNoAction, onTimeoutAction
+);
 ```
 
-## Build, Deploy and Run
-### Build and Deploy
-Before you build the project, make sure that the following layers are defined: 'zBuffer' (24), 'Hand' (25), 'VM' (26) and 'UI' (5). The layer 'Spatial Awareness' (31) is used by the ARUI as well, but usually created if MRTK is imported. 
+#### Multiple Choice Dialog
+```csharp
+AngelARUI.Instance.TryGetUserMultipleChoice(
+    "Select an option:",
+    new List<string> { "Option 1", "Option 2", "Option 3" },
+    new List<UnityAction> { actionForOption1, actionForOption2, actionForOption3 },
+    timeoutAction
+);
+```
 
-The building process is the same as a regular HL2 application, except that before you build the app package in VS, the VMMain.dll (Plugins\WSAPlayer\ARM64) has to be added to the projects. (Right click on the UWP Project in the explorer in VS, 'Add' -> 'External File' -> VMMain.dll. Set content to "True". 
+### Custom Audio File Playback
+Add custom audio by placing files in the `Resources` folder and playing them with:
+```csharp
+AngelARUI.Instance.PlaySoundAt(worldPosition, "NameOfFileWithoutExtension");
+```
 
-After deployment, when you run the app for the first time, make sure to give permission to the eye-tracking and it is crucial that the calibration is done properly.
+### Tethering and Untethering
+Register objects for tethering with:
+```csharp
+AngelARUI.Instance.RegisterTetheredObject(objectID, objectToRegister);
+AngelARUI.Instance.Tether(objectID);
+AngelARUI.Instance.Untether(objectID);
+```
 
-# UI and Interactions
-* The UI uses eye gaze as input. The user can enable and disable the task list by looking at the button next to the white virtual agent. The position of the virtual agent and the tasklist can be adjusted using the tap gesture (near interactions) or the ray cast (far interactions).
-* Audio task instructions can be stopped (just once) with keyword 'stop'. 
-* The confirmation button on the confirmation dialogue can be triggered using eye-gaze or touching (index finger)
+---
+
+## Debugging
+### Common Debugging Tools
+  ```csharp
+  AngelARUI.Instance.DebugShowEyeGazeTarget(true); //Show eye-gaze debug cube
+  AngelARUI.Instance.DebugShowMessagesInLogger(true); //Enable debug logs
+  AngelARUI.Instance.MuteAudio(true); //Mute audio
+  ```
+
+### MRTK Keyword Registration System
+1. Add the keyword in **MixedRealityToolkit > Input > Speech**.
+2. Register the callback in code:
+   ```csharp
+   AngelARUI.Instance.RegisterKeyword("Show Diagram", () => { CallbackForKeyword(); });
+   ```
+
+---
+
+## UI and Interactions
+- **Eye-Gaze Input**: Users can interact with the UI using eye gaze or voice commands.
+- **Move Virtual Agent**: Use tap gestures for near interactions or raycast for far interactions.
+- **Audio Instructions**: Stop audio instructions using the `stop` keyword.
+
+---
 
 ## Limitations
-- Eye tracking might not be reliable if the user wears glasses.
-- At start-up, it might take a few seconds until the eye gaze rays is reliable
-- If it is recognized by the system that a new user uses the application, the eye tracking calibration might start. This is good since eye tracking is not reliable if not correctly calibrated to the current user.
-- TextToSpeech only works in build
-- If eye calibration is not ideal, one has to manually go to the hololens2 settings and rerun the eye calibration
+
+- **Eye Tracking Reliability**: The accuracy of eye tracking can be inconsistent for users who wear glasses.
+- **Startup Initialization**: At application startup, there may be a brief delay before the eye gaze tracking becomes reliable.
+- **New User Calibration**: If the system detects a new user, eye tracking calibration may be triggered automatically. This ensures accurate tracking as calibration is essential for reliable performance.
+- **Text-to-Speech (TTS)**: The Text-to-Speech functionality is only available in the built application and does not work in the Unity editor.
+- **Manual Eye Calibration**: If eye tracking calibration is suboptimal, users may need to manually recalibrate by navigating to the Hololens 2 settings and rerunning the eye calibration process.
+
+---
 
 ## 3rd Party Libraries and Assets
 3D Model for testing - https://grabcad.com/library/honda-gx-160
@@ -140,6 +169,10 @@ Flat Icons - https://assetstore.unity.com/packages/2d/gui/icons/ux-flat-icons-fr
 Simple Hand Pose Detector - https://github.com/RobJellinghaus/MRTK_HL2_HandPose/tree/main
 
 ## Changelog
+11/13/24:
+* Added Beta support for tethering and untethering interations
+* Design change for dialog windows.
+
 5/2/24:
 * Next/Previous step disappears if there is a warning at the same time
 * Added speech to the virtual agent
