@@ -1,7 +1,6 @@
 # ARUI - Non-Humanoid Virtual Agent
 
 AngelARUI is a non-humanoid virtual agent designed for Unity projects, providing task management, notifications, dialog interactions, and tethering functionalities. This system integrates with the Mixed Reality Toolkit (MRTK) to create a seamless AR user experience.
----
 
 ## Getting Started
 
