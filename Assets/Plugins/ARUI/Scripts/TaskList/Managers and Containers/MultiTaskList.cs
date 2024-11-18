@@ -53,7 +53,7 @@ public class MultiTaskList : Singleton<MultiTaskList>
 
     private void Update()
     {
-        if (!_isActive) return;
+        if (!_isActive || _containers==null) return;
 
         //if eye gaze not on task objects then do fade out currentindex
         if (!isLookingAtAnyTaskOverviewObject())
@@ -89,6 +89,8 @@ public class MultiTaskList : Singleton<MultiTaskList>
 
     private bool isLookingAtAnyTaskOverviewObject()
     {
+        if (_containers == null) return false;
+
         foreach (var tasklist in _allColliders)
         {
             if (EyeGazeManager.Instance != null && EyeGazeManager.Instance.CurrentHitID == tasklist.gameObject.GetInstanceID())
@@ -149,6 +151,12 @@ public class MultiTaskList : Singleton<MultiTaskList>
     {
         if (tasks == null) return;
 
+        if (tasks.Count == 0 && _containers!=null)
+        {
+            ClearTaskList();
+            return;
+        }
+
         if (_containers == null || (_containers.Count == 0 && tasks.Count>0))
             InitializeAllContainers(tasks);
 
@@ -171,6 +179,26 @@ public class MultiTaskList : Singleton<MultiTaskList>
                 _containers[pair.Key].setupInstance.SetupNextTasks(pair.Value.Steps, pair.Value.NextStepIndex);
             }
         }
+    }
+
+    private void ClearTaskList()
+    {
+        foreach (var container in _containers.Values)
+            Destroy(container.gameObject);
+
+        _containers = null;
+        
+        foreach (var tasklist in _allTasklists)
+            Destroy(tasklist.gameObject);
+
+        foreach (var tasklist in _allColliders) {
+            EyeGazeManager.Instance.DeRegisterEyeTarget(tasklist.gameObject); 
+            Destroy(tasklist.gameObject); 
+        }
+            
+        _allColliders = new List<BoxCollider>();
+        _allTasklists = new List<CanvasGroup>();
+        _currIndex = 0;
     }
 
     /// <summary>

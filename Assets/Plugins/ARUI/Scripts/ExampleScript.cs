@@ -268,6 +268,7 @@ public class ExampleScript : MonoBehaviour
         if (Input.GetKeyUp(KeyCode.O))
         {
             var taskIDs = new List<string>();
+            string key = "Recoil Starter Removal";
             if (multipleTasks)
             {
                 //test with dummy data
@@ -278,10 +279,13 @@ public class ExampleScript : MonoBehaviour
                 _currentTask = "Pinwheels";
             } else
             {
-                taskIDs = new List<string> { "Filter Inspection" };
-                _currentStepMap = new Dictionary<string, int> {
-            { "Filter Inspection", 0 }};
-                _currentTask = "Filter Inspection";
+                if (new System.Random().Next(int.MaxValue) % 2==0)
+                {
+                    key = "Filter Inspection";
+                }
+                taskIDs = new List<string> { key };
+                _currentStepMap = new Dictionary<string, int> {{ key, 0 }};
+                _currentTask = key;
             }
 
             var allJsonTasks = new Dictionary<string, string>();
@@ -292,7 +296,7 @@ public class ExampleScript : MonoBehaviour
             }
 
             AngelARUI.Instance.SetManual(allJsonTasks);
-            AngelARUI.Instance.GoToStep("Filter Inspection", 0);
+            AngelARUI.Instance.GoToStep(key, 0);
         }
 
         // Example how to step forward/backward in tasklist. 
