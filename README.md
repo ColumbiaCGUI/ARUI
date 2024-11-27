@@ -166,6 +166,7 @@ MRTK 2.7.3 - https://github.com/microsoft/MixedRealityToolkit-Unity/releases/tag
 Shapes - https://assetstore.unity.com/packages/tools/particles-effects/shapes-173167
 Flat Icons - https://assetstore.unity.com/packages/2d/gui/icons/ux-flat-icons-free-202525
 Simple Hand Pose Detector - https://github.com/RobJellinghaus/MRTK_HL2_HandPose/tree/main
+Local TTS in Unity using piper - https://github.com/Macoron/piper.unity?tab=readme-ov-file
 
 ## Changelog
 11/13/24:
