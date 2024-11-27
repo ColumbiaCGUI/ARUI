@@ -4,11 +4,37 @@ from io import BytesIO
 import requests
 import json
 import base64
+import socket
+from urllib.parse import urlparse
 
 MIXED_REALITY_DEVICE_PORTAL_USERNAME = "bs"
 MIXED_REALITY_DEVICE_PORTAL_PASSWORD = "1591590"
 HOLOLENS_IP_ADDR = "http://" + MIXED_REALITY_DEVICE_PORTAL_USERNAME + ":" + MIXED_REALITY_DEVICE_PORTAL_PASSWORD + "@" + "192.168.4.70"
 
+def is_device_online(timeout=2):
+    """
+    Check if the HoloLens device is reachable using the HOLOLENS_IP_ADDR.
+    
+    Args:
+        timeout (int): The timeout in seconds for the connection test.
+        
+    Returns:
+        bool: True if the device is online, False otherwise.
+    """
+    try:
+        # Parse the IP address from HOLOLENS_IP_ADDR
+        parsed_url = urlparse(HOLOLENS_IP_ADDR)
+        ip_address = parsed_url.hostname  # Extract hostname (IP address)
+
+        # Default port is 80 for HTTP, but you can adjust as needed
+        port = 80
+
+        # Create a socket connection to the IP address and port
+        with socket.create_connection((ip_address, port), timeout=timeout):
+            return True
+    except (socket.timeout, socket.error) as e:
+        return False
+    
 def getPhoto():
     try:
         # Step 1: Make the POST request to capture a photo
@@ -56,8 +82,8 @@ def getPhoto():
             print(f"Original resolution: {img.width}x{img.height}")
             
             # Reduce resolution by 4 (halve width and height)
-            new_width = img.width // 2
-            new_height = img.height // 2
+            new_width = img.width // 4
+            new_height = img.height // 4
             resized_img = img.resize((new_width, new_height), Image.LANCZOS)
 
             # Print resized resolution

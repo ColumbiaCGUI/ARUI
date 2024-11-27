@@ -368,6 +368,11 @@ public class AudioManager : Singleton<AudioManager>, IMixedRealitySpeechHandler
     {
         var audio = _localtTos.TextToSpeech(text);
 
+        if (_currentlyPlayingText==null)
+        {
+            _currentlyPlayingText = _tTos.AudioSource;
+        }
+
         if (_currentlyPlayingText!=null)
         {
             _currentlyPlayingText.Stop();

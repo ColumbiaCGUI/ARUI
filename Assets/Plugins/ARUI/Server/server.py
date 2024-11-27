@@ -7,40 +7,24 @@ import sounddevice as sd
 from threading import Thread, Lock
 from vosk import Model, KaldiRecognizer
 from openai import OpenAI
-from difflib import SequenceMatcher
-import hl2utils
+import utils.utils as utils
+
+import utils.hl2utils as hl2utils
 
 client = OpenAI()
 
 q = queue.Queue()
 context = zmq.Context()
 
+# to avoid echo, check the string that was last published
 last_publish = ""
 
-# Read system prompt from a file named "sys_prompt"
-def load_system_prompt(file_name="sys_prompt"):
-    try:
-        with open(file_name, "r") as file:
-            return file.read()
-    except Exception as e:
-        print(f"Error loading system prompt: {e}")
-        sys.exit(1)
-
-def similar(a, b):
-    return SequenceMatcher(None, a, b).ratio()
-
 # Load the system prompt
-system_prompt = load_system_prompt()
+system_prompt = utils.load_system_prompt("system_prompt_spark_plug")
 
 # Shared global variables
 captured_sentence = ""
 captured_sentence_lock = Lock()  # Lock to synchronize access to captured_sentence
-
-def int_or_str(text):
-    try:
-        return int(text)
-    except ValueError:
-        return text
 
 def callback(indata, frames, time, status):
     if status:
@@ -90,7 +74,10 @@ def audio_processing(args):
 def process_openai_request(sentence, socket):
     global last_publish
 
-    image = hl2utils.getPhoto()
+    if hl2utils.is_device_online(0.1):
+        image = hl2utils.getPhoto()
+    else:
+        image = None
         
     try:
         print("Querying OpenAI with:", sentence)
@@ -99,13 +86,11 @@ def process_openai_request(sentence, socket):
             completion = client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[
-                    {
-                        "role": "user",
-                        "content": {
-                            "type": "text",
-                        "text": system_prompt + " " + sentence
+                    {"role": "system", "content": "You are a helpful assistant."},
+                        {
+                            "role": "user",
+                            "content": system_prompt + " " + sentence
                         }
-                    }
                 ],
                 temperature=0.0,
                 max_tokens=128,
@@ -120,7 +105,7 @@ def process_openai_request(sentence, socket):
                 "content": [
                     {
                         "type": "text",
-                        "text": system_prompt + ". Use the image to answer the question: " + sentence
+                        "text": system_prompt + ". Use the image to answer the question:4k " + sentence
                     },
                     {
                         "type": "image_url",
@@ -154,7 +139,7 @@ def zmq_server():
         try:
             with captured_sentence_lock:
                 if captured_sentence:
-                    if similar(last_publish,captured_sentence) > 0.5:
+                    if utils.similar(last_publish,captured_sentence) > 0.5:
                         local_sentence = None
                     else:
                         local_sentence = captured_sentence
@@ -174,10 +159,11 @@ def zmq_server():
         except Exception as e:
             print(f"Error in ZMQ server: {e}", file=sys.stderr)
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-f", "--filename", type=str, metavar="FILENAME", help="Audio file to store recording to")
-    parser.add_argument("-d", "--device", type=int_or_str, help="Input device (numeric ID or substring)")
+    parser.add_argument("-d", "--device", type=utils.int_or_str, help="Input device (numeric ID or substring)")
     parser.add_argument("-r", "--samplerate", type=int, help="Sampling rate")
     parser.add_argument("-m", "--model", type=str, help="Language model; e.g., en-us, fr, nl; default is en-us")
     args = parser.parse_args()
