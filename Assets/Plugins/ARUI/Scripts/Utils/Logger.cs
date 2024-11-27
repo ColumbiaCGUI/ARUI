@@ -3,7 +3,6 @@ using TMPro;
 using UnityEngine;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.Eventing.Reader;
 
 public class Logger : Singleton<Logger>
 {

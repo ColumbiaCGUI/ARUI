@@ -31,6 +31,8 @@ public class AudioManager : Singleton<AudioManager>, IMixedRealitySpeechHandler
 {
     ///** MRTK build-in text to speech (ONLY WORKS IN BUILD)
     private TextToSpeech _tTos;                                          /// <TTS from MRTK
+    private PiperManager _localtTos;
+
     private Dictionary<SoundType, AudioSource> _typeToSound;             /// <maps soundtype to audio file
     private Dictionary<SoundType, string> _soundTypeToPathMapping = new Dictionary<SoundType, string>()
     {
@@ -72,6 +74,8 @@ public class AudioManager : Singleton<AudioManager>, IMixedRealitySpeechHandler
         _currentlyPlayingSound = new List<AudioSource>();
 
         RegisterKeyword("stop", () => UserSaidStopAction());
+
+        _localtTos = gameObject.AddComponent<PiperManager>();
     }
 
     /// <summary>
@@ -88,7 +92,13 @@ public class AudioManager : Singleton<AudioManager>, IMixedRealitySpeechHandler
         }
 
         if (!_isMute)
+        {
+            if (_localtTos)
+            {
+                PlayTextAsync(answer);
+            }
             StartCoroutine(PlayTextDialogue(Orb.Instance.orbTransform.position, utterance, answer, timeout));
+        }
     }
 
     /// <summary>
@@ -100,7 +110,13 @@ public class AudioManager : Singleton<AudioManager>, IMixedRealitySpeechHandler
     public void PlayAndShowMessage(string message, float timeout = 30)
     {
         if (!_isMute)
+        {
+            if (_localtTos)
+            {
+                PlayTextAsync(message);
+            }
             StartCoroutine(PlayTextDialogue(Orb.Instance.orbTransform.position, "", message, timeout));
+        } 
     }
 
     /// <summary>
@@ -108,18 +124,16 @@ public class AudioManager : Singleton<AudioManager>, IMixedRealitySpeechHandler
     /// and stops any other currently playing text instructions
     /// NOTE: THIS ONLY WORKS IN BUILD (NOT HOLOGRAPHIC REMOTING)
     /// </summary>
-    /// <param name="text">The text that is turned into audion and played</param>
-    public void PlayMessage(string text, float timeout = 30)
+    /// <param name="message">The text that is turned into audion and played</param>
+    public void PlayMessage(string message, float timeout = 30)
     {
         if (!_isMute)
-            StartCoroutine(PlayTextLocalized(Orb.Instance.orbTransform.position, text));
-    }
-
-    public void PlayTextIfNotPlaying(string text)
-    {
-        if (!_isMute && _currentlyPlayingText != null && _currentlyPlayingText == false && _tTos.AudioSource.isPlaying == false)
         {
-            StartCoroutine(PlayTextLocalized(Orb.Instance.orbTransform.position, text));
+            if (_localtTos)
+            {
+                PlayTextAsync(message);
+            }
+            StartCoroutine(PlayTextLocalized(Orb.Instance.orbTransform.position, message));
         }
     }
 
@@ -312,7 +326,7 @@ public class AudioManager : Singleton<AudioManager>, IMixedRealitySpeechHandler
             _currentlyPlayingText.Stop();
             Orb.Instance.SetDialogueActive(false);
         }
-            
+
         yield return new WaitForEndOfFrame();
 
         _tTos.gameObject.transform.position = pos;
@@ -348,6 +362,22 @@ public class AudioManager : Singleton<AudioManager>, IMixedRealitySpeechHandler
         yield return new WaitForEndOfFrame();
 
         Orb.Instance.MouthScale = 0; 
+    }
+
+    private async void PlayTextAsync(string text)
+    {
+        var audio = _localtTos.TextToSpeech(text);
+
+        if (_currentlyPlayingText!=null)
+        {
+            _currentlyPlayingText.Stop();
+        }
+        
+        if (_currentlyPlayingText && _currentlyPlayingText.clip)
+            Destroy(_currentlyPlayingText.clip);
+
+        _currentlyPlayingText.clip = await audio;
+        _currentlyPlayingText.Play();
     }
 
     #region Keyword Detection

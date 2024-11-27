@@ -1,9 +1,8 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
-using Shapes;
-using System;
 using UnityEngine.Events;
+using Unity.Sentis;
 
 #if ENABLE_WINMD_SUPPORT
 using Windows.Foundation.Diagnostics;
@@ -14,6 +13,8 @@ using Windows.Foundation.Diagnostics;
 /// </summary>
 public class AngelARUI : Singleton<AngelARUI>
 {
+    public ModelAsset TTSModel;
+
     private Camera _arCamera;
 
     [HideInInspector]
@@ -30,7 +31,6 @@ public class AngelARUI : Singleton<AngelARUI>
     private bool _useViewManagement = true;           /// <If true, the ARUI view mangement will run
     [HideInInspector]
     public bool IsVMActiv => ViewManagement.Instance != null && _useViewManagement;
-
 
     private void Awake() => StartCoroutine(InitProjectSettingsAndScene());
 
@@ -113,6 +113,8 @@ public class AngelARUI : Singleton<AngelARUI>
         zBufferCam.transform.parent = _arCamera.transform;
         zBufferCam.transform.position = Vector3.zero;
         zBufferCam.gameObject.AddComponent<ZBufferCamera>();
+
+        var ClientSub = new GameObject("***ARUI-Dialog-Client").AddComponent<HelloClient>();
     }
 
     #region Task Guidance
@@ -198,6 +200,7 @@ public class AngelARUI : Singleton<AngelARUI>
         if (!Utils.StringValid(message) || Orb.Instance == null || AudioManager.Instance == null) return;
         AudioManager.Instance.PlayAndShowDialogue(utterance, message, timeout);
         Orb.Instance.SetOrbThinking(false);
+
     }
 
     /// <summary>
@@ -210,6 +213,7 @@ public class AngelARUI : Singleton<AngelARUI>
         if (!Utils.StringValid(message) || Orb.Instance == null || AudioManager.Instance == null) return;
         AudioManager.Instance.PlayAndShowMessage(message, timeout);
         Orb.Instance.SetOrbThinking(false);
+
     }
 
     /// <summary>
