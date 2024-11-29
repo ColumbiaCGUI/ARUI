@@ -36,11 +36,22 @@ public class HelloRequester : RunAbleThread
                 try
                 {
                     if (!client.TryReceiveFrameString(out var message)) continue;
-                    if (message != "none")
+
+                    switch (message)
                     {
-                        Text = message;
-                        Debug.Log("Received " + message);
+                        case "400":
+                            AngelARUI.Instance.SetAgentThinking(true);
+                            break;
+                        case "0":
+
+                            break;
+                        default:
+                            Text = message;
+                            Debug.Log("Received " + message);
+                            AngelARUI.Instance.SetAgentThinking(false);
+                            break;
                     }
+                     
                 } catch (Exception E)
                 {
                     Debug.Log("Connection to server ended unexpectedly: " + E.Message);

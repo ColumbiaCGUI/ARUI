@@ -5,11 +5,25 @@ import requests
 import json
 import base64
 import socket
+import llm_OA
 from urllib.parse import urlparse
 
 MIXED_REALITY_DEVICE_PORTAL_USERNAME = "bs"
 MIXED_REALITY_DEVICE_PORTAL_PASSWORD = "1591590"
 HOLOLENS_IP_ADDR = "http://" + MIXED_REALITY_DEVICE_PORTAL_USERNAME + ":" + MIXED_REALITY_DEVICE_PORTAL_PASSWORD + "@" + "192.168.4.70"
+
+def get_current_activity():
+    if is_device_online(0.1):
+        image = get_Frame()
+    else:
+        return None
+    
+    if image:
+        return [image, llm_OA.get_activity(image)]
+    else:
+        return None
+    
+
 
 def is_device_online(timeout=2):
     """
@@ -35,7 +49,7 @@ def is_device_online(timeout=2):
     except (socket.timeout, socket.error) as e:
         return False
     
-def getPhoto():
+def get_Frame():
     try:
         # Step 1: Make the POST request to capture a photo
         response = requests.post(
@@ -45,20 +59,15 @@ def getPhoto():
         
         # Check if the response status is 200 OK
         if response.status_code != 200:
-            print(f"Error: Received status code {response.status_code}")
-            print(f"Response text: {response.text}")
             return None
 
         # Try to decode the JSON response
         try:
             photo_filename = json.loads(response.text).get("PhotoFileName")
             if not photo_filename:
-                print("Error: 'PhotoFileName' not found in the response.")
-                print(f"Response text: {response.text}")
                 return None
         except json.JSONDecodeError as e:
-            print(f"JSON decoding error: {e}")
-            print(f"Response text: {response.text}")
+            print(f"Response text: {e} {response.text}")
             return None
 
         # Step 2: Encode the filename for the next request
@@ -72,14 +81,12 @@ def getPhoto():
         
         # Check if the response status is 200 OK
         if response_image.status_code != 200:
-            print(f"Error: Unable to fetch the image, status code {response_image.status_code}")
-            print(f"Response text: {response_image.text}")
             return None
 
         # Step 4: Resize the image to 1/4 the resolution
         with Image.open(BytesIO(response_image.content)) as img:
             # Print original resolution
-            print(f"Original resolution: {img.width}x{img.height}")
+            #print(f"Original resolution: {img.width}x{img.height}")
             
             # Reduce resolution by 4 (halve width and height)
             new_width = img.width // 4
@@ -87,13 +94,13 @@ def getPhoto():
             resized_img = img.resize((new_width, new_height), Image.LANCZOS)
 
             # Print resized resolution
-            print(f"Resized resolution: {new_width}x{new_height}")
+            #print(f"Resized resolution: {new_width}x{new_height}")
 
             # Save resized image to a local folder
             os.makedirs("capture", exist_ok=True)  # Create folder if it doesn't exist
             local_file_path = os.path.join("capture", "resized_image.jpg")
             resized_img.save(local_file_path, format="JPEG")
-            print(f"Resized image saved to: {local_file_path}")
+            #print(f"Resized image saved to: {local_file_path}")
 
         # Step 5: Encode the resized image in base64 and prepare the data URI
         resized_image_io = BytesIO()
