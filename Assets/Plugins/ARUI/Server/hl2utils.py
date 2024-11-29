@@ -12,14 +12,14 @@ MIXED_REALITY_DEVICE_PORTAL_USERNAME = "bs"
 MIXED_REALITY_DEVICE_PORTAL_PASSWORD = "1591590"
 HOLOLENS_IP_ADDR = "http://" + MIXED_REALITY_DEVICE_PORTAL_USERNAME + ":" + MIXED_REALITY_DEVICE_PORTAL_PASSWORD + "@" + "192.168.4.70"
 
-def get_current_activity():
+def get_current_activity(prompt):
     if is_device_online(0.1):
         image = get_Frame()
     else:
         return None
     
     if image:
-        return [image, llm_OA.get_activity(image)]
+        return [image, llm_OA.get_activity(image,prompt)]
     else:
         return None
     

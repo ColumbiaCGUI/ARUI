@@ -22,13 +22,21 @@ def initiate_task(task_id):
              f"List in one sentence what objects I need to do this task."
 
     try:
-        response = llm_OA.query_LLM(prompt, False)
+        response = llm_OA.answer_question(prompt)
         return response
         
     except Exception as e:
         print(f"Error in OpenAI call: {e}")
         return None
-
+    
+def estimate_task_progress():
+    prompt = f"Here is a list of my: {str(task_classes)} " \
+    "I will give you an user utterance. And you will give me the probability value for each user class. " \
+    "Example - if the class is 'Filter change' and the user says 'I want to change the filter', the probability for this class should be 1. "\
+    "Reserve the class 'None' for the case that the utterance is not related to any of the acceptable tasks. " \
+    "Answer NOT in text, ONLY in JSON format without Backticks. " \
+    "User: "+sentence
+    
 
 def get_mentioned_task(sentence):
     prompt = f"Here is an acceptable list of tasks classes for motor maintenance: {str(task_classes)} " \
@@ -39,11 +47,11 @@ def get_mentioned_task(sentence):
     "User: "+sentence
 
     try:
-        response = llm_OA.query_LLM(prompt, False)
+        response = llm_OA.answer_question(prompt)
         
         # Check if the response is not empty
-        if not response:
-            raise ValueError("Received an empty response from the LLM.")
+        if response==None:
+            return None
         
         # Attempt to parse the response as JSON
         task_probabilities = json.loads(response)

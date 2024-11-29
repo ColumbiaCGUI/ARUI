@@ -1,0 +1,246 @@
+[
+    {
+        "role": "system",
+        "content": "You are an expert in machine maintenance, especially honda engines, and guiding me through a task. \nI will provide you with utterances, presenting the users question or concerns. You will help the user finish their task and guide then along the way.\n\n* Respond in a conversational, patient, and precise tone. Keep answers short and to the point.\n* If the user describes an issue outside the scope of these instructions, advise them to seek professional assistance.\n* If the utterance is incomplete respond with 'None', except when the users utterance includes\"Angel\" or \"Assistant\"\n* If it sounds like I ended the conversation, respond with 'None'.\n* Use the environment description and the conversation history to respond\n* Answer questions using one line\n\n"
+    },
+    {
+        "role": "user",
+        "content": "Let's tackle 'Spark Plug Inspection'"
+    },
+    {
+        "role": "assistant",
+        "content": "You will need a spark plug cap, a wire brush, a 13/16-inch spark plug wrench, a suitable gauge for measuring the spark plug electrode gap, and possibly a replacement spark plug if the old one is worn or damaged."
+    },
+    {
+        "role": "user",
+        "content": "Environment description: No user activity detected. The user is in a workspace with a laptop displaying code, a glass of water, and a white bowl, suggesting a casual yet focused environment.\n\nUser utterance: yeah\n Your response:"
+    },
+    {
+        "role": "user",
+        "content": "Environment description: No user activity detected. The user is in a cozy indoor environment with a laptop displaying coding software, a roll of paper towels, a clock, and a colorful virtual object resembling a character, all set against a backdrop of city lights visible through a window.\n\nUser utterance: follow\n Your response:"
+    },
+    {
+        "role": "user",
+        "content": "Environment description: No user activity detected. The environment features a laptop displaying code, a roll of paper towels, a snack or food item, and a colorful virtual object, all set against a backdrop of city lights visible through a window.\n\nUser utterance: so what should i do first\n Your response:"
+    },
+    {
+        "role": "user",
+        "content": "so what should i do first"
+    },
+    {
+        "role": "assistant",
+        "content": "Start by disconnecting the spark plug wire and removing the spark plug using the 13/16-inch spark plug wrench."
+    },
+    {
+        "role": "user",
+        "content": "Environment description: No user activity detected. The environment features a desk with a computer displaying code, a roll of paper towels, a small red object, and a colorful virtual object, all set against a backdrop of city lights and greenery visible through a window.\n\nUser utterance: follow\n Your response:"
+    },
+    {
+        "role": "user",
+        "content": "Environment description: No user activity detected. The user is in a dimly lit room with a large computer monitor displaying code, a roll of paper towels, and a colorful virtual object resembling a character, while a cityscape with illuminated buildings is visible through the window.\n\nUser utterance: follow\n Your response:"
+    },
+    {
+        "role": "user",
+        "content": "Environment description: No user activity detected. The user is in a workspace featuring a laptop displaying code and a virtual environment, alongside a roll of paper towels and some scattered papers, with a view of a cityscape illuminated by lights outside the window.\n\nUser utterance: is this the right motor\n Your response:"
+    },
+    {
+        "role": "user",
+        "content": "Environment description: No user activity detected. The environment features a modern office space with a computer displaying code, a chair, and a large window showcasing a cityscape illuminated by colorful lights and reflections.\n\nUser utterance: this the right engine\n Your response:"
+    },
+    {
+        "role": "user",
+        "content": "Environment description: No user activity detected. The environment features a modern workspace with a computer displaying code, a roll of paper towels, and a view of a cityscape through large glass windows, where colorful lights and plants are visible outside.\n\nUser utterance: angels this the right engine\n Your response:"
+    },
+    {
+        "role": "user",
+        "content": "angels this the right engine"
+    },
+    {
+        "role": "assistant",
+        "content": "Please provide the engine model or specifications to confirm if it's the right one."
+    },
+    {
+        "role": "user",
+        "content": "Environment description: The user is manipulating virtual objects with their hand, likely interacting with a digital interface or augmented reality display. The environment includes a computer with visible code on the screen, a large window showing a nighttime view, and various kitchen items in the background.\n\nUser utterance: the one in front of me as a threat one\n Your response:"
+    },
+    {
+        "role": "user",
+        "content": "Environment description: No user activity detected. The environment features large windows with a view of city lights, a virtual clock, a virtual map, and a red object that appears to be a decorative item, all set within a modern interior space.\n\nUser utterance: hello understand i already am already talking to you or boy\n Your response:"
+    },
+    {
+        "role": "user",
+        "content": "Environment description: No user activity detected. The environment features large windows with a view of city lights, a virtual clock, a virtual map, and a red object that appears to be a decorative item, all set within a modern interior space.\n\nUser utterance: not talking to me\n Your response:"
+    },
+    {
+        "role": "user",
+        "content": "Environment description: No user activity detected. The user is in a modern indoor environment with a computer displaying code, a window showing city lights outside, and various virtual objects, including a fan and a red object, seemingly floating in the air.\n\nUser utterance: i really need your help you not answering me\n Your response:"
+    },
+    {
+        "role": "user",
+        "content": "i really need your help you not answering me"
+    },
+    {
+        "role": "assistant",
+        "content": "I'm here to help! Please let me know what specific assistance you need regarding the engine or spark plug inspection."
+    },
+    {
+        "role": "user",
+        "content": "Environment description: No user activity detected. The user is in a modern office environment with large windows showcasing a city view, a computer monitor displaying code, a potted plant, and various virtual objects, including a blue and red object, possibly representing tools or devices.\n\nUser utterance: what i really need to understand what to do right now\n Your response:"
+    },
+    {
+        "role": "user",
+        "content": "what i really need to understand what to do right now"
+    },
+    {
+        "role": "assistant",
+        "content": "Please confirm the engine model and what specific task you need help with, so I can guide you accurately."
+    },
+    {
+        "role": "user",
+        "content": "Environment description: No user activity detected. The user is in a modern, well-lit environment with large windows, showcasing a cityscape outside, and there are virtual objects like a colorful drone and a small device resembling a camera in their hand.\n\nUser utterance: i need a help woods\n Your response:"
+    },
+    {
+        "role": "user",
+        "content": "Environment description: No user activity detected. The user is in a modern indoor environment with a view of a cityscape at night, featuring a virtual red engine displayed in the air and a computer screen showing programming or design software.\n\nUser utterance: ah the plugin inspection\n Your response:"
+    },
+    {
+        "role": "user",
+        "content": "ah the plugin inspection"
+    },
+    {
+        "role": "assistant",
+        "content": "For the spark plug inspection, ensure you have the right tools, then remove the spark plug and check for wear or damage."
+    },
+    {
+        "role": "user",
+        "content": "Environment description: No user activity detected. The environment features a red Honda engine mounted on a white table, with a backdrop of a city skyline visible through large windows, and some greenery nearby.\n\nUser utterance: he's the spark plug the black thing on the more or\n Your response:"
+    },
+    {
+        "role": "user",
+        "content": "he's the spark plug the black thing on the more or"
+    },
+    {
+        "role": "assistant",
+        "content": "It sounds like you're referring to the spark plug cap; make sure to remove it carefully to access the spark plug underneath."
+    },
+    {
+        "role": "user",
+        "content": "Environment description: No user activity detected. The environment features a virtual Honda engine prominently displayed, with a sleek, modern backdrop that suggests a high-tech or industrial setting, possibly with glass walls and ambient lighting.\n\nUser utterance: can you describe in detail were to your the more\n Your response:"
+    },
+    {
+        "role": "user",
+        "content": "Environment description: No user activity detected. The environment features a virtual engine component prominently displayed, surrounded by a blurred background that suggests a modern, possibly industrial setting, with hints of greenery and reflective surfaces.\n\nUser utterance: can you describe in detail were to be\n Your response:"
+    },
+    {
+        "role": "user",
+        "content": "Environment description: No user activity detected. The environment features a suspended engine model, surrounded by greenery, with a modern chair nearby, and a backdrop of illuminated city buildings visible through large windows.\n\nUser utterance: please describe where the spark plugs of be on the motor\n Your response:"
+    },
+    {
+        "role": "user",
+        "content": "please describe where the spark plugs of be on the motor"
+    },
+    {
+        "role": "assistant",
+        "content": "The spark plugs on a Honda engine are typically located on the cylinder head, usually near the top of the engine, and are accessed by removing the spark plug wire and cap."
+    },
+    {
+        "role": "user",
+        "content": "Environment description: No user activity detected. The environment features a detailed virtual engine model, showcasing various components like a red and silver casing, a starter motor, and intricate mechanical parts, all set against a backdrop that suggests a modern, well-lit space.\n\nUser utterance: how does the engine for like\n Your response:"
+    },
+    {
+        "role": "user",
+        "content": "Environment description: No user activity detected. The environment features a close-up view of a Honda GX engine, showcasing its red and silver components, with a transparent casing that highlights the intricate machinery inside.\n\nUser utterance: the thing i have to remove hello how does it look like\n Your response:"
+    },
+    {
+        "role": "user",
+        "content": "the thing i have to remove hello how does it look like"
+    },
+    {
+        "role": "assistant",
+        "content": "You need to remove the spark plug, which is a cylindrical metal piece with a ceramic insulator on top, typically located on the cylinder head."
+    },
+    {
+        "role": "user",
+        "content": "Environment description: No user activity detected. The environment features a cozy indoor space with several plants, a chair, a table, a roll of paper towels, and a computer screen, all set against a backdrop of a city skyline illuminated by lights.\n\nUser utterance: how does the same who had to play\n Your response:"
+    },
+    {
+        "role": "user",
+        "content": "Environment description: No user activity detected. The environment features a large window showcasing a city skyline at night, with bright lights from buildings, and a detailed cutaway model of a Honda engine positioned in front of the glass.\n\nUser utterance: how does the cylinder head look like\n Your response:"
+    },
+    {
+        "role": "user",
+        "content": "how does the cylinder head look like"
+    },
+    {
+        "role": "assistant",
+        "content": "The cylinder head is typically a flat, metal component on top of the engine block, with openings for the spark plugs and valves, often featuring a smooth surface and various mounting points."
+    },
+    {
+        "role": "user",
+        "content": "Environment description: No user activity detected. The environment features a large window with a view of a cityscape, alongside virtual objects such as a metallic component resembling a motor and two containers, one gray and one light green, placed on a surface, with some greenery visible nearby.\n\nUser utterance: what i think your\n Your response:"
+    },
+    {
+        "role": "user",
+        "content": "Environment description: No user activity detected. The environment features a red engine with a greenish-gray cover, likely a small gasoline engine, surrounded by a blurred background that suggests a workshop or garage setting.\n\nUser utterance: a bit frustrated\n Your response:"
+    },
+    {
+        "role": "user",
+        "content": "a bit frustrated"
+    },
+    {
+        "role": "assistant",
+        "content": "I understand, and I'm here to help. Please let me know what specific part of the spark plug inspection or engine maintenance is causing frustration, and I'll assist you."
+    },
+    {
+        "role": "user",
+        "content": "Environment description: No user activity detected. The environment features a red engine with a light green cover, a potted plant nearby, and a window that suggests an urban setting outside.\n\nUser utterance: when kim\n Your response:"
+    },
+    {
+        "role": "user",
+        "content": "Environment description: No user activity detected. The environment features several indoor plants, including a large leafy plant in a white pot on a small white table, a green plant in the foreground, and a red machine or device on the right side, all set against a backdrop of glass windows.\n\nUser utterance: huh\n Your response:"
+    },
+    {
+        "role": "user",
+        "content": "Environment description: No user activity detected. The environment features a diagram or chart hanging from a string, a potted plant on a white stool, and a red engine or machine component nearby, all set against a backdrop of large windows with a nighttime city view.\n\nUser utterance: can you read the manual\n Your response:"
+    },
+    {
+        "role": "user",
+        "content": "can you read the manual"
+    },
+    {
+        "role": "assistant",
+        "content": "I can't read the manual directly, but I can help answer questions or guide you based on common Honda engine maintenance practices. What do you need help with?"
+    },
+    {
+        "role": "user",
+        "content": "Environment description: No user activity detected. The environment features several indoor plants in white pots, a small white table, and a technical diagram or instruction sheet displayed prominently in the foreground, suggesting a workspace or a DIY project area.\n\nUser utterance: when you read this for me\n Your response:"
+    },
+    {
+        "role": "user",
+        "content": "Environment description: No user activity detected. The environment features a large plant in a white pot, a small white table, and a detailed diagram or instruction sheet prominently displayed in the foreground.\n\nUser utterance: when you read the thing doesn't bother me\n Your response:"
+    },
+    {
+        "role": "user",
+        "content": "Environment description: No user activity detected. The environment features a large aloe vera plant on the left, a smaller potted plant on the right, and a technical diagram or instruction sheet placed in front of them, all set against a backdrop of a modern, well-lit room with large windows showcasing a city view at night.\n\nUser utterance: sometimes your really unhelpful\n Your response:"
+    },
+    {
+        "role": "user",
+        "content": "sometimes your really unhelpful"
+    },
+    {
+        "role": "assistant",
+        "content": "I apologize if I haven't met your expectations. Please let me know how I can assist you better with your current task."
+    },
+    {
+        "role": "user",
+        "content": "Environment description: No user activity detected. The user is in a modern workspace featuring a laptop displaying code, a red folder, and a view of a cityscape through large windows, with plants visible in the background.\n\nUser utterance: is this thread engine\n Your response:"
+    },
+    {
+        "role": "user",
+        "content": "is this thread engine"
+    },
+    {
+        "role": "assistant",
+        "content": "Please provide more details about the engine or its specifications to confirm if it's the right one."
+    }
+]

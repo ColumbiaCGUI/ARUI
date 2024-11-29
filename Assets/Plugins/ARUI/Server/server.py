@@ -43,20 +43,26 @@ async def run_zmq_server():
 
                 # Handle task monitoring and response generation
                 estimated_task_id = await asyncio.to_thread(taskmonitor.get_mentioned_task, last_AI_response)
-                print(f"Estimated Task: '{taskmonitor.task_classes[int(estimated_task_id[0])]}' with prob. {estimated_task_id[1]}")
-
-                task_id = int(estimated_task_id[0])
+                if estimated_task_id:
+                    task_id = int(estimated_task_id[0])
+                    print(f"Estimated Task: '{taskmonitor.task_classes[int(estimated_task_id[0])]}' with prob. {estimated_task_id[1]}")
+                else:
+                    task_id = 1
+                
                 response = None
                 if task_id == 1 and taskmonitor.current_task is None:
                     print("Action: Task Clarification")
-                    response = "What task can I help you with?"
+                    response = "What task do you want to work on?"
+
                 elif task_id > 1 and taskmonitor.current_task is None:
                     print(f"Action: Start Task '{taskmonitor.task_classes[task_id]}'")
                     response = await asyncio.to_thread(taskmonitor.initiate_task, task_id)
-                    llm_OA.add_to_history(f"Let's work on '{taskmonitor.task_classes[task_id]}'", response)
+                    llm_OA.add_to_history(f"Let's tackle '{taskmonitor.task_classes[task_id]}'", response)
+
                 else:
                     print("Action: QA")
-                    response = await asyncio.to_thread(llm_OA.process_qa, last_AI_response)
+                    observed_activity = await activitymonitor.get_latest_activity()
+                    response = await asyncio.to_thread(llm_OA.continue_conv, last_AI_response,observed_activity['label'])
 
                 if response:
                     print(f"Response: {response}")

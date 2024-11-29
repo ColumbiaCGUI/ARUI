@@ -21,7 +21,7 @@ def get_intent(sentence):
     "User: "+sentence
 
     try:
-        completion = llm_OA.query_LLM(prompt, False)
+        completion = llm_OA.answer_question(prompt, False)
         
         # Extract the assistant's response
         response = completion.choices[0].message.content.strip()
