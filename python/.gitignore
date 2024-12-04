@@ -164,3 +164,5 @@ cython_debug/
 *.meta
 logs/
 capture/
+nodes/vosk*
+recordings/

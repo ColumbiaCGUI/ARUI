@@ -34,9 +34,11 @@ public class OrbStorageBox : MonoBehaviour
     public void Update()
     {
         _connection.Dashed = false;
+        _connection.enabled = false;
 
         if (_storedItem != null)
         {
+            _storedItem.Droppable = false;
             _connection.Start = transform.InverseTransformPoint(_storedItem.transform.position);
             _connection.End = transform.InverseTransformPoint(AngelARUI.Instance.GetAgentTransform().transform.position);
             _connection.enabled = true;
@@ -63,18 +65,33 @@ public class OrbStorageBox : MonoBehaviour
         {
             if (_isPreviewing==null)
             {
+                _isPreviewing.Droppable = false;
                 _connection.enabled = false;
+                _connection.Thickness = _originalThickness;
+                _draggingHandle.SetHandleProgress(0);
+
             } else
             {
+                _connection.enabled = true;
                 _connection.Start = transform.InverseTransformPoint(_isPreviewing.transform.position);
                 _connection.End = transform.InverseTransformPoint(AngelARUI.Instance.GetAgentTransform().transform.position);
-                _connection.enabled = true;
 
-                _connection.Dashed = true;
+                // Calculate the distance between the two transforms
+                float dist = Vector3.Distance(_isPreviewing.transform.position, AngelARUI.Instance.GetAgentTransform().transform.position);
+
+                if (_isPreviewing.Grabbable.IsDragged && dist < 0.3f)
+                {
+                    _isPreviewing.Droppable = true;
+                    _connection.Thickness = _originalThickness * 2;
+                    _connection.Dashed = false;
+                }
+                else
+                {
+                    _isPreviewing.Droppable = false;
+                    _connection.Thickness = _originalThickness;
+                    _connection.Dashed = true;
+                }
             }
-
-            _connection.Thickness = _originalThickness;
-            _draggingHandle.SetHandleProgress(0);
         }
     }
 
@@ -88,6 +105,7 @@ public class OrbStorageBox : MonoBehaviour
         _storedItem.CurrentStorage = this;
         _storedItem.Grabbable.DraggableHandle = _draggingHandle;
         _draggingHandle.gameObject.SetActive(true);
+        _draggingHandle.SetHandleProgress(0);
 
         _connection = GetComponent<Shapes.Line>();
         _connection.ColorStart = Color.white;
@@ -110,12 +128,12 @@ public class OrbStorageBox : MonoBehaviour
         _storedItem = null;  
     }
 
-    internal void Preview(StorableObject lookingAt)
+    public void Preview(StorableObject lookingAt)
     {
         _isPreviewing = lookingAt;
     }
 
-    internal void UnPreview()
+    public void UnPreview()
     {
         _isPreviewing = null;
     }

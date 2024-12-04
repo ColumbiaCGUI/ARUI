@@ -1,30 +1,32 @@
 import json
 import llm
+import utils.utils as utils
 
 intent_classes = {
     1: "Go to the next task",
     2: "Go to the previous task",
-    3: "Repeat Instruction",
-    4: "Asking for help in the current task",
-    5: "Start a new task",
-    6: "Asking a task related question",
-    7: "Change to another task",
+    3: "User asked for helpful material, manual or video",
+    4: "User asked a question anything task-related",
+    5: "Other",
+    6: "None or unrelated",
+    
 }
 
-current_intent = None
+few_shot_examples = utils.load_prompt("intent")
 
+def get_estimated_intent(sentence):
 
-def get_intent(sentence):
-    prompt = f"Here is a list of user intent classes: {str(intent_classes)}" \
-    "I will give you an user utterance. And you will give me the probability value for each user intent class." \
+    examples = ""
+    if few_shot_examples:
+        examples = few_shot_examples
+
+    prompt = examples + f"Here is a list of user intent classes: {str(intent_classes)}" \
+    "I will give you an user utterance. And you will give me the probability value for each user intent class. The order matters. When you go through the list start with the lowest index. the higher index are more fallbacks." \
     "Answer NOT in text, ONLY in JSON format wihtout Backticks." \
     "User: "+sentence
 
     try:
-        completion = llm.answer_question(prompt, False)
-        
-        # Extract the assistant's response
-        response = completion.choices[0].message.content.strip()
+        response = llm.answer_question(prompt)
         
         # Check if the response is not empty
         if not response:

@@ -46,6 +46,9 @@ public class StorableGrabbable : Grabbable, IMixedRealityPointerHandler
         if (DraggableHandle !=null && DraggableHandle.Progress>=1.0f)
         {
             OrbStorageManager.Instance.HandleUnstore(storableObject.ID, transform.position);
+        } else if (storableObject.Droppable)
+        {
+            OrbStorageManager.Instance.HandleStore(storableObject.ID);
         }
 
         _isDragged = false;

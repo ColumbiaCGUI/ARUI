@@ -2,6 +2,7 @@
 using NetMQ;
 using NetMQ.Sockets;
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -37,22 +38,43 @@ public class HelloRequester : RunAbleThread
                 {
                     if (!client.TryReceiveFrameString(out var message)) continue;
 
-                    switch (message)
+                    // Handle message processing on the background thread
+                    UnityMainThreadDispatcher.Enqueue(() =>
                     {
-                        case "400":
-                            AngelARUI.Instance.SetAgentThinking(true);
-                            break;
-                        case "0":
-
-                            break;
-                        default:
-                            Text = message;
-                            Debug.Log("Received " + message);
-                            AngelARUI.Instance.SetAgentThinking(false);
-                            break;
-                    }
-                     
-                } catch (Exception E)
+                        switch (message.Substring(0, 3))
+                        {
+                            case "400":
+                                AngelARUI.Instance.SetAgentThinking(true);
+                                break;
+                            case "888":
+                                AngelARUI.Instance.SetAgentThinking(false);
+                                AngelARUI.Instance.DebugLogMessage("incomming task",true);
+                                AngelARUI.Instance.SetManual("Assemble T-Rex", message.Substring(4));
+                                break;
+                            case "001":
+                                AngelARUI.Instance.SetAgentThinking(false);
+                                AngelARUI.Instance.GoToStep("Assemble T-Rex", Int32.Parse(message.Substring(4)));
+                                break;
+                            case "100":
+                                AngelARUI.Instance.SetAgentThinking(false);
+                                AngelARUI.Instance.GoToStep("Assemble T-Rex", Int32.Parse(message.Substring(4)));
+                                break;
+                            case "010":
+                                AngelARUI.Instance.Tether(GuidanceImage.Instance.gameObject.GetInstanceID());
+                                AngelARUI.Instance.SetAgentThinking(false);
+                                break;
+                            case "---":
+                                AngelARUI.Instance.SetAgentThinking(false);
+                                break;
+                            default:
+                                Text = message;
+                                Debug.Log("Received " + message);
+                                AngelARUI.Instance.SetAgentThinking(false);
+                                break;
+                        }
+                    });
+                }
+                catch (Exception E)
                 {
                     Debug.Log("Connection to server ended unexpectedly: " + E.Message);
                 }
@@ -61,7 +83,6 @@ public class HelloRequester : RunAbleThread
         }
         NetMQConfig.Cleanup();
     }
-
     public void CloseConnection()
     {
         _clientCancelled = true;

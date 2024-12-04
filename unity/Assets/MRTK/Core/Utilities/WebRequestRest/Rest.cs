@@ -84,7 +84,7 @@ namespace Microsoft.MixedReality.Toolkit.Utilities
         /// <returns>The response data.</returns>
         public static async Task<Response> PostAsync(string query, Dictionary<string, string> headers = null, int timeout = -1, bool readResponseData = false, CertificateHandler certificateHandler = null, bool disposeCertificateHandlerOnDispose = true)
         {
-            using (var webRequest = UnityWebRequest.Post(query, null as string))
+            using (var webRequest = UnityWebRequest.PostWwwForm(query, null as string))
             {
                 return await ProcessRequestAsync(webRequest, timeout, headers, readResponseData, certificateHandler, disposeCertificateHandlerOnDispose);
             }
@@ -122,7 +122,7 @@ namespace Microsoft.MixedReality.Toolkit.Utilities
         /// <returns>The response data.</returns>
         public static async Task<Response> PostAsync(string query, string jsonData, Dictionary<string, string> headers = null, int timeout = -1, bool readResponseData = false, CertificateHandler certificateHandler = null, bool disposeCertificateHandlerOnDispose = true)
         {
-            using (var webRequest = UnityWebRequest.Post(query, "POST"))
+            using (var webRequest = UnityWebRequest.PostWwwForm(query, "POST"))
             {
                 var data = new UTF8Encoding().GetBytes(jsonData);
                 webRequest.uploadHandler = new UploadHandlerRaw(data);
@@ -146,7 +146,7 @@ namespace Microsoft.MixedReality.Toolkit.Utilities
         /// <returns>The response data.</returns>
         public static async Task<Response> PostAsync(string query, byte[] bodyData, Dictionary<string, string> headers = null, int timeout = -1, bool readResponseData = false, CertificateHandler certificateHandler = null, bool disposeCertificateHandlerOnDispose = true)
         {
-            using (var webRequest = UnityWebRequest.Post(query, "POST"))
+            using (var webRequest = UnityWebRequest.PostWwwForm(query, "POST"))
             {
                 webRequest.uploadHandler = new UploadHandlerRaw(bodyData);
                 webRequest.downloadHandler = new DownloadHandlerBuffer();

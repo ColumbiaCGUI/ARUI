@@ -154,7 +154,10 @@ public class DataProvider : Singleton<DataProvider>
 
         //Update currently observed task
         if (copy.Keys.Count > 0 && (_currentObservedTask.Equals("") || !copy.ContainsKey(_currentObservedTask))) //Set the a random initial value for the currentObservedTask
+        {
             SetCurrentObservedTask(copy.First().Key);
+            AudioManager.Instance.PlayMessage(copy.First().Value.Steps[0].StepDesc);
+        }
 
         string debug = "DATA PROVIDER: selected tasks set to: ";
         foreach (string taskID in _currentActiveTasks.Keys)

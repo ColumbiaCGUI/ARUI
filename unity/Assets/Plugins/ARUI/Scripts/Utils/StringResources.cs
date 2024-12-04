@@ -23,6 +23,7 @@ public static class StringResources
     public static string Orb_path = "Prefabs/Orb/Orb";
     public static string EyeTarget_path = "Prefabs/EyeTarget";
     public static string HandPoseManager_path = "Prefabs/HandPoseManager";
+    public static string HelperImage_path = "Prefabs/HelperImage";
     public static string Sid_Tasklist_path = "Prefabs/Sid_Tasklist/Task_Overview";
     public static string TaskOverview_template_path = "Prefabs/Sid_Tasklist/TaskOverview_template";
     public static string LoggerPrefab_path = "Prefabs/Logger";

@@ -9,4 +9,5 @@ public class Step
     public List<string> RequiredItems;
     public List<SubStep> SubSteps;
     public int CurrSubStepIndex;
+    public string manualImage;
 }

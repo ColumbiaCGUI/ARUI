@@ -8,6 +8,8 @@ import nodes.hl2node as hl2node
 import nodes.audionode as audionode
 import nodes.envnode as envnode
 import nodes.tasknode as tasknode
+import nodes.intentnode as intentnode
+import keyboard  # using module keyboard
 
 # Async-compatible queue and ZMQ context
 context = zmq.asyncio.Context()
@@ -26,16 +28,39 @@ async def run_zmq_server():
     except Exception as e:
         print(f"Failed to bind ZMQ socket: {e}")
         return
-    
-    if tasknode.current_task is None:
-        tasknode.initiate_task(2)
+
+    last_left_pressed = False
+    last_right_pressed = False
+    last_reset = False
+
+    await socket.send_string("400")
 
     while True:
         
         try:
+            [current_left,current_right,current_reset] = check_keyboard(last_left_pressed,last_right_pressed,last_reset)
+            if current_left:
+                tasknode.go_to_previous()
+                await socket.send_string("100-"+str(tasknode.current_taskID))
+            elif current_right:
+                tasknode.go_to_next()
+                await socket.send_string("001-"+str(tasknode.current_taskID))
+            elif current_reset:
+                print("Initating dinosaur task")
+                tasknode.initiate_task(2)
+                socket.send_string("888:"+utils.load_file("data/dinosaur"))
+            
+            last_left_pressed = current_left 
+            last_right_pressed = current_right
+            last_reset = current_reset
+
+            if tasknode.current_task == 1:
+                print("Initating dinosaur task")
+                tasknode.initiate_task(2)
+                socket.send_string("888:"+utils.load_file("data/dinosaur"))
+
             # Access the shared sentence safely
             async with audionode.last_captured_sentence_lock:
-                
                 if audionode.last_captured_sentence:
                     last_AI_response = audionode.last_captured_sentence  # Use the captured sentence
                     audionode.last_captured_sentence = ""  # Reset after reading
@@ -46,47 +71,47 @@ async def run_zmq_server():
                 print(f"Processing user utterance: {last_AI_response}")
                 await socket.send_string("400")
 
-                ## For debugging
-                label = None
-                observed_activity = await envnode.get_latest_activity()
-                if observed_activity:
-                    label = observed_activity['json']['hand_status']
-                    if label is not None:
-                        print(label)
-                        await socket.send_string(label)
-                continue
-
+                response="---"
+                needs_response = False
                 # Handle task monitoring and response generation
-                estimated_task_id = await asyncio.to_thread(tasknode.get_mentioned_task, last_AI_response)
-                if estimated_task_id:
-                    task_id = int(estimated_task_id[0])
-                    print(f"Estimated Task: '{tasknode.task_classes[int(estimated_task_id[0])]}' with prob. {estimated_task_id[1]}")
+                estimated_intent, prob = await asyncio.to_thread(intentnode.get_estimated_intent, last_AI_response)
+                intent_string = str(intentnode.intent_classes[int(estimated_intent)])
+                if 1==int(estimated_intent):
+                    print("Detected Intent: Go to next step")
+                    tasknode.go_to_next()
+                    await socket.send_string("001-"+str(tasknode.current_taskID))
+                elif 2==int(estimated_intent):
+                    print("Detected Intent: Go to previous step")
+                    tasknode.go_to_previous()
+                    await socket.send_string("100-"+str(tasknode.current_taskID))
+                elif 3==int(estimated_intent):
+                    print("Needs material")
+                    await socket.send_string("010")
+                    response("You will find the manual reference close to me.")
                 else:
-                    task_id = 1
-                
-                response = None
-                if task_id == 1 and tasknode.current_task is None:
-                    print("Action: Task Clarification")
-                    response = "First, please tell me what task you want to work on."
+                    needs_response = True
 
-                elif task_id > 1 and tasknode.current_task is None:
-                    print(f"Action: Start Task '{tasknode.task_classes[task_id]}'")
-                    response = await asyncio.to_thread(tasknode.initiate_task, task_id)
-                    llm.add_to_history(f"Let's tackle '{tasknode.task_classes[task_id]}'", response)
-
-                else:
-                    print("Action: QA")
-                    label = None
+                if needs_response:
+                    print("Prompting for QA")
+                    label_activity = None
                     observed_activity = await envnode.get_latest_activity()
                     if observed_activity:
-                        label = observed_activity['label']
-                    response = await asyncio.to_thread(llm.continue_conv, last_AI_response,label)
+                        label_activity = observed_activity['label']
 
+                    label_task = None
+                    task_status = tasknode.get_task_status_prompt()
+                    if task_status:
+                        label_task = task_status
+
+                    response = llm.continue_conv(last_AI_response,observed_activity=label_activity,task_status=label_task, observed_intent=intent_string)
+                
+                print(f"Estimated intent was: ({str(prob)}) '{intent_string}'")
+                    
                 if response:
                     print(f"Response: {response}")
                     await socket.send_string(response)
             else:
-                await socket.send_string("0")  # Indicate no new input
+                await socket.send_string("---")  # Indicate no new input
 
             await asyncio.sleep(0.1)  # Prevent tight loop
 
@@ -119,39 +144,32 @@ async def run_zmq_subscriber():
         except Exception as e:
             print(f"Error in ZMQ subscriber: {e}")
 
+def check_keyboard(left_pressed, right_pressed,last_reset):
+    new_left = False  
+    if keyboard.is_pressed('left') and not left_pressed:
+        new_left = True
+
+    new_right = False
+    if keyboard.is_pressed('right') and not right_pressed:
+        new_right = True
+              
+    new_reset = False
+    if keyboard.is_pressed('0') and not last_reset:
+        new_reset = True
+
+    return [new_left, new_right,new_reset]
 
 async def main():
     # Create the tasks for different coroutines
-    hl2node_task = hl2node.start()
+    #hl2node_task = hl2node.start()
     audionode_task = audionode.start()
     zmq_server_task = run_zmq_server()
-    envnode_task = envnode.monitor_env()
+    #envnode_task = envnode.monitor_env()
     
-    # Group them into a single task list
-    tasks = [
-        asyncio.create_task(hl2node_task),
-        asyncio.create_task(audionode_task),
-        asyncio.create_task(zmq_server_task),
-        asyncio.create_task(envnode_task),
-    ]
-
-    try:
-        # Run all tasks concurrently
-        await asyncio.gather(*tasks)
-    except asyncio.CancelledError:
-        # Handle task cancellations
-        print("Main task was cancelled. Cleaning up...")
-    finally:
-        # Properly cancel all running tasks
-        for task in tasks:
-            if not task.done():
-                task.cancel()
-                try:
-                    await task
-                except asyncio.CancelledError:
-                    # Task was cancelled properly
-                    pass
-        print("All tasks have been cancelled and cleaned up.")
+    await asyncio.gather(
+       audionode_task,
+       zmq_server_task
+    )
 
 if __name__ == "__main__":
     try:

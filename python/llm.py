@@ -1,6 +1,8 @@
 from openai import OpenAI
 import utils.utils as utils
 import uuid
+import nodes.tasknode as tasknode
+import copy
 
 client = OpenAI()
 
@@ -12,9 +14,7 @@ max_tokens = 128
 
 # Generate a unique session ID for every session
 session_id = str(uuid.uuid4())
-conversation_threads = {
-    session_id: [{"role": "system", "content": sys_directions}]
-}
+conversation_threads = None
 
 def get_env(image_base64, prompt):
     """
@@ -49,23 +49,61 @@ def get_env(image_base64, prompt):
 
     return completion.choices[0].message.content
 
-def continue_conv(sentence, observed_activity):
+def clear_conv_history():
+    global conversation_threads
+    conversation_threads = None
+
+def continue_conv(sentence, image=None, observed_activity=None, task_status=None, observed_intent=None):
     global conversation_threads
 
     user_activity=""
     if observed_activity:   
         user_activity = f"Environment description: {observed_activity}\n\n"
 
-    user_prompt = user_activity + "User utterance: "+ sentence + "\n Your response:"
+    task_activity =""
+    if task_status:
+        task_activity =f"Task status: {task_status}\n\n"
 
-    messages=conversation_threads[session_id]
-    messages.append({ "role": "user", "content": user_prompt})
+    intent =""
+    if observed_intent:
+        intent =f"Observerd user intent: {observed_intent}\n\n"
 
-    response = query_LLM(messages)
+    user_prompt = user_activity + task_activity + intent + "User utterance: "+ sentence + "\nYour concise response:"
 
-    if utils.similar(response,"None")<0.8:
-        add_to_history(sentence,response)
+    if conversation_threads is None:
+        conversation_threads = {
+        session_id: [{"role": "system", "content": sys_directions}]
+    }
     
+    prompt_prep = copy.deepcopy(conversation_threads[session_id])  # Creates a deep copy
+    content = user_prompt
+    if image:
+        content = [ 
+            {
+                "type": "text",
+                "text": user_prompt
+            },
+            {
+                "type": "image_url",
+                "image_url": {
+                    "url": f"data:image/jpeg;base64,{image}"  # Base64 encoded image as per your example
+                }
+            }
+        ]
+        
+    prompt_prep.append({ "role": "user", "content": user_prompt})
+    response = query_LLM(prompt_prep)
+
+    if utils.similar(response.lower(),"none") > 0.6:
+        if image:
+            user_content = content
+        else:
+            user_content = user_prompt
+    
+        response = "hmm"
+
+        add_to_history(user_content, response)
+            
     return response
 
 
@@ -92,12 +130,12 @@ def query_LLM(messages):
         return None
 
 
-def add_to_history(user=None, assistant=None):
+def add_to_history(user_content=None, assistant=None):
     global conversation_threads
 
-    if user:
-        conversation_threads[session_id].append({"role": "user", "content": user})
-
+    if user_content:
+        conversation_threads[session_id].append({"role": "user", "content": user_content}) 
+        
     if assistant:
         conversation_threads[session_id].append({"role": "assistant", "content": assistant})
     

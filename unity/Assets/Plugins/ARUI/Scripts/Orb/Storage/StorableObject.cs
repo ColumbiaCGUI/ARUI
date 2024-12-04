@@ -43,6 +43,13 @@ public class StorableObject : MonoBehaviour
     private StorableGrabbable _grabbable = null; // Reference to the StorableGrabbable component
     public StorableGrabbable Grabbable => _grabbable;
 
+    private bool _droppableZone = false;
+    public bool Droppable
+    {
+        get { return _droppableZone; }
+        set { _droppableZone = value; }
+    }
+
     /// <summary>
     /// Every frame, check if the object is being looked at or grabbed, and if not, 
     /// smoothly moves it towards its associated storage position if it is in storage.
@@ -55,6 +62,7 @@ public class StorableObject : MonoBehaviour
         if (CurrentStorage != null && !_isLookingAt && !_grabbable.IsDragged)
         {
             transform.position = Vector3.Lerp(transform.position, CurrentStorage.transform.position, _followSpeed * Time.deltaTime);
+            transform.rotation = Quaternion.LookRotation(transform.position-AngelARUI.Instance.ARCamera.transform.position);
         }
     }
 

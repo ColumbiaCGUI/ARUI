@@ -62,7 +62,7 @@ public class OrbStorageManager : Singleton<OrbStorageManager>
         StorableObject lookingAt = null;
         foreach (StorableObject objs in _registeredObjects.Values)
         {
-            if (objs.IsLookingAtObj)
+            if (objs.IsLookingAtObj || objs.Grabbable.IsDragged)
             {
                 lookingAt = objs;
                 break;

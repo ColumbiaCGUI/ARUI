@@ -83,7 +83,6 @@ async def get_frame():
                 verify=False
             )
             if response.status_code != 200:
-                print(f"Photo capture failed with status code {response.status_code}.")
                 return None
 
             try:
@@ -120,7 +119,6 @@ async def get_frame():
                 return frame_base64
 
         except requests.RequestException as e:
-            print(f"Request error: {e}")
             return None
         except Exception as e:
             print(f"Unexpected error: {e}")
@@ -132,11 +130,7 @@ async def start():
     Start the HoloLens connection and streaming.
     """
     try:
-        if await is_device_online():
-            print("HoloLens device is online.")
-            await live_stream()  # Awaiting the task since it’s an async function that runs continuously
-        else:
-            print("HoloLens device is not reachable. Please check the connection.")
+        print("HoloLens device is not reachable. Please check the connection.")
     except asyncio.CancelledError:
         print("HoloLens tasks were cancelled.")
     finally:

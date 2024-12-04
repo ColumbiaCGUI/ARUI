@@ -8,6 +8,8 @@ public class HelloClient : MonoBehaviour
     {
         _helloRequester = new HelloRequester();
         _helloRequester.Start();
+
+        gameObject.AddComponent<UnityMainThreadDispatcher>();   
     }
 
     private void Update()

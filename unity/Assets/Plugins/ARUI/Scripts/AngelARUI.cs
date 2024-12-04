@@ -115,6 +115,11 @@ public class AngelARUI : Singleton<AngelARUI>
         zBufferCam.gameObject.AddComponent<ZBufferCamera>();
 
         var ClientSub = new GameObject("***ARUI-Dialog-Client").AddComponent<HelloClient>();
+
+        GameObject helperImage = Instantiate(Resources.Load(StringResources.HelperImage_path)) as GameObject;
+        helperImage.gameObject.name = "***ARUI-HelperImage";
+        helperImage.AddComponent<GuidanceImage>();
+        yield return new WaitForEndOfFrame();
     }
 
     #region Task Guidance
@@ -129,6 +134,17 @@ public class AngelARUI : Singleton<AngelARUI>
     {
         DataProvider.Instance.SetManual(allTasks);
         DataProvider.Instance.SetSelectedTasksFromManual(new List<string>(allTasks.Keys));
+    }
+
+    public void SetManual(string key, string jsonstring)
+    {
+        var allJsonTasks = new Dictionary<string, string>
+        {
+            { key, jsonstring }
+        };
+
+        DataProvider.Instance.SetManual(allJsonTasks);
+        DataProvider.Instance.SetSelectedTasksFromManual(new List<string>(allJsonTasks.Keys));
     }
 
     /// <summary>

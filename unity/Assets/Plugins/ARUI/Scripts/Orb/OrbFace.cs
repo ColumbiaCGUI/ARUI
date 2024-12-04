@@ -187,19 +187,29 @@ public class OrbFace : MonoBehaviour
     }
 
     /// <summary>
-    /// For now, rotate the face while in loading state. 
+    /// For now, rotate the face while in loading state.
     /// </summary>
     /// <returns></returns>
     private IEnumerator Rotating()
     {
         _face.Type = Shapes.DiscType.Arc;
         _mouth.Type = Shapes.DiscType.Arc;
+
+        float formerRad = _face.AngRadiansEnd;
+        _face.AngRadiansEnd = 80 * Mathf.Deg2Rad;
+
         while (_currentFaceState == OrbStates.Loading)
         {
-            _face.transform.Rotate(new Vector3(0, 0, 20f), Space.Self);
-            _mouth.transform.Rotate(new Vector3(0, 0, 15f), Space.Self);
-            yield return new WaitForEndOfFrame();
+            float rotationSpeedFace = 400f; // Degrees per second for face
+            float rotationSpeedMouth = 360f; // Degrees per second for mouth
+
+            _face.transform.Rotate(new Vector3(0, 0, rotationSpeedFace * Time.deltaTime), Space.Self);
+            _mouth.transform.Rotate(new Vector3(0, 0, rotationSpeedMouth * Time.deltaTime), Space.Self);
+
+            yield return null; // Yield to the next frame
         }
+
+        _face.AngRadiansEnd = formerRad;
 
         _mouth.Type = Shapes.DiscType.Ring;
         _face.Type = Shapes.DiscType.Ring;
