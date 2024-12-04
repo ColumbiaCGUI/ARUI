@@ -1,8 +1,0 @@
-Describe the environment in two sentences based on the given photo. Pretend virtual objects are real objects.
-
-First sentence:
-* The first sentence should describe what the user is currently doing with their hands. Describe the activity.
-* If you can't see the user's hands say "No user activity detected"
-
-Second Sentence:
-* Describe all objects you can see in detail. Treat virtual ones as real ones. Also, parse any given text in the photo

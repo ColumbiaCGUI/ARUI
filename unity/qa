@@ -1,0 +1,208 @@
+[1mdiff --git a/Assets/Plugins/ARUI/Server/audio.py b/Assets/Plugins/ARUI/Server/audio.py[m
+[1mindex 8e8c512..f824a18 100644[m
+[1m--- a/Assets/Plugins/ARUI/Server/audio.py[m
+[1m+++ b/Assets/Plugins/ARUI/Server/audio.py[m
+[36m@@ -2,64 +2,130 @@[m [mimport asyncio[m
+ import sys[m
+ from vosk import Model, KaldiRecognizer[m
+ import sounddevice as sd[m
+[32m+[m[32mimport numpy as np[m
+ [m
+ audio_queue = asyncio.Queue()[m
+[32m+[m[32mspeaker_queue = asyncio.Queue()[m
+ [m
+[31m-# Separate lock and shared variable[m
+[32m+[m[32m# Shared variable[m
+ last_captured_sentence = ""[m
+ last_captured_sentence_lock = asyncio.Lock()  # Lock to synchronize access to captured_sentence[m
+ [m
+[32m+[m[32m# Parameters[m
+[32m+[m[32msample_rate = 44100[m
+[32m+[m[32mblock_size = 1024  # Adjust based on your latency requirements[m
+[32m+[m[32mspeaker_threshold = 0.01  # RMS threshold for detecting speaker activity[m
+[32m+[m[32msimilarity_threshold = 0.7  # Threshold for detecting speaker content in mic input[m
+ [m
+[31m-async def audio_callback_handler(indata, status):[m
+[31m-    """Handles the callback asynchronously."""[m
+[32m+[m[32m# Device indices[m
+[32m+[m[32mmic_device = 1  # Replace with your microphone device index[m
+[32m+[m[32mspeaker_device = 2  # Replace with your loopback device index[m
+[32m+[m
+[32m+[m[32mspeaker_active = False[m
+[32m+[m
+[32m+[m[32mdef rms(audio_data):[m
+[32m+[m[32m    """Calculate RMS value of audio data."""[m
+[32m+[m[32m    return np.sqrt(np.mean(np.square(audio_data)))[m
+[32m+[m
+[32m+[m[32mdef normalized_cross_correlation(signal1, signal2):[m
+[32m+[m[32m    """Compute normalized cross-correlation to compare two signals."""[m
+[32m+[m[32m    correlation = np.correlate(signal1, signal2, mode="valid")[m
+[32m+[m[32m    norm = np.sqrt(np.sum(signal1**2) * np.sum(signal2**2))[m
+[32m+[m[32m    return (correlation / norm) if norm != 0 else 0[m
+[32m+[m
+[32m+[m[32mdef audio_callback_handler(indata, status):[m
+[32m+[m[32m    """Handles the microphone callback."""[m
+     if status:[m
+         print(status, file=sys.stderr)[m
+[31m-    await audio_queue.put(bytes(indata))[m
+[32m+[m[32m    audio_queue.put_nowait(bytes(indata))[m
+ [m
+[32m+[m[32mdef speaker_callback_handler(indata, status):[m
+[32m+[m[32m    """Handles the speaker callback."""[m
+[32m+[m[32m    if status:[m
+[32m+[m[32m        print(status, file=sys.stderr)[m
+[32m+[m[32m    speaker_queue.put_nowait(bytes(indata))[m
+ [m
+[31m-async def audio_processing(args):[m
+[31m-    global last_captured_sentence[m
+[32m+[m[32masync def monitor_speaker():[m
+[32m+[m[32m    global speaker_active[m
+ [m
+     try:[m
+[31m-        if args.samplerate is None:[m
+[31m-            device_info = sd.query_devices(args.device, "input")[m
+[31m-            args.samplerate = int(device_info["default_samplerate"])[m
+[32m+[m[32m        # Start capturing speaker output[m
+[32m+[m[32m        with sd.InputStream([m
+[32m+[m[32m            samplerate=sample_rate,[m
+[32m+[m[32m            blocksize=block_size,[m
+[32m+[m[32m            device=speaker_device,[m
+[32m+[m[32m            dtype="float32",[m
+[32m+[m[32m            channels=1,[m
+[32m+[m[32m            callback=speaker_callback_handler,[m
+[32m+[m[32m        ):[m
+[32m+[m[32m            while True:[m
+[32m+[m[32m                # Update speaker_active if RMS exceeds threshold[m
+[32m+[m[32m                if not speaker_queue.empty():[m
+[32m+[m[32m                    speaker_data = await speaker_queue.get()[m
+[32m+[m[32m                    speaker_signal = np.frombuffer(speaker_data, dtype=np.float32)[m
+[32m+[m[32m                    speaker_active = rms(speaker_signal) > speaker_threshold[m
+[32m+[m[32m                await asyncio.sleep(0.01)[m
+[32m+[m[32m    except Exception as e:[m
+[32m+[m[32m        print(f"Error in monitor_speaker: {e}")[m
+ [m
+[31m-        model = Model(lang=args.model or "en-us")[m
+[32m+[m[32masync def process_audio():[m
+[32m+[m[32m    global last_captured_sentence[m
+[32m+[m[32m    global speaker_active[m
+ [m
+[31m-        # Get the current event loop[m
+[31m-        loop = asyncio.get_running_loop()[m
+[32m+[m[32m    print(sd.query_devices())[m
+[32m+[m[32m    print(f"User Speaker: {sd.query_devices()[speaker_device]}")[m
+[32m+[m[32m    print(f"User Mic: {sd.query_devices()[mic_device]}")[m
+ [m
+[32m+[m[32m    # Start the speaker monitoring in the background[m
+[32m+[m[32m    asyncio.create_task(monitor_speaker())[m
+[32m+[m
+[32m+[m[32m    try:[m
+[32m+[m[32m        model = Model(lang="en-us")[m
+[32m+[m[32m        rec = KaldiRecognizer(model, sample_rate)[m
+[32m+[m
+[32m+[m[32m        # Start the microphone input stream[m
+         with sd.RawInputStream([m
+[31m-            samplerate=args.samplerate,[m
+[31m-            blocksize=8000,[m
+[31m-            device=args.device,[m
+[31m-            dtype="int16",[m
+[32m+[m[32m            samplerate=sample_rate,[m
+[32m+[m[32m            blocksize=block_size,[m
+[32m+[m[32m            device=mic_device,[m
+[32m+[m[32m            dtype="float32",[m
+             channels=1,[m
+[31m-            callback=lambda indata, frames, time, status: asyncio.run_coroutine_threadsafe([m
+[31m-                audio_callback_handler(indata, status), loop[m
+[31m-            ),[m
+[32m+[m[32m            callback=lambda indata, frames, time, status: audio_callback_handler(indata, status),[m
+         ):[m
+             print("#" * 80)[m
+[31m-            print("Press Ctrl+C to stop the recording")[m
+[32m+[m[32m            print("Press Ctrl+C to stop the recording.")[m
+             print("#" * 80)[m
+ [m
+[31m-            rec = KaldiRecognizer(model, args.samplerate)[m
+[31m-[m
+             while True:[m
+[31m-                data = await audio_queue.get()  # Get data from the queue[m
+[31m-                if rec.AcceptWaveform(data):[m
+[31m-                    result = rec.Result()[m
+[31m-                    # Extract the parsed sentence[m
+[31m-                    last = result.rfind('"')[m
+[31m-                    second_to_last = result[:last].rfind('"')[m
+[31m-                    if last != -1 and second_to_last != -1 and second_to_last < last:[m
+[31m-                        parsed_sentence = result[second_to_last + 1:last][m
+[31m-                        # Thread-safe update to shared variable[m
+[31m-                        async with last_captured_sentence_lock:[m
+[31m-                            last_captured_sentence = parsed_sentence[m
+[32m+[m[32m                # Check the microphone data[m
+[32m+[m[32m                if not audio_queue.empty():[m
+[32m+[m[32m                    mic_data = await audio_queue.get()[m
+[32m+[m[32m                    mic_signal = np.frombuffer(mic_data, dtype=np.float32)[m
+[32m+[m
+[32m+[m[32m                    # If speaker is active, compare microphone data to speaker output[m
+[32m+[m[32m                    if speaker_active and not speaker_queue.empty():[m
+[32m+[m[32m                        speaker_data = await speaker_queue.get()[m
+[32m+[m[32m                        speaker_signal = np.frombuffer(speaker_data, dtype=np.float32)[m
+[32m+[m
+[32m+[m[32m                        # Check similarity[m
+[32m+[m[32m                        similarity = normalized_cross_correlation(mic_signal, speaker_signal)[m
+[32m+[m[32m                        if similarity > similarity_threshold:[m
+[32m+[m[32m                            print("Microphone input matches speaker output.")[m
+[32m+[m[32m                            continue  # Skip processing if it's from the speaker[m
+ [m
+[32m+[m[32m                    # Process microphone input normally[m
+[32m+[m[32m                    if rec.AcceptWaveform(mic_data):[m
+[32m+[m[32m                        print("here1")[m
+[32m+[m[32m                        result = rec.Result()[m
+[32m+[m[32m                        # Extract the parsed sentence[m
+[32m+[m[32m                        last = result.rfind('"')[m
+[32m+[m[32m                        second_to_last = result[:last].rfind('"')[m
+[32m+[m[32m                        if last != -1 and second_to_last != -1 and second_to_last < last:[m
+[32m+[m[32m                            parsed_sentence = result[second_to_last + 1:last][m
+[32m+[m[32m                            # Thread-safe update to shared variable[m
+[32m+[m[32m                            async with last_captured_sentence_lock:[m
+[32m+[m[32m                                last_captured_sentence = parsed_sentence[m
+     except KeyboardInterrupt:[m
+         print("\nAudio processing stopped")[m
+     except Exception as e:[m
+[31m-        print(f"Error in audio processing: {e}", file=sys.stderr)[m
+[32m+[m[32m        print(f"Error in process_audio: {e}", file=sys.stderr)[m
+[1mdiff --git a/Assets/Plugins/ARUI/Server/server.py b/Assets/Plugins/ARUI/Server/server.py[m
+[1mindex d512f17..71abff1 100644[m
+[1m--- a/Assets/Plugins/ARUI/Server/server.py[m
+[1m+++ b/Assets/Plugins/ARUI/Server/server.py[m
+[36m@@ -37,7 +37,7 @@[m [masync def run_zmq_server():[m
+                 else:[m
+                     last_AI_response = ""  # No sentence available[m
+ [m
+[31m-            if len(last_AI_response)>1:[m
+[32m+[m[32m            if len(last_AI_response) > 1 and len(last_AI_response.strip().split(' ')) > 1:[m
+                 print(f"Processing user utterance: {last_AI_response}")[m
+                 await socket.send_string("400")[m
+ [m
+[36m@@ -76,22 +76,15 @@[m [masync def run_zmq_server():[m
+             print(f"Error in ZMQ server: {e}")[m
+ [m
+ [m
+[31m-async def main(args):[m
+[32m+[m[32masync def main():[m
+     # Launch audio processing, ZMQ server, and activity monitor concurrently[m
+     await asyncio.gather([m
+[31m-        audio.audio_processing(args),[m
+[32m+[m[32m        audio.process_audio(),[m
+         run_zmq_server(),[m
+         activitymonitor.monitor_user_activity(),[m
+     )[m
+ [m
+ [m
+ if __name__ == "__main__":[m
+[31m-    parser = argparse.ArgumentParser()[m
+[31m-    parser.add_argument("-f", "--filename", type=str, metavar="FILENAME", help="Audio file to store recording to")[m
+[31m-    parser.add_argument("-d", "--device", type=utils.int_or_str, default=None, help="Input device (numeric ID or substring)")[m
+[31m-    parser.add_argument("-r", "--samplerate", type=int, default=16000, help="Sampling rate (default: 16000)")[m
+[31m-    parser.add_argument("-m", "--model", type=str, default="en-us", help="Language model; default is en-us")[m
+[31m-    args = parser.parse_args()[m
+[31m-[m
+     # Run the asyncio main loop[m
+[31m-    asyncio.run(main(args))[m
+[32m+[m[32m    asyncio.run(main())[m
