@@ -17,9 +17,11 @@ def initiate_task(task_id):
     global current_task
     global current_instructions
     global instruction_string
+    global current_taskID
 
     current_instructions = utils.json_to_dict("data/"+task_classes[task_id])
     current_task = task_id
+    current_taskID= 0
 
     overview_image = ""
     from_file = utils.read_base64_text_file("data/overview")
@@ -36,23 +38,27 @@ def initiate_task(task_id):
     llm.continue_conv(instruction_string, overview_image)
     
 def get_current_task_str():
+    if current_instructions is None:
+        return ""
     return current_instructions[str(current_taskID+1)]['StepDesc']
 
 def get_task_status_prompt():
+    if current_instructions is None:
+        return ""
     return f"The user is currently working on currently working on step {str(current_taskID+1)} - {get_current_task_str()}"
     
 def go_to_previous():
     global current_taskID
     if current_taskID > 0:  # Ensure it doesn't go below 0
         current_taskID -= 1
-        llm.continue_conv(f"I just wanted to let you know that I moved on to {str(current_taskID+1)} - {get_current_task_str()}")
+        #llm.continue_conv(f"I just wanted to let you know that I moved on to {str(current_taskID+1)} - {get_current_task_str()}")
         print(f"Moved to the previous task with id {current_taskID} - {get_current_task_str()}")
 
 def go_to_next():
     global current_taskID
     if current_task is not None and current_instructions is not None:
         max_taskID = len(current_instructions) - 1
-        if current_taskID <= max_taskID:  # Ensure it doesn't exceed the limit
+        if current_taskID < max_taskID:  # Ensure it doesn't exceed the limit
             current_taskID += 1
-            llm.continue_conv(f"I just wanted to let you know that I went back to {str(current_taskID+1)} - {get_current_task_str()}")
+            #llm.continue_conv(f"I just wanted to let you know that I went back to {str(current_taskID+1)} - {get_current_task_str()}")
             print(f"Moved to the next task with id {current_taskID} - {get_current_task_str()}")

@@ -1,25 +1,29 @@
+import threading
+import time
 import nodes.hl2node as hl2node
-import asyncio
 import utils.utils as utils
-import sys
 import llm
-import json 
+import json
 import re
 import nodes.tasknode as tasknode
 from collections import deque
 
+# Configuration
 activity_log_rate = 2
 activity_log = deque(maxlen=1000)
-activity_log_lock = asyncio.Lock()  # Async-safe access to the log
+activity_log_lock = threading.Lock()  # Thread-safe access to the log
 
 prompt_file_path = "env_monitor"
 
-async def monitor_env():
-    """Continuously call `hl2utils.getPhoto()` every 2 seconds and log the last 20 activities."""
 
+def monitor_env():
+    """Continuously call `hl2utils.getPhoto()` every 2 seconds and log the last 20 activities."""
+    global activity_log
+
+    # Load the activity prompt
     activity_prompt = utils.load_prompt(prompt_file_path)
     if activity_prompt is None:
-        print("Activity prompt could not be loaded.", file=sys.stderr)
+        print("Activity prompt could not be loaded.")
         return
 
     if tasknode.current_instructions is not None:
@@ -27,51 +31,48 @@ async def monitor_env():
 
     while True:
         try:
-            # Call get_env_description() with the correct argument
-            detected_activity = await get_env_description(activity_prompt)
+            # Get environment description
+            detected_activity = get_env_description(activity_prompt)
 
             parsed_data = None
-            # Validate detected_activity is not None and has the expected length
             if detected_activity and len(detected_activity) >= 2:
                 json_string = detected_activity[1]
 
                 if json_string:
-                    json_string = json_string.strip()  # Strip only if json_string is not None
+                    json_string = json_string.strip()  # Strip if not None
                     parsed_data = extract_json_data(json_string)
-            
+
             if parsed_data is None:
                 continue
 
-            # Construct the activity dictionary, ensure fallback values for any None
+            # Construct the activity dictionary
             activity = {
-                "json": parsed_data["json_data"] if parsed_data["json_data"] is not None else {},
-                "timestamp": asyncio.get_running_loop().time(),
-                "image": detected_activity[0] if detected_activity and detected_activity[0] is not None else "No image available",
+                "json": parsed_data["json_data"] if parsed_data["json_data"] else {},
+                "timestamp": time.time(),
+                "image": detected_activity[0] if detected_activity and detected_activity[0] else "No image available",
             }
 
-            # Debugging: Print parsed data to verify content
-            # print(f"Parsed Activity Data: {parsed_data['json_data']}")
-
             # Ensure activity is valid before adding to log
-            async with activity_log_lock:
+            with activity_log_lock:
                 if activity["json"] and isinstance(activity["json"], dict) and activity["image"] != "No image available":
                     activity_log.append(activity)
                     try:
-                        utils.save_activity_to_file(llm.session_id, parsed_data['json_data'])
+                        utils.save_activity_to_file(llm.session_id, parsed_data["json_data"])
                     except Exception as file_error:
-                        print(f"An error occurred while saving the activity log: {file_error}", file=sys.stderr)
+                        print(f"An error occurred while saving the activity log: {file_error}")
                 else:
-                    print("Activity is invalid and will not be logged.", file=sys.stderr)
+                    print("Activity is invalid and will not be logged.")
 
-            await asyncio.sleep(0.3)
+            time.sleep(0.01)  # Control loop rate
         except Exception as e:
-            print(f"Error in monitor_user_activity: {e}", file=sys.stderr)
-            await asyncio.sleep(5)  # Retry after delay
+            print(f"Error in monitor_env: {e}")
+            time.sleep(2)  # Retry after delay
 
 
-async def get_env_description(prompt):
-    if await hl2node.is_device_online(0.1):  # Await the async function
-        image_base64 = await hl2node.get_frame()  # Await the async function
+def get_env_description(prompt):
+    """Get the environment description based on the provided prompt."""
+    if hl2node.is_device_online(0.1):  # Synchronous call
+        image_base64 = hl2node.get_frame()  # Synchronous call
     else:
         return None
 
@@ -94,9 +95,9 @@ def extract_json_data(json_string):
     """
     try:
         # Clean up json_string if it contains Markdown formatting or extra backticks
-        json_string = re.sub(r'^```json\s*', '', json_string)  # Remove ```json at the beginning
-        json_string = re.sub(r'```$', '', json_string)  # Remove ``` at the end
-        json_string = json_string.strip()  # Remove any leading or trailing whitespace
+        json_string = re.sub(r"^```json\s*", "", json_string)  # Remove ```json at the beginning
+        json_string = re.sub(r"```$", "", json_string)  # Remove ``` at the end
+        json_string = json_string.strip()  # Remove leading or trailing whitespace
 
         # Parse JSON string
         json_data = json.loads(json_string)
@@ -115,11 +116,18 @@ def extract_json_data(json_string):
             "current_step": current_step,  # Extracted current step
         }
     except json.JSONDecodeError as e:
-        print(f"Failed to parse JSON: {e}", file=sys.stderr)
+        print(f"Failed to parse JSON: {e}")
         return None
 
-async def get_latest_activity():
+
+def get_latest_activity():
     """Return the latest activity."""
-    async with activity_log_lock:  # Ensure async-safe access
+    with activity_log_lock:  # Ensure thread-safe access
         return activity_log[-1] if activity_log else None
 
+
+def start():
+    """Start the environment monitoring in a thread."""
+    monitor_thread = threading.Thread(target=monitor_env, daemon=True)
+    monitor_thread.start()
+    print("Environment monitoring started.")

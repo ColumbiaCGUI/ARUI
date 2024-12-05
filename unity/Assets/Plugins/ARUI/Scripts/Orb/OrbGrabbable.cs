@@ -1,4 +1,5 @@
 using Microsoft.MixedReality.Toolkit.Input;
+using System.Diagnostics;
 
 /// <summary>
 /// Catch pointer and dragging events at orb
@@ -24,6 +25,7 @@ public class OrbGrabbable : Grabbable, IMixedRealityPointerHandler
 
     public void OnPointerDragged(MixedRealityPointerEventData eventData)
     {
+        //AngelARUI.Instance.DebugLogMessage(isUsedHandClosed(eventData).ToString(), true);
         if (!IsProcessingClosedHand && isUsedHandClosed(eventData))
         {
             //start countdown for or fix

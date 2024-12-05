@@ -94,13 +94,13 @@ def continue_conv(sentence, image=None, observed_activity=None, task_status=None
     prompt_prep.append({ "role": "user", "content": user_prompt})
     response = query_LLM(prompt_prep)
 
-    if utils.similar(response.lower(),"none") > 0.6:
+    if response is None or utils.similar(response.lower(),"none") > 0.6:
         if image:
             user_content = content
         else:
             user_content = user_prompt
     
-        response = "hmm"
+        response = "mhm"
 
         add_to_history(user_content, response)
             
@@ -121,6 +121,7 @@ def query_LLM(messages):
                 messages=messages,
                 temperature=temperature,
                 max_tokens=max_tokens,
+                timeout=3 # Timeout set to 10 seconds
         )
 
         return completion.choices[0].message.content

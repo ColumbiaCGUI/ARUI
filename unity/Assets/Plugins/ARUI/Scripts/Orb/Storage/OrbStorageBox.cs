@@ -65,7 +65,6 @@ public class OrbStorageBox : MonoBehaviour
         {
             if (_isPreviewing==null)
             {
-                _isPreviewing.Droppable = false;
                 _connection.enabled = false;
                 _connection.Thickness = _originalThickness;
                 _draggingHandle.SetHandleProgress(0);
