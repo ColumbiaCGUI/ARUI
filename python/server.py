@@ -42,17 +42,9 @@ async def process_user_utterance(socket):
             intent_string = str(intentnode.intent_classes[int(estimated_intent)])
 
         if 1 == int(estimated_intent):
-            print("Detected Intent: Go to next step")
-            tasknode.go_to_next()
-            socket.send_string("001-" + str(tasknode.current_taskID))
+            send_to_next(socket)
         elif 2 == int(estimated_intent):
-            print("Detected Intent: Go to previous step")
-            tasknode.go_to_previous()
-            socket.send_string("100-" + str(tasknode.current_taskID))
-        elif 3 == int(estimated_intent):
-            print("Needs material")
-            socket.send_string("010")
-            response = "You will find the manual reference close to me."
+            send_to_previous(socket)
         else:
             needs_response = True
 
@@ -83,6 +75,27 @@ async def process_user_utterance(socket):
     else:
         socket.send_string("---")  # Indicate no new input
 
+def send_to_previous(socket):
+    print("Send go to previous")
+    tasknode.go_to_previous()
+    socket.send_string("100-" + str(tasknode.current_taskID))
+
+def send_to_next(socket):
+    print("Send go to next")
+    tasknode.go_to_next()
+    socket.send_string("001-" + str(tasknode.current_taskID))
+
+def send_reset(socket):
+    print("Send (re)start task")
+    tasknode.initiate_task(2)
+    socket.send_string("888:"+utils.load_file("data/dinosaur"))
+    if tasknode.current_taskoverview is not None:
+        socket.send_string("111:"+tasknode.current_taskoverview)
+
+def send_show_manual(socket):
+    print("Send tethering command")
+    socket.send_string("010")
+
 async def main_loop():
     """Main asyncio loop."""
     socket = context.socket(zmq.PUB)
@@ -99,27 +112,28 @@ async def main_loop():
     last_left_pressed = False
     last_right_pressed = False
     last_reset = False
+    last_manual = False
 
     while True:
         try:
-            [current_left,current_right,current_reset] = check_keyboard(last_left_pressed,last_right_pressed,last_reset)
+            [current_left,current_right,current_reset,current_manual] = check_keyboard(last_left_pressed,last_right_pressed,last_reset,last_manual)
             if current_left:
-                tasknode.go_to_previous()
-                socket.send_string("100-"+str(tasknode.current_taskID))
+                send_to_previous(socket)
                 await asyncio.sleep(0.2)
             elif current_right:
-                tasknode.go_to_next()
-                socket.send_string("001-"+str(tasknode.current_taskID))
+                send_to_next(socket)
                 await asyncio.sleep(0.3)
             elif current_reset:
-                print("Initating dinosaur task")
-                tasknode.initiate_task(2)
-                socket.send_string("888:"+utils.load_file("data/dinosaur"))
+                send_reset(socket)
+                await asyncio.sleep(0.3)
+            elif current_manual:
+                send_show_manual(socket)
                 await asyncio.sleep(0.3)
             
             last_left_pressed = current_left 
             last_right_pressed = current_right
             last_reset = current_reset
+            last_manual = current_manual
 
             await process_user_utterance(socket)
 
@@ -139,7 +153,7 @@ def start_audionode_thread():
     audio_thread = threading.Thread(target=audionode.start, args=(True, audio_callback), daemon=True)
     audio_thread.start()
 
-def check_keyboard(left_pressed, right_pressed, last_reset):
+def check_keyboard(left_pressed, right_pressed, last_reset, last_manual):
     new_left = False  
     if keyboard.is_pressed('left') and not left_pressed:
         new_left = True
@@ -151,8 +165,12 @@ def check_keyboard(left_pressed, right_pressed, last_reset):
     new_reset = False
     if keyboard.is_pressed('0') and not last_reset:
         new_reset = True
+    
+    new_manual = False
+    if keyboard.is_pressed('9') and not last_manual:
+        new_manual = True
 
-    return [new_left, new_right, new_reset]
+    return [new_left, new_right, new_reset, new_manual]
 
 if __name__ == "__main__":
     start_audionode_thread()  # Start the audionode in a separate thread

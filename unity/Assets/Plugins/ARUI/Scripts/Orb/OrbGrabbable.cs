@@ -26,22 +26,23 @@ public class OrbGrabbable : Grabbable, IMixedRealityPointerHandler
     public void OnPointerDragged(MixedRealityPointerEventData eventData)
     {
         //AngelARUI.Instance.DebugLogMessage(isUsedHandClosed(eventData).ToString(), true);
-        if (!IsProcessingClosedHand && isUsedHandClosed(eventData))
-        {
-            //start countdown for or fix
-            IsProcessingClosedHand = true;
-            StartCoroutine(TransitionToFullHandle(() => Orb.Instance.UpdateMovementbehavior(MovementBehavior.Fixed)));
-        } else if (IsProcessingClosedHand && !isUsedHandClosed(eventData))
-        {
-            IsProcessingClosedHand = false;
-            StopCoroutine(TransitionToFullHandle(() => Orb.Instance.UpdateMovementbehavior(MovementBehavior.Fixed)));
+        //AngelARUI.Instance.DebugLogMessage("Right - " + eventData.Handedness.ToString() + " and " + HandPoseManager.Instance.rightPose, true);
+        //if (!IsProcessingClosedHand && isUsedHandClosed(eventData))
+        //{
+        //    //start countdown for or fix
+        //    IsProcessingClosedHand = true;
+        //    StartCoroutine(TransitionToFullHandle(() => Orb.Instance.UpdateMovementbehavior(MovementBehavior.Fixed)));
+        //} else if (IsProcessingClosedHand && !isUsedHandClosed(eventData))
+        //{
+        //    IsProcessingClosedHand = false;
+        //    StopCoroutine(TransitionToFullHandle(() => Orb.Instance.UpdateMovementbehavior(MovementBehavior.Fixed)));
 
-            Orb.Instance.UpdateMovementbehavior(MovementBehavior.Follow);
+        //    Orb.Instance.UpdateMovementbehavior(MovementBehavior.Follow);
 
-        } else if (!IsProcessingClosedHand && !isUsedHandClosed(eventData))
-        {
-            Orb.Instance.UpdateMovementbehavior(MovementBehavior.Follow);
-        }
+        //} else if (!IsProcessingClosedHand && !isUsedHandClosed(eventData))
+        //{
+        //    Orb.Instance.UpdateMovementbehavior(MovementBehavior.Follow);
+        //}
     }
 
     public void OnPointerUp(MixedRealityPointerEventData eventData)

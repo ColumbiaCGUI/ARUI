@@ -60,7 +60,7 @@ public class Grabbable : MonoBehaviour
     }
 
     protected bool isUsedHandClosed(MixedRealityPointerEventData eventData)
-    {
+    { 
         return (
             Microsoft.MixedReality.Toolkit.Utilities.Handedness.Right == eventData.Handedness && HandPoseManager.Instance.rightPose == Holofunk.HandPose.HandPose.Closed)
         || (Microsoft.MixedReality.Toolkit.Utilities.Handedness.Left == eventData.Handedness && HandPoseManager.Instance.leftPose == Holofunk.HandPose.HandPose.Closed);

@@ -83,7 +83,10 @@ public class Orb : Singleton<Orb>
         _grabbable.DraggableHandle = handleObj.AddComponent<DraggableHandle>();
 
         // Collect all orb colliders
-        _allOrbColliders = new List<BoxCollider>();
+        _allOrbColliders = new List<BoxCollider>
+        {
+            _followSolver.GetComponent<BoxCollider>()
+        };
 
         ListenToDataEvents();
     }

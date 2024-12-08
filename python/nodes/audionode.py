@@ -14,7 +14,7 @@ SAMPLE_RATE = 16000
 BLOCK_SIZE = 8000
 ENERGY_THRESHOLD = 15000  # Minimum energy level to consider valid audio for VAD
 # Set device indices for speaker and microphone
-device_speaker_index = 2  # Replace with your speaker output index 
+device_speaker_index = 3  # Replace with your speaker output index 
 device_microphone_index = None  # Replace with your microphone input index
 ######## 
 
@@ -116,8 +116,10 @@ def process_mic_stream(server_callback):
                     final_result = parse_utterance(rec_mic.Result())
                     if len(final_result.strip().split(" ")) > 1:
                         mic_sentence = final_result
+                        if mic_sentence.lower().startswith("the "):
+                            mic_sentence = mic_sentence[4:]  # Remove the first 4 characters (length of "the ")
 
-                if mic_sentence:
+                if len(mic_sentence.strip().split(" ")) > 1:
                     with last_captured_sentence_lock:
                         server_callback(mic_sentence)
                     print(f"**** Captured Sentence: {mic_sentence}")

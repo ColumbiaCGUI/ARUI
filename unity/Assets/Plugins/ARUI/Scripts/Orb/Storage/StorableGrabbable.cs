@@ -37,6 +37,8 @@ public class StorableGrabbable : Grabbable, IMixedRealityPointerHandler
     public void OnPointerDragged(MixedRealityPointerEventData eventData)
     {
         _isDragged = true;
+
+
     }
 
     public void OnPointerUp(MixedRealityPointerEventData eventData)

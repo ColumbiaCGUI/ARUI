@@ -40,6 +40,9 @@ public static class StringResources
     public static string zBufferTexture_path = "Textures/zBuffer";
     public static string zBufferMat_path = "Materials/zBuffer";
 
+    //Images
+    public static string storage_preview_path = "Materials/storagepreview";
+
     //Used Layers
     public static string UI_layer = "UI";
     public static string VM_layer = "VM";

@@ -88,7 +88,7 @@ public class ViewManagement : Singleton<ViewManagement>
 
         foreach (var vmnc in _allCoarseNC)
         {
-            if (vmnc != null)
+            if (vmnc != null && vmnc.vmactive)
             {
                 Rect item = vmnc.AABB;
                 if (item.width > ARUISettings.VMPixelIteration && item.height > ARUISettings.VMPixelIteration &&
@@ -110,7 +110,7 @@ public class ViewManagement : Singleton<ViewManagement>
 
         foreach (var vmnc in allProcessedNC.Keys)
         {
-            if (vmnc != null)
+            if (vmnc != null && vmnc.vmactive)
             {
                 foreach (var item in allProcessedNC[vmnc])
                 {
@@ -442,9 +442,11 @@ public class ViewManagement : Singleton<ViewManagement>
                                             + "," + lastClosest[i].width
                                             + "," + lastClosest[i].height, tintableText);
 
-            scaledRect = new Rect(lastTargetPoint[i].x * scale, lastTargetPoint[i].y * scale, 10, 10);
-            GUI.Box(scaledRect, ".", tintableText);
-
+            if (lastTargetPoint!=null && i< lastTargetPoint.Count)
+            {
+                scaledRect = new Rect(lastTargetPoint[i].x * scale, lastTargetPoint[i].y * scale, 10, 10);
+                GUI.Box(scaledRect, ".", tintableText);
+            }
         }   
 
 

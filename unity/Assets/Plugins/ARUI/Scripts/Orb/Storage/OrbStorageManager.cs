@@ -11,17 +11,17 @@ public class OrbStorageManager : Singleton<OrbStorageManager>
 
     private List<Vector2[]> _defaultLayout = new List<Vector2[]>()
     {
-        new Vector2[] { new Vector2(-ARUISettings.SizeAtStorage,0) },
+        new Vector2[] { new Vector2(-ARUISettings.SizeAtStorage*2,0) },
         new Vector2[]
         {
-            new Vector2(-ARUISettings.SizeAtStorage/2, ARUISettings.SizeAtStorage/2),
-            new Vector2(-ARUISettings.SizeAtStorage/2, -ARUISettings.SizeAtStorage/2)
+            new Vector2(-ARUISettings.SizeAtStorage, ARUISettings.SizeAtStorage),
+            new Vector2(-ARUISettings.SizeAtStorage, -ARUISettings.SizeAtStorage)
         },
         new Vector2[]
         {
-            new Vector2(-ARUISettings.SizeAtStorage/2, ARUISettings.SizeAtStorage),
+            new Vector2(-ARUISettings.SizeAtStorage, ARUISettings.SizeAtStorage*2),
             new Vector2(-ARUISettings.SizeAtStorage,0),
-            new Vector2(-ARUISettings.SizeAtStorage/2, -ARUISettings.SizeAtStorage)
+            new Vector2(-ARUISettings.SizeAtStorage, -ARUISettings.SizeAtStorage*2)
         }
     };      // Default Layout for 1,2 or 3 stored objects
 
@@ -59,23 +59,23 @@ public class OrbStorageManager : Singleton<OrbStorageManager>
     /// </summary>
     public void Update()
     {
-        StorableObject lookingAt = null;
+        StorableObject lookingOrDragged = null;
         foreach (StorableObject objs in _registeredObjects.Values)
         {
             if (objs.IsLookingAtObj || objs.Grabbable.IsDragged)
             {
-                lookingAt = objs;
+                lookingOrDragged = objs;
                 break;
             }
         }
 
-        if (lookingAt != null && lookingAt.CurrentStorage==null)
+        if ((lookingOrDragged != null && lookingOrDragged.CurrentStorage == null))
         {
             foreach (var box in _allStorageAnchors)
             {
                 if (!box.IsFull)
                 {
-                    box.Preview(lookingAt);
+                    box.PreviewedObject = lookingOrDragged;
                     return; // Exit method after previewing the object
                 }
             }
@@ -83,7 +83,7 @@ public class OrbStorageManager : Singleton<OrbStorageManager>
 
         // If no object is being previewed or no storage anchor is available, clear previews
         foreach (var box in _allStorageAnchors)
-            box.UnPreview();
+            box.PreviewedObject = null;
 
         if (_isMessageRight != Orb.Instance.IsMessageRight)
             UpdateIdealLayout();

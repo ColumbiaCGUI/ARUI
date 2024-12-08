@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Net.Http.Headers;
 using UnityEngine;
+using UnityEngine.UI;
 
 /// <summary>
 /// Represents a storable object that can be set to follow the virtual agent
@@ -44,11 +46,19 @@ public class StorableObject : MonoBehaviour
     public StorableGrabbable Grabbable => _grabbable;
 
     private bool _droppableZone = false;
+
+    public Vector3 BoxScale = Vector3.one;
     public bool Droppable
     {
         get { return _droppableZone; }
         set { _droppableZone = value; }
     }
+
+    private StorableImage _image;
+
+    private VMNonControllable _VMObject;
+
+    private Coroutine _scalingCoroutine = null;
 
     /// <summary>
     /// Every frame, check if the object is being looked at or grabbed, and if not, 
@@ -56,13 +66,31 @@ public class StorableObject : MonoBehaviour
     /// </summary>
     public void Update()
     {
+        if (_image)
+        {
+            _image.transform.position = transform.position;
+            _image.transform.rotation = transform.rotation;
+            _image.UpdateVisibility(_isLookingAt, CurrentStorage);
+        }
+
         if (EyeGazeManager.Instance)
             _isLookingAt = EyeGazeManager.Instance.CurrentHitID == gameObject.GetInstanceID();
 
         if (CurrentStorage != null && !_isLookingAt && !_grabbable.IsDragged)
         {
             transform.position = Vector3.Lerp(transform.position, CurrentStorage.transform.position, _followSpeed * Time.deltaTime);
-            transform.rotation = Quaternion.LookRotation(transform.position-AngelARUI.Instance.ARCamera.transform.position);
+            transform.rotation = Quaternion.LookRotation(transform.position - AngelARUI.Instance.ARCamera.transform.position);
+
+            _VMObject.vmactive = false;
+        }
+
+        if (CurrentStorage != null || _isLookingAt || _grabbable.IsDragged)
+        {
+            _VMObject.vmactive = false;
+
+        } else
+        {
+            _VMObject.vmactive = true;
         }
     }
 
@@ -99,6 +127,32 @@ public class StorableObject : MonoBehaviour
         EyeGazeManager.Instance.RegisterEyeTargetID(gameObject);
 
         _grabbable = gameObject.AddComponent<StorableGrabbable>();
+
+        _VMObject = gameObject.AddComponent<VMNonControllable>();
+
+        var dim = ARUISettings.SizeAtStorage;
+        Vector3 targetScale = new Vector3(dim, dim, dim);
+
+        // Get the world size of the target GameObject's mesh
+        Vector3 currentScale = Vector3.Scale(_originalBounds, transform.lossyScale);
+
+        // Calculate the uniform scaling factor for the target GameObject to fit inside the current GameObject's dimensions
+        float scaleFactorX = targetScale.x / currentScale.x;
+        float scaleFactorY = targetScale.y / currentScale.y;
+        float scaleFactorZ = targetScale.z / currentScale.z;
+        float uniformScaleFactor = Mathf.Min(scaleFactorX, Mathf.Min(scaleFactorY, scaleFactorZ));
+
+        // Apply the new uniform scale to the target GameObject
+        BoxScale = transform.localScale * uniformScaleFactor;
+
+        var imagetype = gameObject.GetComponentInChildren<Image>(true);
+        if (imagetype)
+        {
+            _image = new GameObject(gameObject.name+"_preview").AddComponent<StorableImage>();
+            _image.transform.position = transform.position;
+            _image.transform.rotation = transform.rotation;
+            _image.Initialize(imagetype, _originalScale, BoxScale);
+        }
     }
 
     public void Deregister()
@@ -112,7 +166,116 @@ public class StorableObject : MonoBehaviour
         if (!_hadCollider)
             Destroy(_collider);
         Destroy(_grabbable);
+
+        if(_image)
+            Destroy(_image.gameObject);
     }
+
+
+    #endregion
+
+    #region Tether and Untethering
+
+    /// <summary>
+    /// Scale object to original size. This is called when the object is untethered
+    /// </summary>
+    public void ToOriginalPosScale(Vector3? newPos = null)
+    {
+        Vector3 targetPos = _originalPosition;
+        if (newPos != null)
+            targetPos = (Vector3)newPos;
+
+        StartCoroutine(SetToTargetPosAndScale(targetPos));
+    }
+
+    public void ToOriginalScale()
+    {
+        if (_scalingCoroutine !=null)
+        {
+            StopCoroutine(_scalingCoroutine);
+        }
+
+        StartCoroutine(SetToTargetScale(_originalScale));
+    }
+
+    /// <summary>
+    /// Scales the current GameObject to fit within a bounding box of a specified radius.
+    /// It calculates the uniform scale factor based on the mesh or UI element size to
+    /// ensure the GameObject is resized proportionally within the given radius.
+    /// </summary>
+    /// <param name="dim">The dim of the bounding box within which the GameObject should fit.</param>
+    public void ToBoxScale()
+    {
+        if (_scalingCoroutine != null)
+        {
+            StopCoroutine(_scalingCoroutine);
+        }
+
+        StartCoroutine(SetToTargetScale(BoxScale));
+    }
+
+
+    /// <summary>
+    /// TODO
+    /// </summary>
+    /// <param name="targetScale"></param>
+    /// <returns></returns>
+    private IEnumerator SetToTargetScale(Vector3 targetScale)
+    {
+        float elapsedTime = Time.deltaTime;
+        Vector3 startScale = transform.localScale;
+        while (Vector3.Distance(transform.localScale, targetScale) > 0.001f)
+        {
+            float t = (elapsedTime / _moveDuration);
+            transform.localScale = Vector3.Lerp(startScale, targetScale, t);
+
+            elapsedTime += Time.deltaTime;
+            yield return new WaitForEndOfFrame();
+        }
+
+        transform.localScale = targetScale;
+    }
+
+    /// <summary>
+    /// Smoothly moves the GameObject back to its original position and scale over a duration of 1 second.
+    /// Uses linear interpolation for the transition and ensures the final position and scale 
+    /// are set accurately at the end of the movement.
+    /// </summary>
+    /// <param name="targetPos">new position after untethering</param>
+    /// <returns></returns>
+    private IEnumerator SetToTargetPosAndScale(Vector3 targetPos)
+    {
+        Vector3 targetScale = _originalScale;
+
+        float elapsedTime = Time.deltaTime;
+        Vector3 startPos = transform.position;
+        Vector3 startScale = transform.localScale;
+        while (Vector3.Distance(transform.localScale, targetScale) > 0.001f)
+        {
+            float t = (elapsedTime / _moveDuration);
+            transform.position = Vector3.Lerp(startPos, targetPos, t);
+            transform.localScale = Vector3.Lerp(startScale, targetScale, t);
+
+            elapsedTime += Time.deltaTime;
+            yield return new WaitForEndOfFrame();
+        }
+
+        transform.position = targetPos;
+        transform.localScale = _originalScale;
+    }
+
+
+    public void SetPreview(bool previewmode)
+    {
+        if (_image)
+        {
+            _image.SetPreviewMode(previewmode, CurrentStorage);
+        }  
+    }
+
+    #endregion
+
+    #region Collider Management
 
     /// <summary>
     /// Try to get the extents of this mesh by checking canvas or meshfilter components in children and this one
@@ -126,7 +289,8 @@ public class StorableObject : MonoBehaviour
             _originalBounds = new Vector3(targetCanvas.rect.width, targetCanvas.rect.height, 0.001f);
             return Vector3.zero;
 
-        } else if (GetComponentsInChildren<MeshFilter>()!=null) //check for meshfilter components
+        }
+        else if (GetComponentsInChildren<MeshFilter>() != null) //check for meshfilter components
         {
             Bounds combinedBounds = GetCombinedBounds();
 
@@ -146,9 +310,13 @@ public class StorableObject : MonoBehaviour
             return adjustedCenter;
         }
 
-        return Vector3.zero; 
+        return Vector3.zero;
     }
 
+    /// <summary>
+    /// TODO
+    /// </summary>
+    /// <returns></returns>
     private Bounds GetCombinedBounds()
     {
         // Initialize an empty bounds object.
@@ -217,7 +385,7 @@ public class StorableObject : MonoBehaviour
                 _hadCollider = true;
             }
 
-            if (maxDim<0)
+            if (maxDim < 0)
                 return false;
 
             _originalBounds = new Vector3(
@@ -232,71 +400,5 @@ public class StorableObject : MonoBehaviour
     }
 
     #endregion
-
-    #region Tether and Untethering
-
-    /// <summary>
-    /// Scale object to original size. This is called when the object is untethered
-    /// </summary>
-    public void ToOriginalPosScale(Vector3? newPos = null)
-    {
-        Vector3 targetPos = _originalPosition;
-        if (newPos != null)
-            targetPos = (Vector3)newPos;
-
-        StartCoroutine(ToOriginalPosScale(targetPos));
-    }
-
-    /// <summary>
-    /// Smoothly moves the GameObject back to its original position and scale over a duration of 1 second.
-    /// Uses linear interpolation for the transition and ensures the final position and scale 
-    /// are set accurately at the end of the movement.
-    /// </summary>
-    /// <param name="targetPos">new position after untethering</param>
-    /// <returns></returns>
-    private IEnumerator ToOriginalPosScale(Vector3 targetPos)
-    {
-        Vector3 targetScale = _originalScale;
-
-        float elapsedTime = Time.deltaTime;
-        Vector3 startPos = transform.position;
-        Vector3 startScale = transform.localScale;
-        while (Vector3.Distance(transform.localScale, targetScale) > 0.001f)
-        {
-            float t = (elapsedTime / _moveDuration);
-            transform.position = Vector3.Lerp(startPos, targetPos, t);
-            transform.localScale = Vector3.Lerp(startScale, targetScale, t);
-
-            elapsedTime += Time.deltaTime;
-            yield return new WaitForEndOfFrame();
-        }
-
-        transform.position = targetPos;
-        transform.localScale = _originalScale;
-    }
-
-    /// <summary>
-    /// Scales the current GameObject to fit within a bounding box of a specified radius.
-    /// It calculates the uniform scale factor based on the mesh or UI element size to
-    /// ensure the GameObject is resized proportionally within the given radius.
-    /// </summary>
-    /// <param name="dim">The dim of the bounding box within which the GameObject should fit.</param>
-    public void ScaleToBoxSize(float dim)
-    {
-        Vector3 targetScale = new Vector3(dim, dim, dim);
-
-        // Get the world size of the target GameObject's mesh
-        Vector3 currentScale = Vector3.Scale(_originalBounds, transform.lossyScale);
-
-        // Calculate the uniform scaling factor for the target GameObject to fit inside the current GameObject's dimensions
-        float scaleFactorX = targetScale.x / currentScale.x;
-        float scaleFactorY = targetScale.y / currentScale.y;
-        float scaleFactorZ = targetScale.z / currentScale.z;
-        float uniformScaleFactor = Mathf.Min(scaleFactorX, Mathf.Min(scaleFactorY, scaleFactorZ));
-
-        // Apply the new uniform scale to the target GameObject
-        transform.localScale = transform.localScale * uniformScaleFactor;
-    }
-
-    #endregion
 }
+

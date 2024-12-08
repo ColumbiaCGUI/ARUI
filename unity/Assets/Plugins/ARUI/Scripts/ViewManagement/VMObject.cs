@@ -3,6 +3,7 @@ using UnityEngine;
 public class VMObject : MonoBehaviour
 {
     public Rect AABB; //AABB: minx, miny, maxX, maxY - GUI coordinate system
+    public bool vmactive = true;
 
     private void Start()
     {

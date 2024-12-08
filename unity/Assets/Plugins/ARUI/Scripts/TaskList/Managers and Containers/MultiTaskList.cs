@@ -113,7 +113,7 @@ public class MultiTaskList : Singleton<MultiTaskList>
     #region Setting inidvidual recipe menus active/inative
 
     /// <summary>
-    /// Sets the overview menu defined by index active
+    /// Sets the _overview menu defined by index active
     /// An index of 0 represents the main task while
     /// other indeces are secondary tasks
     /// </summary>
@@ -143,7 +143,7 @@ public class MultiTaskList : Singleton<MultiTaskList>
 
     /// <summary>
     /// Takes in all the current tasks stored, key of the current task 
-    /// and updates the task overview based on data provided
+    /// and updates the task _overview based on data provided
     /// </summary>
     /// <param name="tasks"></param>
     /// <param name="currTask"></param>
@@ -239,7 +239,7 @@ public class MultiTaskList : Singleton<MultiTaskList>
     #region Task overview visibility
 
     /// <summary>
-    /// Set the overview (containing all task data) active or inactive
+    /// Set the _overview (containing all task data) active or inactive
     /// based on current state of _followCameraContainer
     /// </summary>
     public void ToggleOverview()
@@ -259,7 +259,7 @@ public class MultiTaskList : Singleton<MultiTaskList>
     }
 
     /// <summary>
-    /// Set the overview (containing all task data) active or inactive
+    /// Set the _overview (containing all task data) active or inactive
     /// </summary>
     public void SetTaskOverViewVisibility(bool visible)
     {
@@ -274,7 +274,7 @@ public class MultiTaskList : Singleton<MultiTaskList>
     }
 
     /// <summary>
-    /// Set the position of the task overview panel. The panel will always face the user.
+    /// Set the position of the task _overview panel. The panel will always face the user.
     /// </summary>
     /// <param name="worldPosition"></param>
     public void SetPosition(Vector3 worldPosition)
@@ -283,7 +283,7 @@ public class MultiTaskList : Singleton<MultiTaskList>
     }
 
     /// <summary>
-    /// Fades out entire task overview 
+    /// Fades out entire task _overview 
     /// once user does not look at it for a certain
     /// period of time
     /// </summary>

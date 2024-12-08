@@ -10,6 +10,7 @@ task_classes = {
 current_task = 1
 current_instructions = None
 current_taskID = 0 #step index
+current_taskoverview = None
 
 instruction_string = ""
 
@@ -18,15 +19,16 @@ def initiate_task(task_id):
     global current_instructions
     global instruction_string
     global current_taskID
+    global current_taskoverview
 
     current_instructions = utils.json_to_dict("data/"+task_classes[task_id])
     current_task = task_id
     current_taskID= 0
 
-    overview_image = ""
+    current_taskoverview = None
     from_file = utils.read_base64_text_file("data/overview")
     if from_file:
-        overview_image = from_file
+        current_taskoverview = from_file
 
     steps_string = ""
     for step, details in current_instructions.items():
@@ -35,7 +37,7 @@ def initiate_task(task_id):
     instruction_string = f"Please guide me through the following tasks one-by-one. In this converstaion I might ask some questions. Use the givne visual context to answer them. \
              Complete task list is here: {steps_string}."
     llm.clear_conv_history()
-    llm.continue_conv(instruction_string, overview_image)
+    llm.continue_conv(instruction_string, image=current_taskoverview)
     
 def get_current_task_str():
     if current_instructions is None:

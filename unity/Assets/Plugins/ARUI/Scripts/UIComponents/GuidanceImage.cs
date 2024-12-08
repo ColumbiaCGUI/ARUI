@@ -1,12 +1,11 @@
 ﻿using System;
-using System.Runtime.InteropServices;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class GuidanceImage : Singleton<GuidanceImage>
+public class GuidanceImage : MonoBehaviour
 {
     // Reference to the Image component on the GameObject
-    private Image targetImage;
+    private Image targetImage = null;
 
     private bool _registered = false;
 
@@ -26,7 +25,7 @@ public class GuidanceImage : Singleton<GuidanceImage>
     /// Loads a Base64 encoded image, adjusts its width and height, and applies it to the Image component
     /// </summary>
     /// <param name="base64String">Base64 encoded image string</param>
-    public void LoadBase64Image(string base64String)
+    public void UpdateImage(string base64String)
     {
         if (string.IsNullOrEmpty(base64String))
         {
@@ -73,6 +72,22 @@ public class GuidanceImage : Singleton<GuidanceImage>
         catch (Exception ex)
         {
             Debug.LogError($"Error while processing Base64 image: {ex.Message}");
+        }
+    }
+
+    public void Tether()
+    {
+        if (targetImage != null)
+        {
+            AngelARUI.Instance.Tether(gameObject.GetInstanceID());
+        }
+    }
+
+    public void Untether()
+    {
+        if (targetImage != null)
+        {
+            AngelARUI.Instance.Untether(gameObject.GetInstanceID());
         }
     }
 }

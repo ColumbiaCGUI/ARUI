@@ -29,8 +29,8 @@ public class TasklistPositionManager : Singleton<TasklistPositionManager>
     private float _currentMaxDistance = 1.2f;
 
     /// <summary>
-    /// Function to have the task overview snap to the center of all required objects
-    /// This is done when the recipe goes from one step to another. By default, the overview
+    /// Function to have the task _overview snap to the center of all required objects
+    /// This is done when the recipe goes from one step to another. By default, the _overview
     /// stays on the center of all required objects
     /// Source -> https://www.blueraja.com/blog/404/how-to-use-unity-3ds-linear-interpolation-vector3-lerp-correctly
     /// </summary>

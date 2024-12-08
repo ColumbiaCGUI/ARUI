@@ -9,7 +9,7 @@ using Windows.Foundation.Diagnostics;
 #endif
 
 /// <summary>
-/// Interface to the ARUI Components - a floating assistant in the shape as an orb and a task overview panel.
+/// Interface to the ARUI Components - a floating assistant in the shape as an orb and a task _overview panel.
 /// </summary>
 public class AngelARUI : Singleton<AngelARUI>
 {
@@ -77,10 +77,6 @@ public class AngelARUI : Singleton<AngelARUI>
         eyeTarget.AddComponent<EyeGazeManager>();
         EyeGazeManager.Instance.ShowEyeGazeTargetIndicator = _showEyeGazeTarget;
 
-        //GameObject handPoseManager = Instantiate(Resources.Load(StringResources.HandPoseManager_path)) as GameObject;
-        //handPoseManager.gameObject.name = "***ARUI-" + StringResources.HandPoseManager_name;
-        yield return new WaitForEndOfFrame();
-
         //Instantiate the heuristic based hand pose detector
         GameObject handPoseManager = Instantiate(Resources.Load(StringResources.HandPoseManager_path)) as GameObject;
         handPoseManager.gameObject.name = "***ARUI-" + StringResources.HandPoseManager_name;
@@ -116,10 +112,8 @@ public class AngelARUI : Singleton<AngelARUI>
 
         var ClientSub = new GameObject("***ARUI-Dialog-Client").AddComponent<HelloClient>();
 
-        GameObject helperImage = Instantiate(Resources.Load(StringResources.HelperImage_path)) as GameObject;
-        helperImage.gameObject.name = "***ARUI-HelperImage";
-        helperImage.AddComponent<GuidanceImage>();
-        yield return new WaitForEndOfFrame();
+        GameObject guidancematerialhelper = new GameObject("***ARUI-GuidanceMaterialManager");
+        guidancematerialhelper.AddComponent<GuidanceMaterialManager>();
     }
 
     #region Task Guidance
@@ -179,19 +173,19 @@ public class AngelARUI : Singleton<AngelARUI>
     #region Taskoverview Panel
 
     /// <summary>
-    /// Turn the task overview panel on or off. If 'show' is true, the task overview panel will appear in front of the user
+    /// Turn the task _overview panel on or off. If 'show' is true, the task _overview panel will appear in front of the user
     /// </summary>
     /// <param name="show"></param>
     public void ShowTaskoverviewPanel(bool show) => MultiTaskList.Instance.SetTaskOverViewVisibility(show);
 
     /// <summary>
-    /// Change the position of the task overview panel 
+    /// Change the position of the task _overview panel 
     /// </summary>
     /// <param name="worldSpacePos"></param>
     public void SetTaskOverviewPosition(Vector3 worldSpacePos) => MultiTaskList.Instance.SetPosition(worldSpacePos);
 
     /// <summary>
-    /// Toggle the visibiliy of the task overview panel
+    /// Toggle the visibiliy of the task _overview panel
     /// </summary>
     public void ToggleTaskOverview() => MultiTaskList.Instance.ToggleOverview();
 

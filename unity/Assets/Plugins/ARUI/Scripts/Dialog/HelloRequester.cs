@@ -48,8 +48,9 @@ public class HelloRequester : RunAbleThread
                                 break;
                             case "888":
                                 AngelARUI.Instance.SetAgentThinking(false);
-                                AngelARUI.Instance.DebugLogMessage("incomming task",true);
+                                AngelARUI.Instance.DebugLogMessage("Incoming assembly task",true);
                                 AngelARUI.Instance.SetManual("Assemble T-Rex", message.Substring(4));
+                                AngelARUI.Instance.SetAgentMessageAlignment(MessageAlignment.LockRight);
                                 break;
                             case "001":
                                 AngelARUI.Instance.SetAgentThinking(false);
@@ -60,7 +61,14 @@ public class HelloRequester : RunAbleThread
                                 AngelARUI.Instance.GoToStep("Assemble T-Rex", Int32.Parse(message.Substring(4)));
                                 break;
                             case "010":
-                                AngelARUI.Instance.Tether(GuidanceImage.Instance.gameObject.GetInstanceID());
+                                GuidanceMaterialManager.Instance.TaskImage.Tether();
+                                GuidanceMaterialManager.Instance.OverviewImage.Tether();
+                                AngelARUI.Instance.SetAgentThinking(false);
+                                break;
+                            case "111":
+                                string base64image = message.Substring(4);
+                                AngelARUI.Instance.DebugLogMessage("got overview image:" + base64image, true);
+                                GuidanceMaterialManager.Instance.UpdateImage(base64image, GuidanceMaterialType.overview);
                                 AngelARUI.Instance.SetAgentThinking(false);
                                 break;
                             case "---":

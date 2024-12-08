@@ -53,7 +53,7 @@ public class VMNonControllable : VMObject
 
     private void OnGUI()
     {
-        if (!AngelARUI.Instance.PrintVMDebug || this is CVDetectedObj) return;
+        if (!AngelARUI.Instance.PrintVMDebug || this is CVDetectedObj || !vmactive) return;
 
         GUIStyle tintableText = new GUIStyle(GUI.skin.box);
         tintableText.normal.background = Texture2D.whiteTexture; // must be white to tint properly

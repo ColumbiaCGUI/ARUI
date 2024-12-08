@@ -282,7 +282,7 @@ public class OrbMessageContainer : MonoBehaviour
                     if (!_taskNameToOrbPie[taskName].gameObject.activeSelf)
                         _taskNameToOrbPie[taskName].gameObject.SetActive(true);
 
-                    GuidanceImage.Instance.LoadBase64Image(currentActiveTasks[taskName].Steps[currentActiveTasks[taskName].CurrStepIndex].manualImage);
+                    GuidanceMaterialManager.Instance.UpdateImage(currentActiveTasks[taskName].Steps[currentActiveTasks[taskName].CurrStepIndex].manualImage, GuidanceMaterialType.task);
                     _taskNameToOrbPie[taskName].SetTaskMessage(currentActiveTasks[taskName].CurrStepIndex,
                 currentActiveTasks[taskName].Steps.Count,
                     currentActiveTasks[taskName].Steps[currentActiveTasks[taskName].CurrStepIndex].StepDesc, currentActiveTasks.Count >1);
