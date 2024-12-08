@@ -190,19 +190,11 @@ public class StorableObject : MonoBehaviour
         else
         {
 
-            RaycastHit hit = transform.GetFirstWorldIntersectPoint();
-            if (hit.point != null)
-            {
-                targetPos = hit.point;
-            }
-            else
-            {
-                Vector3 cameraForward = AngelARUI.Instance.ARCamera.transform.forward;
-                Quaternion rotation = Quaternion.Euler(0, 15, 0); // 15 degrees around the Y-axis
-                Vector3 rotatedDirection = rotation * cameraForward;
+            Vector3 cameraForward = AngelARUI.Instance.ARCamera.transform.forward;
+            Quaternion rotation = Quaternion.Euler(0, 15, 0); // 15 degrees around the Y-axis
+            Vector3 rotatedDirection = rotation * cameraForward;
 
-                targetPos = AngelARUI.Instance.ARCamera.transform.position + rotatedDirection.normalized;  // Normalize to ensure it's exactly 1 meter away.
-            }
+            targetPos = AngelARUI.Instance.ARCamera.transform.position + rotatedDirection.normalized;  // Normalize to ensure it's exactly 1 meter away.
         }
 
         if (newPos != null)
