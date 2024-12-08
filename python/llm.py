@@ -94,15 +94,12 @@ def continue_conv(sentence, image=None, observed_activity=None, task_status=None
     prompt_prep.append({ "role": "user", "content": user_prompt})
     response = query_LLM(prompt_prep)
 
-    if response is None or utils.similar(response.lower(),"none") > 0.6:
-        if image:
-            user_content = content
-        else:
-            user_content = user_prompt
-    
-        response = "mhm"
+    if image:
+        user_content = content
+    else:
+        user_content = user_prompt
 
-        add_to_history(user_content, response)
+    add_to_history(user_content, response)
             
     return response
 

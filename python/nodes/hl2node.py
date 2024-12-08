@@ -1,4 +1,5 @@
 import os
+import sys
 from PIL import Image
 from io import BytesIO
 import requests
@@ -11,11 +12,10 @@ import time
 from urllib.parse import urlparse
 
 # HoloLens connection details
-MIXED_REALITY_DEVICE_PORTAL_USERNAME = "bs"
-MIXED_REALITY_DEVICE_PORTAL_PASSWORD = "1591590"
-HOLOLENS_IP_ADDR = (
-    f"http://{MIXED_REALITY_DEVICE_PORTAL_USERNAME}:{MIXED_REALITY_DEVICE_PORTAL_PASSWORD}@192.168.4.70"
-)
+
+HOLOLENS_IP_ADDR = "http://172.20.10.12"  # Example HoloLens IP (replace with actual)
+MIXED_REALITY_DEVICE_PORTAL_USERNAME = "bs"  # Replace with actual username
+MIXED_REALITY_DEVICE_PORTAL_PASSWORD = "1591590"  # Replace with actual password
 
 # Shared resources
 last_frame = None
@@ -38,6 +38,7 @@ def is_device_online(timeout=2):
         return False
 
 
+
 def live_stream(resolution="live.mp4", holo=True, pv=True, mic=False, loopback=False):
     """
     Threaded function to handle the live stream and update the global `last_frame` variable.
@@ -54,23 +55,33 @@ def live_stream(resolution="live.mp4", holo=True, pv=True, mic=False, loopback=F
         params.append("loopback=true")
 
     param_string = "&".join(params)
-    stream_url = f"http://{MIXED_REALITY_DEVICE_PORTAL_USERNAME}:{MIXED_REALITY_DEVICE_PORTAL_PASSWORD}@192.168.4.70/api/holographic/stream/{resolution}?{param_string}"
+    # Explicitly add port (assuming port 80 for HTTP)
+    stream_url = f"https://"+ MIXED_REALITY_DEVICE_PORTAL_USERNAME +":"+ MIXED_REALITY_DEVICE_PORTAL_PASSWORD +"@"+HOLOLENS_IP_ADDR+"/api/holographic/stream/live_high.mp4?holo=false&pv=true&mic=false&loopback=true"
 
     cap = cv2.VideoCapture(stream_url)
     if not cap.isOpened():
-        print("Error: Unable to open the video stream.")
+        print(f"Error: Unable to open the video stream from URL: {stream_url}")
         return
 
     print("Streaming started.")
     while True:
         ret, frame = cap.read()
         if ret:
+            # Update the global frame in a thread-safe manner
             with last_frame_lock:
                 last_frame = frame
                 last_frame_time = time.time()
-        time.sleep(0.01)  # Allow other tasks to run
+
+            # Display the frame in a window
+            cv2.imshow("Live Stream", frame)
+
+        # Allow other tasks to run and check for quit event
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+        time.sleep(0.01)  # Adjust for desired frame rate
 
     cap.release()
+    cv2.destroyAllWindows()
     print("Streaming stopped.")
 
 
@@ -149,4 +160,14 @@ def start():
     live_stream_thread = threading.Thread(target=live_stream, daemon=True)
     live_stream_thread.start()
 
+    try:
+        while True:
+            time.sleep(0.01)
+    except KeyboardInterrupt:
+        print("\nProgram interrupted. Exiting gracefully.")
+        sys.exit()
+
     print("HoloLens live stream started.")
+
+if __name__ == "__main__":
+    start()

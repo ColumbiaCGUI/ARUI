@@ -49,16 +49,16 @@ public class HelloRequester : RunAbleThread
                             case "888":
                                 AngelARUI.Instance.SetAgentThinking(false);
                                 AngelARUI.Instance.DebugLogMessage("Incoming assembly task",true);
-                                AngelARUI.Instance.SetManual("Assemble T-Rex", message.Substring(4));
+                                AngelARUI.Instance.SetManual("Chest Seal", message.Substring(4));
                                 AngelARUI.Instance.SetAgentMessageAlignment(MessageAlignment.LockRight);
                                 break;
                             case "001":
                                 AngelARUI.Instance.SetAgentThinking(false);
-                                AngelARUI.Instance.GoToStep("Assemble T-Rex", Int32.Parse(message.Substring(4)));
+                                AngelARUI.Instance.GoToStep("Chest Seal", Int32.Parse(message.Substring(4)));
                                 break;
                             case "100":
                                 AngelARUI.Instance.SetAgentThinking(false);
-                                AngelARUI.Instance.GoToStep("Assemble T-Rex", Int32.Parse(message.Substring(4)));
+                                AngelARUI.Instance.GoToStep("Chest Seal", Int32.Parse(message.Substring(4)));
                                 break;
                             case "010":
                                 GuidanceMaterialManager.Instance.TaskImage.Tether();

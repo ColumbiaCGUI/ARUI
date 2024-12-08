@@ -440,6 +440,33 @@ public static class Utils
         return -1;
     }
 
+    public static RaycastHit GetFirstWorldIntersectPoint(this Transform t)
+    {
+        int layerMask = 1 << StringResources.LayerToInt(StringResources.spatialAwareness_layer);
+        Vector3 cameraPosition = AngelARUI.Instance.ARCamera.transform.position;
+        Vector3 cameraForward = AngelARUI.Instance.ARCamera.transform.forward;
+
+        RaycastHit hit = new RaycastHit();
+
+        // Loop through every 15-degree angle from -180 to +180 degrees
+        for (int angle = -180; angle <= 180; angle += 15)
+        {
+            // Create a rotation matrix to rotate the forward vector by the angle
+            Quaternion rotation = Quaternion.Euler(0, angle, 0);
+            Vector3 direction = rotation * cameraForward; // Rotate forward vector by the angle
+
+            // Raycast in this new direction
+            if (Physics.Raycast(cameraPosition, direction, out hit, Mathf.Infinity, layerMask))
+            {
+                // Return the hit position and the direction
+                return hit;
+            }
+        }
+
+        // If no hit is found, return a default value or -1 to indicate no intersection
+        return hit; // or return -1 if you want to indicate failure
+    }
+
     public static Vector3 GetWorldIntersectPoint(this Vector3 pos)
     {
         int layerMask = 1 << StringResources.LayerToInt(StringResources.spatialAwareness_layer);

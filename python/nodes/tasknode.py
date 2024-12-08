@@ -4,7 +4,8 @@ import utils.utils as utils
 
 task_classes = {
     1: "None",
-    2: "dinosaur"
+    2: "dinosaur",
+    3: "chest"
 }
 
 current_task = 1
@@ -21,12 +22,12 @@ def initiate_task(task_id):
     global current_taskID
     global current_taskoverview
 
-    current_instructions = utils.json_to_dict("data/"+task_classes[task_id])
+    current_instructions = utils.json_to_dict("data/"+task_classes[task_id]+"/instructions")
     current_task = task_id
     current_taskID= 0
 
     current_taskoverview = None
-    from_file = utils.read_base64_text_file("data/overview")
+    from_file = utils.read_base64_text_file("data/"+task_classes[task_id]+"/overview")
     if from_file:
         current_taskoverview = from_file
 

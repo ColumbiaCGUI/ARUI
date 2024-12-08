@@ -16,7 +16,7 @@ public class StorableImage : MonoBehaviour
     private bool _isLookedAt = false;
     private Color CurrentTargetColor = new Color(0.5f, 0.5f, 0.5f, 0.5f);
     private Color _targetLookingColor = new Color(1f, 1f, 1f, 0.9f);
-    private Color _targetNotLookingColor = new Color(0.5f, 0.5f, 0.5f, 0.5f);
+    private Color _targetNotLookingColor = new Color(1f, 1f, 1f, 0.7f);
 
     public void Initialize(Image original, Vector3 boxscale, Vector3 originalScale)
     {

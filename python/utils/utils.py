@@ -91,7 +91,6 @@ def json_to_dict(file_path):
         steps_dict[f"{index}"] = {
             "StepDesc": step["StepDesc"],
             "ManualImage": step["manualImage"],
-            "ResultImage": step["result_image"]
         }
     
     return steps_dict

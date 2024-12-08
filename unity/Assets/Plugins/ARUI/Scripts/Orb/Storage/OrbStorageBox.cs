@@ -36,6 +36,7 @@ public class OrbStorageBox : MonoBehaviour
         _connection.enabled = false;
 
         _draggingHandle = transform.GetChild(0).gameObject.AddComponent<DraggableHandle>();
+        _draggingHandle.SetInvisible(true);
     }
 
     public void Update()

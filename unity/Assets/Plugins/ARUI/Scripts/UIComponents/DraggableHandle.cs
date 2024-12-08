@@ -21,6 +21,12 @@ public class DraggableHandle : MonoBehaviour
         _fixingProgress = progress;
     }
 
+    public void SetInvisible(bool v)
+    {
+        if (_indicator)
+            _indicator.enabled = !v;
+    }
+
     public void Start()
     {
         _indicator = gameObject.GetComponentInChildren<Shapes.Triangle>();
@@ -32,5 +38,6 @@ public class DraggableHandle : MonoBehaviour
         _isActive = _fixingProgress > 0.0f;
         _indicator.gameObject.SetActive(_isActive);
     }
+
 
 }

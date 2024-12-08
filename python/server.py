@@ -17,9 +17,13 @@ context = zmq.Context()
 audio_data = {"last_captured_sentence": ""}
 audio_data_lock = threading.Lock()
 
+taskID = 3
+
 async def process_user_utterance(socket):
     """Process the user utterance asynchronously."""
     global audio_data
+    global taskID
+
     user_utterance = ""
     with audio_data_lock:
         user_utterance = audio_data["last_captured_sentence"]
@@ -87,8 +91,8 @@ def send_to_next(socket):
 
 def send_reset(socket):
     print("Send (re)start task")
-    tasknode.initiate_task(2)
-    socket.send_string("888:"+utils.load_file("data/dinosaur"))
+    tasknode.initiate_task(taskID)
+    socket.send_string("888:" + utils.load_file(("data/"+tasknode.task_classes[taskID]+"/instructions")))
     if tasknode.current_taskoverview is not None:
         socket.send_string("111:"+tasknode.current_taskoverview)
 
@@ -106,8 +110,8 @@ async def main_loop():
         print(f"Failed to bind ZMQ socket: {e}")
         return
     
-    tasknode.initiate_task(2)
-    socket.send_string("888:" + utils.load_file("data/dinosaur"))
+    tasknode.initiate_task(taskID)
+    socket.send_string("888:" + utils.load_file(("data/"+tasknode.task_classes[taskID]+"/instructions")))
 
     last_left_pressed = False
     last_right_pressed = False
