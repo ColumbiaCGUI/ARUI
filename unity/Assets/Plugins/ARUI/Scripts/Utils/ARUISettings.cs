@@ -17,7 +17,7 @@ public static class ARUISettings
     public static readonly float OrbMaxViewDegRegular = 13f;
     public static readonly float OrbMaxViewDegCenter = 10f;
 
-    public static readonly float OrbMoveLerpRegular = 0.7f;
+    public static readonly float OrbMoveLerpRegular = 0.05f;
     public static readonly float OrbOutOfFOVThresV = 21;      /// <in radial deg
 
     public static readonly Color OrbMessageBGColor = new Color(0.06f, 0.06f, 0.06f, 0.5f);

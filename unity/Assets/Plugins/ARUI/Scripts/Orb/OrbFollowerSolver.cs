@@ -245,10 +245,10 @@ public class OrbFollowerSolver : Solver
         if (_isSticky)
             SetSticky(false);
 
-        StartCoroutine(rushToCenter());
+        StartCoroutine(RushToCenter());
     }
 
-    private IEnumerator rushToCenter()
+    private IEnumerator RushToCenter()
     {
         _currentMaxViewDegrees = ARUISettings.OrbMaxViewDegCenter;
         MoveLerpTime = 0.3f;
