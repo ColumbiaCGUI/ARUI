@@ -18,6 +18,7 @@ audio_data = {"last_captured_sentence": ""}
 audio_data_lock = threading.Lock()
 
 taskID = 2
+startID = 7
 
 async def process_user_utterance(socket):
     """Process the user utterance asynchronously."""
@@ -89,10 +90,12 @@ def send_to_next(socket):
     tasknode.go_to_next()
     socket.send_string("001-" + str(tasknode.current_taskID))
 
-def send_reset(socket):
+async def send_reset(socket):
     print("Send (re)start task")
-    tasknode.initiate_task(taskID)
+    tasknode.initiate_task(taskID,startID)
     socket.send_string("888:" + utils.load_file(("data/"+tasknode.task_classes[taskID]+"/instructions")))
+    await asyncio.sleep(1)
+    socket.send_string("001-" + str(tasknode.current_taskID))
     if tasknode.current_taskoverview is not None:
         socket.send_string("111:"+tasknode.current_taskoverview)
 
@@ -110,8 +113,7 @@ async def main_loop():
         print(f"Failed to bind ZMQ socket: {e}")
         return
     
-    tasknode.initiate_task(taskID)
-    socket.send_string("888:" + utils.load_file(("data/"+tasknode.task_classes[taskID]+"/instructions")))
+    await send_reset(socket)
 
     last_left_pressed = False
     last_right_pressed = False
@@ -128,7 +130,7 @@ async def main_loop():
                 send_to_next(socket)
                 await asyncio.sleep(0.3)
             elif current_reset:
-                send_reset(socket)
+                await send_reset(socket)
                 await asyncio.sleep(0.3)
             elif current_manual:
                 send_show_manual(socket)

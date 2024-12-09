@@ -120,7 +120,7 @@ def process_mic_stream(server_callback):
                 mic_sentence = ""
                 if rec_mic.AcceptWaveform(mic_data):
                     final_result = parse_utterance(rec_mic.Result())
-                    if len(final_result.strip().split(" ")) > 1 and "follow" not in final_result.lower() and "unfollow" not in final_result.lower() and "on follow" not in final_result.lower() and "and follow" not in final_result.lower() and "the follow" not in final_result.lower():
+                    if len(final_result.strip().split(" ")) > 1 and "follow" not in final_result.lower() and "unfollow" not in final_result.lower() and "on follow" not in final_result.lower() and "and follow" not in final_result.lower() and "the follow" not in final_result.lower() and "angel" in final_result.lower():
                         mic_sentence = final_result
                         if mic_sentence.lower().startswith("the "):
                             mic_sentence = mic_sentence[4:]  # Remove the first 4 characters (length of "the ")

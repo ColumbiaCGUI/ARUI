@@ -15,7 +15,7 @@ current_taskoverview = None
 
 instruction_string = ""
 
-def initiate_task(task_id):
+def initiate_task(task_id,startID=0):
     global current_task
     global current_instructions
     global instruction_string
@@ -24,7 +24,7 @@ def initiate_task(task_id):
 
     current_instructions = utils.json_to_dict("data/"+task_classes[task_id]+"/instructions")
     current_task = task_id
-    current_taskID= 0
+    current_taskID = startID
 
     current_taskoverview = None
     from_file = utils.read_base64_text_file("data/"+task_classes[task_id]+"/overview")
@@ -43,7 +43,11 @@ def initiate_task(task_id):
 def get_current_task_str():
     if current_instructions is None:
         return ""
-    return current_instructions[str(current_taskID+1)]['StepDesc']
+    
+    if current_taskID>=len(current_instructions):
+        return "User is done!"
+    else:
+        return current_instructions[str(current_taskID+1)]['StepDesc']
 
 def get_task_status_prompt():
     if current_instructions is None:
@@ -55,7 +59,7 @@ def go_to_previous():
     if current_taskID > 0:  # Ensure it doesn't go below 0
         current_taskID -= 1
         #llm.continue_conv(f"I just wanted to let you know that I moved on to {str(current_taskID+1)} - {get_current_task_str()}")
-        print(f"Moved to the previous task with id {current_taskID} - {get_current_task_str()}")
+        print(f"Moved to the previous task with id {current_taskID+1} - {get_current_task_str()}")
 
 def go_to_next():
     global current_taskID
@@ -64,4 +68,8 @@ def go_to_next():
         if current_taskID < max_taskID:  # Ensure it doesn't exceed the limit
             current_taskID += 1
             #llm.continue_conv(f"I just wanted to let you know that I went back to {str(current_taskID+1)} - {get_current_task_str()}")
-            print(f"Moved to the next task with id {current_taskID} - {get_current_task_str()}")
+            print(f"Moved to the next task with id {current_taskID+1} - {get_current_task_str()}")
+        elif current_taskID == max_taskID:  # Ensure it doesn't exceed the limit
+            current_taskID = max_taskID+1
+            #llm.continue_conv(f"I just wanted to let you know that I went back to {str(current_taskID+1)} - {get_current_task_str()}")
+            print(f"User is done")
