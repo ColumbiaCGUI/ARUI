@@ -71,6 +71,12 @@ def monitor_speaker_stream():
         print(f"Error in monitoring speaker stream: {e}", file=sys.stderr)
 
 
+import re
+
+# Define the forbidden phrases
+forbidden_phrases = [r'\bfollow\b', r'\bunfollow\b', r'\bon follow\b', r'\band follow\b', r'\bthe follow\b']
+
+
 def process_mic_stream(server_callback):
     """Processes the microphone stream, applying VAD and ASR."""
     try:
@@ -114,9 +120,9 @@ def process_mic_stream(server_callback):
                 mic_sentence = ""
                 if rec_mic.AcceptWaveform(mic_data):
                     final_result = parse_utterance(rec_mic.Result())
-                    if len(final_result.strip().split(" ")) > 1:
+                    if len(final_result.strip().split(" ")) > 1 and "follow" not in final_result.lower() and "unfollow" not in final_result.lower() and "on follow" not in final_result.lower() and "and follow" not in final_result.lower() and "the follow" not in final_result.lower():
                         mic_sentence = final_result
-                        if mic_sentence.lower().startswith("the ") and "follow" not in mic_sentence.lower() and "unfollow" not in mic_sentence.lower() and "on follow" not in mic_sentence.lower() and "and follow" not in mic_sentence.lower() and "the follow" not in mic_sentence.lower():
+                        if mic_sentence.lower().startswith("the "):
                             mic_sentence = mic_sentence[4:]  # Remove the first 4 characters (length of "the ")
 
                 if len(mic_sentence.strip().split(" ")) > 1:

@@ -26,5 +26,6 @@ public class HelloClient : MonoBehaviour
     {
         _helloRequester.CloseConnection();
         _helloRequester.Stop();
+
     }
 }

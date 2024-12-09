@@ -434,20 +434,20 @@ public class ViewManagement : Singleton<ViewManagement>
 
         if (lastClosest == null) return;
 
-        for (int i = 0; i < lastClosest.Count; i++) { 
-            GUI.backgroundColor = new Color(Random.Range(0f, 1f), Random.Range(0f, 1f), Random.Range(0f, 1f), 0.2f);
-            Rect scaledRect = new Rect(lastClosest[i].x * scale, lastClosest[i].y * scale, lastClosest[i].width * scale, lastClosest[i].height * scale);
-            GUI.Box(scaledRect, "Bounding Box : (" + lastClosest[i].x
-                                            + "," + lastClosest[i].y
-                                            + "," + lastClosest[i].width
-                                            + "," + lastClosest[i].height, tintableText);
+        //for (int i = 0; i < lastClosest.Count; i++) { 
+        //    GUI.backgroundColor = new Color(Random.Range(0f, 1f), Random.Range(0f, 1f), Random.Range(0f, 1f), 0.2f);
+        //    Rect scaledRect = new Rect(lastClosest[i].x * scale, lastClosest[i].y * scale, lastClosest[i].width * scale, lastClosest[i].height * scale);
+        //    GUI.Box(scaledRect, "Bounding Box : (" + lastClosest[i].x
+        //                                    + "," + lastClosest[i].y
+        //                                    + "," + lastClosest[i].width
+        //                                    + "," + lastClosest[i].height, tintableText);
 
-            if (lastTargetPoint!=null && i< lastTargetPoint.Count)
-            {
-                scaledRect = new Rect(lastTargetPoint[i].x * scale, lastTargetPoint[i].y * scale, 10, 10);
-                GUI.Box(scaledRect, ".", tintableText);
-            }
-        }   
+        //    if (lastTargetPoint!=null && i< lastTargetPoint.Count)
+        //    {
+        //        scaledRect = new Rect(lastTargetPoint[i].x * scale, lastTargetPoint[i].y * scale, 10, 10);
+        //        GUI.Box(scaledRect, ".", tintableText);
+        //    }
+        //}   
 
 
     }

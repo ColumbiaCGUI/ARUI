@@ -17,7 +17,7 @@ context = zmq.Context()
 audio_data = {"last_captured_sentence": ""}
 audio_data_lock = threading.Lock()
 
-taskID = 3
+taskID = 2
 
 async def process_user_utterance(socket):
     """Process the user utterance asynchronously."""
